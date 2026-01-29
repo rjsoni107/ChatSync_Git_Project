@@ -51,7 +51,7 @@ export default function EditUserProfile({ onClose, user }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-md p-4"
+            className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 backdrop-blur-sm p-4"
         >
             <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -74,10 +74,7 @@ export default function EditUserProfile({ onClose, user }) {
                     </header>
 
                     <div className="flex flex-col items-center mb-6">
-                        <div
-                            className="relative cursor-pointer group"
-                            onClick={() => fileInputRef.current.click()}
-                        >
+                        <div className="relative cursor-pointer group" onClick={() => fileInputRef.current.click()}>
                             <motion.div
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}

@@ -194,11 +194,9 @@ export default function Sidebar() {
                 </div>
             </div>
 
-            {openSearchUser && <NewChatModal onClose={() => setOpenSearchUser(false)} />}
             {/* Modal */}
-            {editUserOpen && (
-                <EditUserProfile onClose={() => setEditUserOpen(false)} user={user} />
-            )}
+            {openSearchUser && <NewChatModal onClose={() => setOpenSearchUser(false)} />}
+            {editUserOpen && <EditUserProfile onClose={() => setEditUserOpen(false)} user={user} />}
 
             {/* 👤 USER FOOTER */}
             <div className="p-4 border-t border-gray-800 bg-gray-950 flex items-center justify-between">
