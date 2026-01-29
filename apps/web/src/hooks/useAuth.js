@@ -45,14 +45,13 @@ export default function useAuth() {
             // ⏳ 3s delay to ensure session is 100% active in SDK
             setTimeout(() => {
                 createUserProfile(user)
-                    .then(() => {
-                        console.log("--- Sync Completed Successfully ---");
+                    .then((fullProfile) => {
+                        console.log("--- Sync Completed Successfully ---", fullProfile);
+                        setUser(fullProfile); // 🔥 Save full profile with about/pic to store
                         setProfileSynced(true);
                     })
                     .catch((err) => {
                         console.error("--- Sync Failed ---", err);
-                        // We don't reset _syncingId here to prevent infinite retries.
-                        // If it fails once, it stops until the user refreshes.
                     })
                     .finally(() => {
                         setSyncing(false);
