@@ -38,48 +38,44 @@ export default function NewChatModal({ onClose }) {
     };
 
     return (
-        <>
-            <div className='fixed top-0 bottom-0 left-0 right-0 bg-black bg-opacity-40 p-2 z-10 backdrop-blur-sm'>
-                <div className='w-full max-w-lg mx-auto mt-10'>
+        <div className='fixed top-0 bottom-0 left-0 right-0 bg-black bg-opacity-40 p-2 z-10 backdrop-blur-sm'>
+            <div className='w-full max-w-lg mx-auto mt-10'>
 
-                    {/**input search user */}
-                    <div className='bg-gray-800 rounded h-14 overflow-hidden flex '>
-                        <input
-                            type='text'
-                            placeholder='Search friends by name, mobile....'
-                            className='w-full outline-none py-1 h-full px-4 bg-gray-800'
-                            onChange={handleSearch}
-                            value={query}
-                        />
-                        <div className='h-14 w-14 flex justify-center items-center'>
-                            <IoSearchOutline size={25} />
-                        </div>
-                    </div>
-
-                    <div className='bg-gray-800 mt-2 w-full p-4 rounded max-h-[500px] overflow-y-auto'>
-                        {/**no user found */}
-                        {results.length === 0 && <p className='text-center text-slate-500'>No user found!</p>}
-
-                        {results.map((u) => (
-                            <div
-                                key={u.$id}
-                                onClick={() => startChat(u)}
-                                className="p-2 rounded bg-gray-800 hover:bg-gray-700 cursor-pointer"
-                            >
-                                {u.name}
-                            </div>
-                        ))}
+                {/**input search user */}
+                <div className='bg-gray-800 rounded h-14 overflow-hidden flex '>
+                    <input
+                        type='text'
+                        placeholder='Search friends by name, mobile....'
+                        className='w-full outline-none py-1 h-full px-4 bg-gray-800'
+                        onChange={handleSearch}
+                        value={query}
+                    />
+                    <div className='h-14 w-14 flex justify-center items-center'>
+                        <IoSearchOutline size={25} />
                     </div>
                 </div>
 
-                <div className='absolute top-0 right-0 text-2xl p-2 lg:text-4xl hover:text-white' onClick={onClose}>
-                    <button>
-                        <IoClose />
-                    </button>
+                <div className='bg-gray-800 mt-2 w-full p-4 rounded max-h-[500px] overflow-y-auto'>
+                    {/**no user found */}
+                    {results.length === 0 && <p className='text-center text-slate-500'>No user found!</p>}
+
+                    {results.map((u) => (
+                        <div
+                            key={u.$id}
+                            onClick={() => startChat(u)}
+                            className="p-2 rounded bg-gray-800 hover:bg-gray-700 cursor-pointer"
+                        >
+                            {u.name}
+                        </div>
+                    ))}
                 </div>
             </div>
 
-
-        </>
+            <div className='absolute top-0 right-0 text-2xl p-2 lg:text-4xl hover:text-white' onClick={onClose}>
+                <button>
+                    <IoClose />
+                </button>
+            </div>
+        </div>
     );
 }

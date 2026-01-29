@@ -7,6 +7,8 @@ import { logout } from "@chatsync/services/auth.service";
 import { setUserOffline } from "@chatsync/services/presence.service";
 import NewChatModal from "./NewChatModal";
 import { IoPersonAddSharp } from "react-icons/io5";
+import Avatar from "./Avatar";
+import EditUserProfile from "./EditUserProfile";
 
 export default function Sidebar() {
     const user = useAuthStore((s) => s.user);
@@ -16,6 +18,7 @@ export default function Sidebar() {
     const activeChat = useChatStore((s) => s.activeChat);
     const clearUser = useAuthStore((s) => s.clearUser);
     const [openSearchUser, setOpenSearchUser] = useState(false);
+    const [editUserOpen, setEditUserOpen] = useState(false);
 
     /* 1️⃣ INITIAL LOAD */
     useEffect(() => {
@@ -128,7 +131,7 @@ export default function Sidebar() {
         <div className="h-full flex flex-col bg-gray-900">
             <div className="p-4 flex-1 flex flex-col min-h-0">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold">Chats</h2>
+                    <h2 className="text-xl font-semibold">ChatsSync</h2>
                     <div
                         title='Add friend'
                         onClick={() => setOpenSearchUser(true)}
@@ -148,43 +151,67 @@ export default function Sidebar() {
                                 : "hover:bg-gray-800/50"
                                 }`}
                         >
-                            <div className="flex-1 overflow-hidden">
-                                <p className={`font-medium ${chat.unreadCount > 0 ? "text-white" : "text-gray-200"}`}>
-                                    {chat.otherUser?.name || "Unknown User"}
-                                </p>
+                            <div className="flex items-center gap-3 w-full">
+                                <Avatar
+                                    width={40}
+                                    height={40}
+                                    imageUrl={chat.otherUser?.profile_pic}
+                                    name={chat.otherUser?.name}
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between">
+                                        <p className={`font-medium truncate ${chat.unreadCount > 0 ? "text-white" : "text-gray-200"}`}>
+                                            {chat.otherUser?.name || "Unknown User"}
+                                        </p>
+                                        {chat.unreadCount > 0 && (
+                                            <div className="bg-green-500 text-gray-950 text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                                                {chat.unreadCount}
+                                            </div>
+                                        )}
+                                    </div>
 
-                                <p className={`text-xs truncate ${chat.unreadCount > 0 ? "text-white font-bold" : "text-gray-400"}`}>
-                                    {chat.lastMessage || "No messages yet"}
-                                </p>
+                                    <div className="flex items-center justify-between mt-0.5">
+                                        <p className={`text-xs truncate flex-1 ${chat.unreadCount > 0 ? "text-white font-bold" : "text-gray-400"}`}>
+                                            {chat.lastMessage || "No messages yet"}
+                                        </p>
 
-                                {chat.lastMessageAt && (
-                                    <span className="text-[10px] text-gray-500">
-                                        {new Date(chat.lastMessageAt).toLocaleTimeString([], {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
-                                    </span>
-                                )}
-                            </div>
+                                        <div className="flex flex-col items-end ml-2 gap-1 flex-shrink-0">
 
-                            {chat.unreadCount > 0 && (
-                                <div className="ml-2 bg-green-500 text-gray-950 text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 animate-in zoom-in duration-300">
-                                    {chat.unreadCount}
+                                            {chat.lastMessageAt && (
+                                                <span className="text-[10px] text-gray-500 whitespace-nowrap">
+                                                    {new Date(chat.lastMessageAt).toLocaleTimeString([], {
+                                                        hour: "2-digit",
+                                                        minute: "2-digit",
+                                                    })}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
                     ))}
                 </div>
             </div>
 
             {openSearchUser && <NewChatModal onClose={() => setOpenSearchUser(false)} />}
+            {/* Modal */}
+            {editUserOpen && (
+                <EditUserProfile onClose={() => setEditUserOpen(false)} user={user} />
+            )}
 
             {/* 👤 USER FOOTER */}
             <div className="p-4 border-t border-gray-800 bg-gray-950 flex items-center justify-between">
                 <div className="flex items-center gap-2 overflow-hidden">
-                    <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center font-bold flex-shrink-0 text-white">
-                        {user?.name?.charAt(0).toUpperCase()}
-                    </div>
+                    <button title={user?.name} onClick={() => setEditUserOpen(true)} className='flex items-center'>
+                        <Avatar
+                            width={35}
+                            height={35}
+                            name={user?.name}
+                            imageUrl={user?.profile_pic}
+                            userId={user?._id}
+                        />
+                    </button>
                     <div className="overflow-hidden">
                         <p className="text-sm font-medium truncate text-white">{user?.name}</p>
                         <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>

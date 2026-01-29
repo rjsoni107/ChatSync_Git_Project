@@ -119,7 +119,7 @@ export default function ChatWindow() {
                                 <div className={`max-w-xs min-w-[100px] px-2 py-1 rounded-xl text-sm ${isMe ? "bg-[#ad2144] text-white rounded-br-none" : "bg-gray-800 text-gray-200 rounded-bl-none"}`}>
                                     <p className="leading-relaxed">{msg.content}</p>
 
-                                    <div className="flex items-center justify-end gap-1 border-t border-white/10">
+                                    <div className="flex items-center justify-end gap-1 border-white/10">
                                         <span className="text-[10px] text-gray-300 opacity-80">
                                             {new Date(msg.createdAt).toLocaleTimeString([], {
                                                 hour: "2-digit",
