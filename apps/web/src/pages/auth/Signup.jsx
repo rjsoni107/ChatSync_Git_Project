@@ -132,7 +132,7 @@ export default function Signup() {
                                     required
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="John Doe"
+                                    placeholder="Enter your name"
                                     className="w-full pl-12 pr-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all duration-300 text-white placeholder-gray-500 font-medium"
                                 />
                             </div>
@@ -147,7 +147,7 @@ export default function Signup() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="john@example.com"
+                                    placeholder="Enter your email"
                                     className="w-full pl-12 pr-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all duration-300 text-white placeholder-gray-500 font-medium"
                                 />
                             </div>
@@ -162,7 +162,7 @@ export default function Signup() {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
+                                    placeholder="Enter your password"
                                     className="w-full pl-12 pr-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all duration-300 text-white placeholder-gray-500 font-medium"
                                 />
                             </div>
