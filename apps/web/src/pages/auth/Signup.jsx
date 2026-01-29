@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { signup, login, getCurrentUser } from "@chatsync/services/auth.service";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
-// import { createUserProfile } from "@chatsync/services/user.service";
-
+import { motion, AnimatePresence } from "framer-motion";
+import { IoMailOutline, IoLockClosedOutline, IoPersonOutline, IoArrowForward } from "react-icons/io5";
 
 export default function Signup() {
     const navigate = useNavigate();
@@ -21,21 +21,10 @@ export default function Signup() {
         setLoading(true);
 
         try {
-            // 1️⃣ Create account
             await signup(email, password, name);
-
-            // 2️⃣ Auto login
             await login(email, password);
-
-            // 3️⃣ Get user
             const user = await getCurrentUser();
             setUser(user);
-            console.log("Signup user", user);
-
-            // 4️⃣ Create user profile
-            // await createUserProfile(user);
-
-            // 5️⃣ Redirect
             navigate("/");
         } catch (err) {
             console.log("Signup error", err);
@@ -45,72 +34,178 @@ export default function Signup() {
         }
     };
 
+    const containerVariants = {
+        hidden: { opacity: 0, y: 20, scale: 0.95 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            transition: {
+                duration: 0.6,
+                ease: [0.16, 1, 0.3, 1],
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: { opacity: 1, y: 0 }
+    };
+
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
-            <div className="w-full max-w-md bg-gray-900 p-8 rounded-xl shadow-lg border border-gray-800">
-                <h1 className="text-2xl font-bold mb-2">Create account 🚀</h1>
-                <p className="text-gray-400 mb-6">Sign up to get started</p>
-
-                {error && (
-                    <div className="bg-red-500/10 text-red-400 p-3 rounded mb-4 text-sm">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm mb-1 text-gray-400">Name</label>
-                        <input
-                            type="text"
-                            required
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Enter your name"
-                            className="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm mb-1 text-gray-400">Email</label>
-                        <input
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Enter your email"
-                            className="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm mb-1 text-gray-400">Password</label>
-                        <input
-                            type="password"
-                            required
-                            // autoComplete="new-password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your password"
-                            className="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-indigo-600 hover:bg-indigo-700 transition py-2 rounded font-medium disabled:opacity-60"
-                    >
-                        {loading ? "Creating..." : "Create Account"}
-                    </button>
-                </form>
-
-                <p className="text-gray-400 text-sm mt-6 text-center">
-                    Already have an account?{" "}
-                    <Link to="/login" className="text-indigo-400 hover:underline">
-                        Login
-                    </Link>
-                </p>
+        <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white relative overflow-hidden font-sans">
+            {/* Mesh Background Overlay */}
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                <motion.div
+                    animate={{
+                        scale: [1, 1.3, 1],
+                        x: [0, -60, 0],
+                        y: [0, 40, 0],
+                    }}
+                    transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+                    className="absolute top-[-5%] right-[-5%] w-[60%] h-[60%] bg-blue-600/10 rounded-full blur-[140px]"
+                />
+                <motion.div
+                    animate={{
+                        scale: [1, 1.2, 1],
+                        x: [0, 40, 0],
+                        y: [0, -50, 0],
+                    }}
+                    transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+                    className="absolute bottom-[-5%] left-[-5%] w-[60%] h-[60%] bg-indigo-600/10 rounded-full blur-[140px]"
+                />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay" />
             </div>
+
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="w-full max-w-lg z-10 p-4"
+            >
+                <div className="bg-white/[0.03] backdrop-blur-2xl p-10 rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden">
+                    {/* Progress Indicator Decorative */}
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-white/5">
+                        <motion.div
+                            initial={{ width: "33%" }}
+                            animate={{ width: "100%" }}
+                            transition={{ duration: 1.5, ease: "easeInOut" }}
+                            className="h-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]"
+                        />
+                    </div>
+
+                    <div className="text-center mb-5">
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
+                            className="w-[10rem] h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-xl shadow-blue-500/20 rotate-3"
+                        >
+                            <span className="text-2xl font-black italic tracking-tighter text-white">ChatSync</span>
+                        </motion.div>
+                        <motion.h1 variants={itemVariants} className="text-3xl font-black text-white mb-3 tracking-tight">Create Account</motion.h1>
+                        <motion.p variants={itemVariants} className="text-gray-300 font-medium text-sm">Join the next generation of real-time chatting</motion.p>
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                        {error && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl mb-6 text-sm font-medium flex items-center gap-3"
+                            >
+                                <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                                {error}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <motion.div variants={itemVariants} className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-gray-300 ml-1">Full Name</label>
+                            <div className="relative group/input">
+                                <IoPersonOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-blue-500 transition-colors" size={20} />
+                                <input
+                                    type="text"
+                                    required
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="John Doe"
+                                    className="w-full pl-12 pr-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all duration-300 text-white placeholder-gray-500 font-medium"
+                                />
+                            </div>
+                        </motion.div>
+
+                        <motion.div variants={itemVariants} className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-gray-300 ml-1">Email Address</label>
+                            <div className="relative group/input">
+                                <IoMailOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-blue-500 transition-colors" size={20} />
+                                <input
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="john@example.com"
+                                    className="w-full pl-12 pr-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all duration-300 text-white placeholder-gray-500 font-medium"
+                                />
+                            </div>
+                        </motion.div>
+
+                        <motion.div variants={itemVariants} className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-gray-300 ml-1">Secure Password</label>
+                            <div className="relative group/input">
+                                <IoLockClosedOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-blue-500 transition-colors" size={20} />
+                                <input
+                                    type="password"
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    className="w-full pl-12 pr-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all duration-300 text-white placeholder-gray-500 font-medium"
+                                />
+                            </div>
+                        </motion.div>
+
+                        <motion.button
+                            variants={itemVariants}
+                            whileHover={{ scale: 1.02, backgroundColor: '#3b82f6' }}
+                            whileTap={{ scale: 0.98 }}
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-blue-600 text-white py-3 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            {loading ? (
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    Create Account <IoArrowForward size={18} />
+                                </>
+                            )}
+                        </motion.button>
+                    </form>
+
+                    <motion.div variants={itemVariants} className="pt-8 border-t border-white/5 text-center">
+                        <p className="text-gray-400 font-bold text-sm">
+                            Already part of ChatSync?{" "}
+                            <Link to="/login" className="text-blue-400 hover:text-blue-300 transition-colors ml-1">
+                                Sign In
+                            </Link>
+                        </p>
+                    </motion.div>
+                </div>
+
+                {/* Bottom Branding */}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.5 }}
+                    transition={{ delay: 1.5 }}
+                    className="mt-6 text-center"
+                >
+                    <p className="text-[10px] uppercase tracking-[0.3em] font-black text-white/40">Privacy First • Powered by ChatSync</p>
+                </motion.div>
+            </motion.div>
         </div>
     );
 }

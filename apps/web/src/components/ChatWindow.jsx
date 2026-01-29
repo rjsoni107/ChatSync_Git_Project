@@ -10,6 +10,8 @@ import TypingIndicator from "./TypingIndicator";
 import ChatHeader from "./ChatHeader";
 import { getOtherUserFromChat } from "@chatsync/services/chat.service";
 import { getMessageDateLabel } from "../../../../packages/utils/date";
+import { motion, AnimatePresence } from "framer-motion";
+import { IoChatbubblesOutline, IoCheckmarkDone } from "react-icons/io5";
 
 export default function ChatWindow() {
     const activeChat = useChatStore((s) => s.activeChat);
@@ -47,7 +49,6 @@ export default function ChatWindow() {
             if (msg.chatId === chatId) {
                 addMessage(msg);
 
-                // 🔥 Auto-mark as seen ONLY if the tab is visible
                 if (msg.senderId !== user.$id && !msg.isSeen && !document.hidden) {
                     markMessagesAsSeen(chatId, user.$id);
                 }
@@ -87,66 +88,115 @@ export default function ChatWindow() {
 
     if (!activeChat) {
         return (
-            <div className="h-full flex items-center justify-center text-gray-500">
-                Select a chat
+            <div className="h-full flex flex-col items-center justify-center bg-[#0b141a] relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="flex flex-col items-center text-center px-6 z-10"
+                >
+                    <div className="w-24 h-24 mb-8 relative">
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.1, 1],
+                                opacity: [0.3, 0.6, 0.3]
+                            }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute inset-0 bg-blue-500 rounded-full blur-3xl"
+                        />
+                        <div className="relative w-full h-full bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-blue-500/20">
+                            <IoChatbubblesOutline size={48} className="text-white" />
+                        </div>
+                    </div>
+
+                    <h1 className="text-4xl font-black text-white mb-4 tracking-tight">
+                        Welcome to <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">ChatSync</span>
+                    </h1>
+                    <p className="text-gray-400 max-w-sm leading-relaxed text-lg font-medium opacity-80">
+                        Send and receive messages in real-time with end-to-end synchronization. Select a friend to start chatting.
+                    </p>
+
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="mt-12 flex items-center gap-2 px-4 py-2 rounded-full border border-white/5 bg-white/5 backdrop-blur-sm"
+                    >
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                        <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Secure & Encrypted</span>
+                    </motion.div>
+                </motion.div>
+
+                {/* Decorative Elements */}
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
             </div>
         );
     }
 
     return (
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col bg-[#0b141a]">
             <ChatHeader key={otherUser?.$id || activeChat?.$id} otherUser={otherUser} activeChat={activeChat} />
 
-            <div className="flex-1 p-4 overflow-y-auto space-y-2">
-                {messages.map((msg, index) => {
-                    const isMe = msg.senderId === user.$id;
-                    const dateLabel = getMessageDateLabel(msg.createdAt);
-                    const prevMsg = messages[index - 1];
-                    const prevDateLabel = prevMsg ? getMessageDateLabel(prevMsg.createdAt) : null;
-                    const showDateSeparator = dateLabel !== prevDateLabel;
+            <div className="flex-1 p-6 overflow-y-auto space-y-4 custom-scrollbar">
+                <AnimatePresence mode="wait">
+                    {messages.map((msg, index) => {
+                        const isMe = msg.senderId === user.$id;
+                        const dateLabel = getMessageDateLabel(msg.createdAt);
+                        const prevMsg = messages[index - 1];
+                        const prevDateLabel = prevMsg ? getMessageDateLabel(prevMsg.createdAt) : null;
+                        const showDateSeparator = dateLabel !== prevDateLabel;
 
-                    return (
-                        <div key={msg.$id} className="space-y-2">
-                            {showDateSeparator && (
-                                <div className="flex justify-center my-4">
-                                    <span className="px-3 py-1 text-xs font-medium bg-gray-800/80 text-gray-400 rounded-lg backdrop-blur-sm border border-white/5 shadow-sm">
-                                        {dateLabel}
-                                    </span>
-                                </div>
-                            )}
-
-                            <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                                <div className={`max-w-xs min-w-[100px] px-2 py-1 rounded-xl text-sm ${isMe ? "bg-[#ad2144] text-white rounded-br-none" : "bg-gray-800 text-gray-200 rounded-bl-none"}`}>
-                                    <p className="leading-relaxed">{msg.content}</p>
-
-                                    <div className="flex items-center justify-end gap-1 border-white/10">
-                                        <span className="text-[10px] text-gray-300 opacity-80">
-                                            {new Date(msg.createdAt).toLocaleTimeString([], {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            })}
+                        return (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                key={msg.$id}
+                                className="space-y-4"
+                            >
+                                {showDateSeparator && (
+                                    <div className="flex justify-center my-6">
+                                        <span className="px-4 py-1.5 text-[10px] font-black tracking-widest bg-white/5 text-gray-500 rounded-full border border-white/5 shadow-sm backdrop-blur-md">
+                                            {dateLabel}
                                         </span>
+                                    </div>
+                                )}
 
-                                        {isMe && (
-                                            <div className={`flex items-center ${msg.isSeen ? "text-green-500" : "text-gray-400"}`}>
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                                                    <path d="M7 13l3 3 7-7" />
-                                                    <path d="M2 13l3 3 7-7" />
-                                                </svg>
-                                            </div>
-                                        )}
+                                <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                                    <div className={`max-w-[80%] min-w-[120px] px-3 py-2 rounded-[1rem] shadow-lg relative group transform-gpu ${isMe
+                                        ? "bg-indigo-600/20 border border-white/10 text-white rounded-br-sm"
+                                        : "bg-white/5 border border-white/5 text-gray-200 rounded-bl-sm"
+                                        }`}>
+                                        <p className="text-[15px] leading-relaxed font-medium pb-1">{msg.content}</p>
+
+                                        <div className="flex items-center justify-end gap-1">
+                                            <span className={`text-[9px] font-bold uppercase tracking-tight text-gray-500`}>
+                                                {new Intl.DateTimeFormat([], {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                }).format(new Date(msg.createdAt))}
+                                            </span>
+
+                                            {isMe && (
+                                                <div className={`flex items-center ${msg.isSeen ? "text-green-400" : "text-white/60"}`}>
+                                                    <IoCheckmarkDone size={14} />
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    );
-                })}
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
                 <div ref={bottomRef} />
             </div>
 
             <TypingIndicator users={typingUsers} />
 
-            <div className="p-4 border-t border-gray-800">
+            <div className="p-4 border-t border-white/5 bg-[#111b21]/50 backdrop-blur-sm">
                 <MessageInput chatId={activeChat.$id} />
             </div>
         </div>

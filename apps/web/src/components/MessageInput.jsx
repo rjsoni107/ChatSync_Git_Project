@@ -3,6 +3,8 @@ import { sendMessage } from "@chatsync/services/message.service";
 import { useChatStore } from "@chatsync/store/useChatStore";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { setTyping } from "@chatsync/services/typing.service";
+import { IoSend, IoAddOutline } from "react-icons/io5";
+import { motion } from "framer-motion";
 
 export default function MessageInput() {
     const [message, setMessage] = useState("");
@@ -19,7 +21,6 @@ export default function MessageInput() {
             return;
         }
 
-        // 🚀 Clear immediately for better UX
         setMessage("");
 
         try {
@@ -32,8 +33,6 @@ export default function MessageInput() {
             });
         } catch (err) {
             console.error("Failed to send message:", err);
-            // Optional: Restore message if send fails
-            // setMessage(content); 
         }
     };
 
@@ -64,28 +63,39 @@ export default function MessageInput() {
     };
 
     return (
-        <div className="flex gap-2 p-2 bg-gray-900/50 backdrop-blur-sm border-t border-white/5">
-            <input
-                value={message}
-                onChange={(e) => { setMessage(e.target.value); handleTyping(); }}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSend();
-                    }
-                }}
-                placeholder="Type a message..."
-                className="flex-1 px-4 py-2.5 rounded-full bg-gray-800/80 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-sm"
-            />
-            <button
+        <div className="flex items-center gap-3 w-full">
+            <motion.button
+                whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                whileTap={{ scale: 0.95 }}
+                className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/5 text-gray-400 hover:text-white transition-colors flex-shrink-0"
+            >
+                <IoAddOutline size={24} />
+            </motion.button>
+
+            <div className="flex-1 relative group">
+                <input
+                    value={message}
+                    onChange={(e) => { setMessage(e.target.value); handleTyping(); }}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSend();
+                        }
+                    }}
+                    placeholder="Message..."
+                    className="w-full bg-white/5 border border-white/5 rounded-2xl py-3 px-5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all duration-300 text-[15px] shadow-sm"
+                />
+            </div>
+
+            <motion.button
+                whileHover={{ scale: 1.05, backgroundColor: '#3b82f6' }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleSend}
                 disabled={!message.trim()}
-                className="p-2.5 bg-indigo-600 rounded-full hover:bg-indigo-500 transition-all font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
+                className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white disabled:opacity-30 disabled:pointer-events-none shadow-lg shadow-blue-500/20 flex-shrink-0 transition-colors"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-white">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                </svg>
-            </button>
+                <IoSend size={20} />
+            </motion.button>
         </div>
     );
 }

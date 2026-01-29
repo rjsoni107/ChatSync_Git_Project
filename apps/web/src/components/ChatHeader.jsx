@@ -2,21 +2,16 @@ import { useEffect, useState } from "react";
 import { subscribeSingleUserPresence } from "@chatsync/services/realtime.service";
 import { formatLastSeen } from "../../../../packages/utils/date";
 import Avatar from "./Avatar";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ChatHeader({ otherUser }) {
     const [userSnapshot, setUserSnapshot] = useState(otherUser);
 
     const isUserOnline = (user) => {
         if (!user) return false;
-
-        // If the user is explicitly set to offline, believe it immediately
         if (user.isOnline === false) return false;
-
         if (!user.lastActiveAt) return false;
-
         const diff = Date.now() - new Date(user.lastActiveAt).getTime();
-
-        // 60 seconds buffer (heartbeat is 10s) to account for clock drift & lag
         return diff < 60000;
     };
 
@@ -25,7 +20,6 @@ export default function ChatHeader({ otherUser }) {
     useEffect(() => {
         if (!otherUser?.$id) return;
 
-        // 1️⃣ Fetch fresh state immediately to avoid stale props flicker
         const fetchFreshUser = async () => {
             try {
                 const { getUserProfile } = await import("@chatsync/services/user.service");
@@ -39,7 +33,6 @@ export default function ChatHeader({ otherUser }) {
 
         fetchFreshUser();
 
-        // 2️⃣ Subscribe to realtime updates
         const unsub = subscribeSingleUserPresence(
             otherUser.$id,
             (updatedUser) => {
@@ -47,7 +40,6 @@ export default function ChatHeader({ otherUser }) {
             }
         );
 
-        // 3️⃣ Ticker to re-calculate "isOnline" even if no events arrive
         const interval = setInterval(() => setTick((t) => t + 1), 30000);
 
         return () => {
@@ -57,30 +49,73 @@ export default function ChatHeader({ otherUser }) {
     }, [otherUser?.$id]);
 
     if (!userSnapshot) {
-        return <div className="text-gray-400 p-4 border-b border-gray-800">Loading…</div>;
+        return (
+            <div className="p-5 flex items-center gap-4 bg-[#111b21]/80 backdrop-blur-xl border-b border-white/5 h-[84px]">
+                <div className="w-11 h-11 rounded-full bg-white/5 animate-pulse" />
+                <div className="space-y-2">
+                    <div className="w-24 h-4 bg-white/5 rounded animate-pulse" />
+                    <div className="w-16 h-3 bg-white/5 rounded animate-pulse" />
+                </div>
+            </div>
+        );
     }
 
     const online = isUserOnline(userSnapshot);
 
     return (
-        <div className="p-4 border-b border-gray-800">
-            <div className="flex items-center gap-2 overflow-hidden">
-                <Avatar
-                    width={35}
-                    height={35}
-                    imageUrl={userSnapshot?.profile_pic}
-                    name={userSnapshot?.name}
-                />
-                <div className="flex flex-col">
-                    <h3 className="font-semibold">{userSnapshot.name}</h3>
-                    <div className="flex items-baseline gap-1">
-                        <span className={`h-2 w-2 rounded-full ${online ? "bg-green-500" : "bg-gray-400"}`} />
-                        <p className="text-xs text-gray-300">
-                            {online ? "Online" : userSnapshot.lastActiveAt ? `Last seen ${formatLastSeen(userSnapshot.lastActiveAt)}` : "Offline"}
-                        </p>
-                    </div>
+        <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 flex items-center justify-between bg-[#111b21]/80 backdrop-blur-xl border-b border-white/5 z-20 shadow-lg"
+        >
+            <div className="flex items-center gap-4 min-w-0">
+                <div className="relative">
+                    <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        className="p-0.5 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-lg shadow-blue-500/10"
+                    >
+                        <div className="bg-[#111b21] rounded-full p-0.5">
+                            <Avatar
+                                width={44}
+                                height={44}
+                                imageUrl={userSnapshot?.profile_pic}
+                                name={userSnapshot?.name}
+                            />
+                        </div>
+                    </motion.div>
+                    {online && (
+                        <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 border-[3px] border-[#111b21] rounded-full shadow-sm" />
+                    )}
+                </div>
+
+                <div className="flex flex-col min-w-0">
+                    <h3 className="font-bold text-white tracking-tight truncate text-lg">{userSnapshot.name}</h3>
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={online ? 'online' : 'offline'}
+                            initial={{ opacity: 0, x: -5 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 5 }}
+                            className="flex items-center gap-1.5"
+                        >
+                            {online ? (
+                                <>
+                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                                    <span className="text-[11px] font-black text-green-500/90 tracking-widest">Online</span>
+                                </>
+                            ) : (
+                                <span className="text-[11px] font-bold text-gray-500 tracking-wider">
+                                    {userSnapshot.lastActiveAt ? `Last seen ${formatLastSeen(userSnapshot.lastActiveAt)}` : "Offline"}
+                                </span>
+                            )}
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
             </div>
-        </div>
+
+            <div className="flex items-center gap-2">
+                {/* Future: Add Video/Voice Call or Menu buttons here */}
+            </div>
+        </motion.div>
     );
 }
