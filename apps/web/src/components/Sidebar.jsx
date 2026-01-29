@@ -6,6 +6,7 @@ import { subscribeChatsRealtime } from "@chatsync/services/realtime.service";
 import { logout } from "@chatsync/services/auth.service";
 import { setUserOffline } from "@chatsync/services/presence.service";
 import NewChatModal from "./NewChatModal";
+import { IoPersonAddSharp } from "react-icons/io5";
 
 export default function Sidebar() {
     const user = useAuthStore((s) => s.user);
@@ -14,7 +15,7 @@ export default function Sidebar() {
     const setActiveChat = useChatStore((s) => s.setActiveChat);
     const activeChat = useChatStore((s) => s.activeChat);
     const clearUser = useAuthStore((s) => s.clearUser);
-    const [open, setOpen] = useState(false);
+    const [openSearchUser, setOpenSearchUser] = useState(false);
 
     /* 1️⃣ INITIAL LOAD */
     useEffect(() => {
@@ -128,26 +129,13 @@ export default function Sidebar() {
             <div className="p-4 flex-1 flex flex-col min-h-0">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold">Chats</h2>
-                    <button
-                        onClick={() => setOpen(true)}
-                        className="p-2 bg-indigo-600 hover:bg-indigo-700 rounded-full transition-colors group shadow-lg"
-                        title="New Chat"
+                    <div
+                        title='Add friend'
+                        onClick={() => setOpenSearchUser(true)}
+                        className='w-8 h-8 flex justify-center items-center cursor-pointer bg-indigo-600 hover:bg-indigo-700 rounded-full mx-2'
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={2}
-                            stroke="currentColor"
-                            className="w-5 h-5 text-white"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM3 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 019.374 21c-2.331 0-4.512-.645-6.374-1.766z"
-                            />
-                        </svg>
-                    </button>
+                        <IoPersonAddSharp size={20} />
+                    </div>
                 </div>
 
                 <div className="space-y-2 overflow-y-auto flex-1 pr-2 custom-scrollbar">
@@ -189,7 +177,7 @@ export default function Sidebar() {
                 </div>
             </div>
 
-            {open && <NewChatModal onClose={() => setOpen(false)} />}
+            {openSearchUser && <NewChatModal onClose={() => setOpenSearchUser(false)} />}
 
             {/* 👤 USER FOOTER */}
             <div className="p-4 border-t border-gray-800 bg-gray-950 flex items-center justify-between">
