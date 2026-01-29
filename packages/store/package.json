@@ -1,0 +1,8 @@
+{
+  "name": "@chatsync/store",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "zustand": "^4.5.0"
+  }
+}

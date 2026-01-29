@@ -1,0 +1,97 @@
+import { databases, client, Query, ID } from "@chatsync/api/appwrite";
+import { appwriteConfig } from '../api/config';
+
+const DB_ID = appwriteConfig.databaseId;
+const MESSAGES_ID = appwriteConfig.messageCollectionId;
+const CHATS_ID = appwriteConfig.chatCollectionId;
+
+export const sendMessage = async ({ chatId, senderId, content }) => {
+    if (!chatId) {
+        throw new Error("chatId is required to send a message");
+    }
+    console.log("sendMessage to chat:", chatId);
+    const now = new Date().toISOString();
+
+    const msg = await databases.createDocument(
+        DB_ID,
+        MESSAGES_ID,
+        ID.unique(),
+        {
+            chatId,
+            senderId,
+            type: "text",
+            content,
+            createdAt: now,
+            isSeen: false,
+        }
+    );
+
+    // 2️⃣ update chat last message
+    try {
+        await databases.updateDocument(DB_ID, CHATS_ID, chatId, {
+            lastMessage: content,
+            lastMessageAt: now,
+            lastSenderId: senderId,
+        });
+    } catch (err) {
+        console.warn("Failed to update chat metadata (possibly missing lastSenderId attribute):", err.message);
+        // Fallback update without lastSenderId if the schema isn't updated yet
+        try {
+            await databases.updateDocument(DB_ID, CHATS_ID, chatId, {
+                lastMessage: content,
+                lastMessageAt: now,
+            });
+        } catch (innerErr) {
+            console.error("Could not update chat metadata even with fallback:", innerErr);
+        }
+    }
+
+    return msg;
+};
+
+export const subscribeMessages = (callback) => {
+    return client.subscribe(`databases.${DB_ID}.collections.${MESSAGES_ID}.documents`, (res) => {
+        const events = [
+            "databases.*.collections.*.documents.*.create",
+            "databases.*.collections.*.documents.*.update"
+        ];
+
+        if (res.events.some(e => events.includes(e))) {
+            callback(res.payload);
+        }
+    });
+};
+
+export const getMessagesByChat = async (chatId) => {
+    if (!chatId) return [];
+
+    // Fetch latest 100 messages (newest first)
+    const res = await databases.listDocuments(DB_ID, MESSAGES_ID, [
+        Query.equal("chatId", chatId),
+        Query.orderDesc("createdAt"),
+        Query.limit(100),
+    ]);
+
+    // Reverse them so they are in chronological order for the UI
+    return res.documents.reverse();
+};
+
+export const markMessagesAsSeen = async (chatId, userId) => {
+    if (!chatId || !userId) return;
+
+    // Fetch up to 100 unread messages
+    const res = await databases.listDocuments(DB_ID, MESSAGES_ID, [
+        Query.equal("chatId", chatId),
+        Query.notEqual("senderId", userId),
+        Query.equal("isSeen", false),
+        Query.limit(100),
+    ]);
+
+    // Update them sequentially (could be parallel but Appwrite might rate limit)
+    for (const msg of res.documents) {
+        await databases.updateDocument(DB_ID, MESSAGES_ID, msg.$id, {
+            isSeen: true,
+        });
+    }
+};
+

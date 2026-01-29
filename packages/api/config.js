@@ -1,0 +1,12 @@
+export const appwriteConfig = {
+    endpoint: 'https://nyc.cloud.appwrite.io/v1',
+    projectId: '6942506a003a2866b83c',
+    databaseId: '6942d52700321fb7e3a0',
+    userCollectionId: 'new_user',
+    chatCollectionId: 'chats',
+    chatMembersCollectionId: 'chat_members',
+    messageCollectionId: 'messages',
+    bucketId: '6942d79f0008cdbf4fb2',
+    typingStatusCollectionId: 'typing_status',
+    userPresenceCollectionId: 'user_presence',
+};

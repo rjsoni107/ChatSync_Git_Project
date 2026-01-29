@@ -1,0 +1,8 @@
+{
+  "name": "@chatsync/utils",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "date-fns": "^3.0.0"
+  }
+}
