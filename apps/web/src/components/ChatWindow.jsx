@@ -226,7 +226,7 @@ export default function ChatWindow() {
 
             <TypingIndicator users={typingUsers} />
 
-            <div className="p-4 border-t border-white/5 bg-[#111b21]/50 backdrop-blur-sm">
+            <div className="p-4 backdrop-blur-sm">
                 <MessageInput chatId={activeChat.$id} />
             </div>
         </div>

@@ -4,7 +4,7 @@ import { uploadFile } from "@chatsync/services/storage.service";
 import { useChatStore } from "@chatsync/store/useChatStore";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { setTyping } from "@chatsync/services/typing.service";
-import { IoSend, IoAddOutline, IoCloseCircle } from "react-icons/io5";
+import { IoSend, IoCloseCircle, IoImagesOutline } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function MessageInput() {
@@ -140,7 +140,7 @@ export default function MessageInput() {
                     disabled={uploading}
                     className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/5 text-gray-400 hover:text-white transition-colors flex-shrink-0 disabled:opacity-50"
                 >
-                    <IoAddOutline size={24} />
+                    <IoImagesOutline size={24} />
                 </motion.button>
 
                 <div className="flex-1 relative group">
