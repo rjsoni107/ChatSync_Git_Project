@@ -27,7 +27,7 @@ export default function Chats() {
             </div>
 
             {/* 3. Chat Window - Hidden on mobile if no chat is active */}
-            <div className={`flex-1 relative ${!activeChat ? 'hidden md:flex' : 'flex w-full'}`}>
+            <div className={`flex-1 relative justify-center ${!activeChat ? 'hidden md:flex' : 'flex w-full'}`}>
                 <ChatWindow />
             </div>
 
