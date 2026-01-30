@@ -14,7 +14,8 @@ const Avatar = ({ name, imageUrl, width, height }) => {
         }
     }
 
-    const randomNumber = Math.floor(Math.random() * 9)
+    const nameHash = name ? name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
+    const colorIndex = nameHash % (bgColor.length || 1);
 
     return (
         <div className={`text-slate-800  rounded-full border-cyan-100 border font-bold relative`} style={{ width: width + "px", height: height + "px" }}>
@@ -29,7 +30,7 @@ const Avatar = ({ name, imageUrl, width, height }) => {
                     />
                 ) : (
                     name ? (
-                        <div style={{ width: width + "px", height: height + "px" }} className={`overflow-hidden rounded-full flex justify-center items-center text-lg ${bgColor[randomNumber]}`}>
+                        <div style={{ width: width + "px", height: height + "px" }} className={`overflow-hidden rounded-full flex justify-center items-center text-lg ${bgColor[colorIndex]}`}>
                             {avatarName}
                         </div>
                     ) : (

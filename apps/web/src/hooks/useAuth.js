@@ -42,21 +42,18 @@ export default function useAuth() {
             console.log("--- Starting Auto Sync ---");
             setSyncing(true);
 
-            // ⏳ 3s delay to ensure session is 100% active in SDK
-            setTimeout(() => {
-                createUserProfile(user)
-                    .then((fullProfile) => {
-                        console.log("--- Sync Completed Successfully ---", fullProfile);
-                        setUser(fullProfile); // 🔥 Save full profile with about/pic to store
-                        setProfileSynced(true);
-                    })
-                    .catch((err) => {
-                        console.error("--- Sync Failed ---", err);
-                    })
-                    .finally(() => {
-                        setSyncing(false);
-                    });
-            }, 3000);
+            createUserProfile(user)
+                .then((fullProfile) => {
+                    console.log("--- Sync Completed Successfully ---", fullProfile);
+                    setUser(fullProfile); // 🔥 Save full profile with about/pic to store
+                    setProfileSynced(true);
+                })
+                .catch((err) => {
+                    console.error("--- Sync Failed ---", err);
+                })
+                .finally(() => {
+                    setSyncing(false);
+                });
         }
     }, [user, isProfileSynced, isSyncing, setProfileSynced, setSyncing]);
 }

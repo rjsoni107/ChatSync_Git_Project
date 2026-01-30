@@ -3,7 +3,7 @@ import { searchUsers } from "@chatsync/services/user.service";
 import { findPrivateChat, createChat, addChatMember } from "@chatsync/services/chat.service";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { useChatStore } from "@chatsync/store/useChatStore";
-import { IoClose, IoSearchOutline } from "react-icons/io5";
+import { IoAdd, IoClose, IoPersonAddSharp, IoSearchOutline } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 import Avatar from "./Avatar";
 
@@ -35,18 +35,27 @@ export default function NewChatModal({ onClose }) {
     };
 
     const startChat = async (targetUser) => {
-        let chatId = await findPrivateChat(user.$id, targetUser.userId);
+        const targetId = targetUser.userId || targetUser.$id;
+        let chatId = await findPrivateChat(user.$id, targetId);
+        let chat;
 
         if (!chatId) {
-            const chat = await createChat();
+            chat = await createChat();
             chatId = chat.$id;
 
             await addChatMember(chatId, user.$id);
-            await addChatMember(chatId, targetUser.userId);
-            addChat({ ...chat, otherUser: targetUser });
+            await addChatMember(chatId, targetId);
+            chat = { ...chat, otherUser: targetUser };
+        } else {
+            // Find existing if possible to preserve messages
+            const state = useChatStore.getState();
+            const existing = state.chats.find(c => c.$id === chatId);
+            chat = existing || { $id: chatId, otherUser: targetUser };
+            if (chat && !chat.otherUser) chat.otherUser = targetUser;
         }
 
-        setActiveChat({ $id: chatId });
+        addChat(chat); // Merges or adds to store
+        setActiveChat(chat); // Activates with otherUser context
         onClose();
     };
 
@@ -75,7 +84,7 @@ export default function NewChatModal({ onClose }) {
                 <div className='relative group'>
                     <input
                         type='text'
-                        placeholder='Find friends by name or email...'
+                        placeholder='Search people by name or @username...'
                         className='w-full bg-[#111b21] border border-white/10 rounded-2xl py-5 px-14 text-white text-lg outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 shadow-2xl'
                         onChange={handleSearch}
                         value={query}
@@ -104,31 +113,40 @@ export default function NewChatModal({ onClose }) {
                             {results.length === 0 && !loading ? (
                                 <div className="py-10 text-center">
                                     <p className='text-gray-500 font-medium'>No direct matches found</p>
-                                    <p className='text-xs text-gray-600 mt-1'>Try a different name or email</p>
+                                    <p className='text-xs text-gray-600 mt-1'>Try a different name or @username</p>
                                 </div>
                             ) : (
                                 <div className="space-y-2">
                                     {results.map((u) => (
                                         <motion.div
                                             whileHover={{ x: 5, backgroundColor: 'rgba(255,255,255,0.05)' }}
-                                            whileTap={{ scale: 0.98 }}
                                             key={u.$id}
-                                            onClick={() => startChat(u)}
-                                            className="p-3 rounded-2xl cursor-pointer flex items-center gap-4 transition-colors"
+                                            className="p-3 rounded-2xl flex items-center gap-3 transition-colors group border border-white/10"
                                         >
                                             <Avatar
-                                                width={44}
-                                                height={44}
+                                                width={40}
+                                                height={40}
                                                 imageUrl={u.profile_pic}
                                                 name={u.name}
                                             />
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-bold text-white truncate">{u.name}</p>
-                                                <p className="text-[11px] text-gray-500 truncate">{u.email}</p>
+                                                <p className="text-[11px] text-blue-400 font-medium truncate">
+                                                    {u.username ? `@${u.username}` : u.email}
+                                                </p>
                                             </div>
-                                            <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <IoSearchOutline size={14} />
-                                            </div>
+                                            <motion.button
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    startChat(u);
+                                                }}
+                                                className="px-4 py-1.5 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-colors"
+                                            >
+                                                <IoPersonAddSharp size={12} />
+                                                Add
+                                            </motion.button>
                                         </motion.div>
                                     ))}
                                 </div>

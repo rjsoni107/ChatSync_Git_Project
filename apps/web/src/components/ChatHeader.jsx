@@ -3,9 +3,13 @@ import { subscribeSingleUserPresence } from "@chatsync/services/realtime.service
 import { formatLastSeen } from "../../../../packages/utils/date";
 import Avatar from "./Avatar";
 import { motion, AnimatePresence } from "framer-motion";
+import { IoEllipsisHorizontal, IoEllipsisVertical, IoExitOutline } from "react-icons/io5";
+import { useChatStore } from "@chatsync/store/useChatStore";
 
 export default function ChatHeader({ otherUser }) {
     const [userSnapshot, setUserSnapshot] = useState(otherUser);
+    const [showMenu, setShowMenu] = useState(false);
+    const clearActiveChat = useChatStore((s) => s.clearActiveChat);
 
     const isUserOnline = (user) => {
         if (!user) return false;
@@ -48,10 +52,10 @@ export default function ChatHeader({ otherUser }) {
         };
     }, [otherUser?.$id]);
 
-    if (!userSnapshot) {
+    if (!userSnapshot && !otherUser) {
         return (
-            <div className="p-5 flex items-center gap-4 bg-[#111b21]/80 backdrop-blur-xl border-b border-white/5 h-[84px]">
-                <div className="w-11 h-11 rounded-full bg-white/5 animate-pulse" />
+            <div className="py-2 px-4 flex items-center gap-4 bg-[#111b21]/80 backdrop-blur-xl border-b border-white/5 h-[64px]">
+                <div className="w-9 h-9 rounded-full bg-white/5 animate-pulse" />
                 <div className="space-y-2">
                     <div className="w-24 h-4 bg-white/5 rounded animate-pulse" />
                     <div className="w-16 h-3 bg-white/5 rounded animate-pulse" />
@@ -66,7 +70,7 @@ export default function ChatHeader({ otherUser }) {
         <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-4 flex items-center justify-between bg-[#111b21]/80 backdrop-blur-xl border-b border-white/5 z-20 shadow-lg"
+            className="py-2 px-4 flex items-center justify-between bg-[#111b21]/80 backdrop-blur-xl border-b border-white/5 z-20 shadow-lg relative"
         >
             <div className="flex items-center gap-4 min-w-0">
                 <div className="relative">
@@ -76,10 +80,10 @@ export default function ChatHeader({ otherUser }) {
                     >
                         <div className="bg-[#111b21] rounded-full p-0.5">
                             <Avatar
-                                width={44}
-                                height={44}
-                                imageUrl={userSnapshot?.profile_pic}
-                                name={userSnapshot?.name}
+                                width={35}
+                                height={35}
+                                imageUrl={userSnapshot?.profile_pic || otherUser?.profile_pic}
+                                name={userSnapshot?.name || otherUser?.name}
                             />
                         </div>
                     </motion.div>
@@ -89,7 +93,9 @@ export default function ChatHeader({ otherUser }) {
                 </div>
 
                 <div className="flex flex-col min-w-0">
-                    <h3 className="font-bold text-white tracking-tight truncate text-lg">{userSnapshot.name}</h3>
+                    <h3 className="font-bold text-white tracking-tight truncate text-lg">
+                        {userSnapshot?.name || otherUser?.name}
+                    </h3>
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={online ? 'online' : 'offline'}
@@ -105,7 +111,7 @@ export default function ChatHeader({ otherUser }) {
                                 </>
                             ) : (
                                 <span className="text-[11px] font-bold text-gray-500 tracking-wider">
-                                    {userSnapshot.lastActiveAt ? `Last seen ${formatLastSeen(userSnapshot.lastActiveAt)}` : "Offline"}
+                                    {(userSnapshot?.lastActiveAt || otherUser?.lastActiveAt) ? `Last seen ${formatLastSeen(userSnapshot?.lastActiveAt || otherUser?.lastActiveAt)}` : "Offline"}
                                 </span>
                             )}
                         </motion.div>
@@ -114,7 +120,44 @@ export default function ChatHeader({ otherUser }) {
             </div>
 
             <div className="flex items-center gap-2">
-                {/* Future: Add Video/Voice Call or Menu buttons here */}
+                <div className="relative">
+                    <motion.button
+                        whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setShowMenu(!showMenu)}
+                        className="p-2 rounded-full text-gray-200 hover:text-white transition-colors"
+                    >
+                        <IoEllipsisVertical size={20} />
+                    </motion.button>
+
+                    <AnimatePresence>
+                        {showMenu && (
+                            <>
+                                <div
+                                    className="fixed inset-0 z-30"
+                                    onClick={() => setShowMenu(false)}
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    className="absolute right-0 mt-2 w-48 bg-[#1f2c33] border border-white/5 rounded-xl shadow-2xl py-2 z-40 overflow-hidden backdrop-blur-xl"
+                                >
+                                    <button
+                                        onClick={() => {
+                                            clearActiveChat();
+                                            setShowMenu(false);
+                                        }}
+                                        className="w-full px-4 py-3 flex items-center gap-3 text-sm text-red-400 hover:bg-white/5 transition-colors font-semibold"
+                                    >
+                                        <IoExitOutline size={18} />
+                                        Close Chat
+                                    </button>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
         </motion.div>
     );

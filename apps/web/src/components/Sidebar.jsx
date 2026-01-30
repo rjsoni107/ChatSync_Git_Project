@@ -64,6 +64,7 @@ export default function Sidebar() {
                             return {
                                 ...c,
                                 ...updatedChat,
+                                otherUser: c.otherUser || updatedChat.otherUser, // 🛡️ Preserve existing user data
                                 unreadCount: (isNewMessage && isIncoming && !isActive)
                                     ? (c.unreadCount || 0) + 1
                                     : (isActive ? 0 : c.unreadCount)
@@ -72,21 +73,27 @@ export default function Sidebar() {
                         return c;
                     });
                 } else {
-                    updated = [{ ...updatedChat, unreadCount: updatedChat.lastSenderId !== user.$id ? 1 : 0 }, ...prev];
+                    // Check if it's already in the store (manual add might have hit FIRST)
+                    const inStore = state.chats.find(c => c.$id === updatedChat.$id);
+                    if (inStore && inStore.otherUser) {
+                        updated = [{ ...inStore, ...updatedChat }, ...prev];
+                    } else {
+                        updated = [{ ...updatedChat, unreadCount: updatedChat.lastSenderId !== user.$id ? 1 : 0 }, ...prev];
 
-                    (async () => {
-                        try {
-                            const { getOtherUserFromChat } = await import("@chatsync/services/chat.service");
-                            const freshOtherUser = await getOtherUserFromChat(updatedChat.$id, user.$id);
-                            if (freshOtherUser) {
-                                setChats(currentChats => currentChats.map(c =>
-                                    c.$id === updatedChat.$id ? { ...c, otherUser: freshOtherUser } : c
-                                ));
+                        (async () => {
+                            try {
+                                const { getOtherUserFromChat } = await import("@chatsync/services/chat.service");
+                                const freshOtherUser = await getOtherUserFromChat(updatedChat.$id, user.$id);
+                                if (freshOtherUser) {
+                                    setChats(currentChats => currentChats.map(c =>
+                                        c.$id === updatedChat.$id ? { ...c, otherUser: freshOtherUser } : c
+                                    ));
+                                }
+                            } catch (err) {
+                                console.error("New chat user fetch failed:", err);
                             }
-                        } catch (err) {
-                            console.error("New chat user fetch failed:", err);
-                        }
-                    })();
+                        })();
+                    }
                 }
 
                 return updated.sort((a, b) =>
@@ -163,14 +170,14 @@ export default function Sidebar() {
                                     {isActive && (
                                         <motion.div
                                             layoutId="active-indicator"
-                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-r-full"
+                                            className="absolute left-0 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-r-full"
                                         />
                                     )}
 
                                     <div className="relative">
                                         <Avatar
-                                            width={48}
-                                            height={48}
+                                            width={40}
+                                            height={40}
                                             imageUrl={chat.otherUser?.profile_pic}
                                             name={chat.otherUser?.name}
                                         />
@@ -240,7 +247,7 @@ export default function Sidebar() {
                     </motion.button>
                     <div className="overflow-hidden">
                         <p className="text-sm font-bold truncate text-white tracking-tight">{user?.name}</p>
-                        <p className="text-[10px] text-gray-500 truncate font-medium">{user?.email}</p>
+                        <p className="text-[10px] text-gray-500 truncate font-medium">@{user?.username}</p>
                     </div>
                 </div>
 

@@ -2,14 +2,31 @@ import { create } from "zustand";
 
 export const useChatStore = create((set) => ({
     chats: [],
-    activeChat: null,
+    activeChat: (() => {
+        try {
+            return JSON.parse(localStorage.getItem("activeChat"));
+        } catch (e) {
+            return null;
+        }
+    })(),
     messages: [],
 
     setChats: (chats) =>
         set((state) => ({
             chats: typeof chats === "function" ? chats(state.chats) : chats,
         })),
-    setActiveChat: (chat) => set({ activeChat: chat }),
+    setActiveChat: (chat) => {
+        if (chat) {
+            localStorage.setItem("activeChat", JSON.stringify(chat));
+        } else {
+            localStorage.removeItem("activeChat");
+        }
+        set({ activeChat: chat });
+    },
+    clearActiveChat: () => {
+        localStorage.removeItem("activeChat");
+        set({ activeChat: null, messages: [] });
+    },
     setMessages: (messages) => set({ messages }),
     addMessage: (msg) =>
         set((state) => {
@@ -23,5 +40,16 @@ export const useChatStore = create((set) => ({
             }
             return { messages: [...state.messages, msg] };
         }),
-    addChat: (chat) => set((state) => ({ chats: [chat, ...state.chats] })),
+    addChat: (chat) =>
+        set((state) => {
+            const exists = state.chats.find((c) => c.$id === chat.$id);
+            if (exists) {
+                return {
+                    chats: state.chats.map((c) =>
+                        c.$id === chat.$id ? { ...c, ...chat } : c
+                    ),
+                };
+            }
+            return { chats: [chat, ...state.chats] };
+        }),
 }));
