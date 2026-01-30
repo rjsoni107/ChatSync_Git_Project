@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import imageCompression from "browser-image-compression";
 import { sendMessage } from "@chatsync/services/message.service";
 import { uploadFile } from "@chatsync/services/storage.service";
 import { useChatStore } from "@chatsync/store/useChatStore";
