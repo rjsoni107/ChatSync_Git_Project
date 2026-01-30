@@ -1,17 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { useChatStore } from "@chatsync/store/useChatStore";
 import { getUserChats } from "@chatsync/services/chat.service";
 import { subscribeChatsRealtime } from "@chatsync/services/realtime.service";
 import { subscribeMessages } from "@chatsync/services/message.service";
-import { logout } from "@chatsync/services/auth.service";
-import { setUserOffline } from "@chatsync/services/presence.service";
 import NewChatModal from "./NewChatModal";
 import { AnimatePresence } from "framer-motion";
-import { IoSearchOutline } from "react-icons/io5";
 
 import SidebarHeader from "./SidebarHeader";
 import ChatList from "./ChatList";
+import SidebarSearch from "./SidebarSearch";
 
 export default function Sidebar() {
     const user = useAuthStore((s) => s.user);
@@ -19,9 +17,10 @@ export default function Sidebar() {
     const setChats = useChatStore((s) => s.setChats);
     const setActiveChat = useChatStore((s) => s.setActiveChat);
     const activeChat = useChatStore((s) => s.activeChat);
+
     const [openSearchUser, setOpenSearchUser] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("all");
-    const filters = ["All", "Unread", "Favourites", "Groups"];
 
     /* 1️⃣ INITIAL LOAD */
     useEffect(() => {
@@ -96,6 +95,7 @@ export default function Sidebar() {
         return () => unsubscribe();
     }, [user]);
 
+    /* 3️⃣ RESET UNREAD ON CLICK */
     useEffect(() => {
         if (!activeChat?.$id) return;
         setChats((prev) => prev.map((c) => c.$id === activeChat.$id ? { ...c, unreadCount: 0 } : c));
@@ -114,6 +114,30 @@ export default function Sidebar() {
         return () => unsub();
     }, [user]);
 
+    /* 5️⃣ FILTERING LOGIC */
+    const filteredChats = useMemo(() => {
+        return chats.filter((chat) => {
+            // Filter by search term
+            const matchesSearch =
+                chat.otherUser?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                chat.lastMessage?.toLowerCase().includes(searchTerm.toLowerCase());
+
+            // Filter by chips
+            let matchesFilter = true;
+            if (filter === "unread") {
+                matchesFilter = (chat.unreadCount || 0) > 0;
+            } else if (filter === "favourites") {
+                // Placeholder: currently not implemented in backend
+                matchesFilter = false;
+            } else if (filter === "groups") {
+                // Placeholder: currently not implemented in backend
+                matchesFilter = chat.type === "group";
+            }
+
+            return matchesSearch && matchesFilter;
+        });
+    }, [chats, searchTerm, filter]);
+
     return (
         <div className="h-full flex flex-col bg-[#111b21] relative overflow-hidden">
             <div className="flex-1 flex flex-col min-h-0">
@@ -121,36 +145,15 @@ export default function Sidebar() {
                 <SidebarHeader onAddChat={() => setOpenSearchUser(true)} />
 
                 {/* Search & Filter Section */}
-                <div className="px-4 pb-2 space-y-3">
-                    <div className="relative group">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors">
-                            <IoSearchOutline size={18} />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search or start new chat"
-                            className="w-full bg-[#202c33] border-none rounded-lg py-1.5 pl-12 pr-4 text-sm text-white placeholder-gray-400 focus:ring-0 focus:outline-none"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-                        {filters.map((f) => (
-                            <button
-                                key={f}
-                                onClick={() => setFilter(f.toLowerCase())}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${filter === f.toLowerCase()
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-[#202c33] text-gray-400 hover:bg-[#2a3942]"
-                                    }`}
-                            >
-                                {f}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                <SidebarSearch
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    activeFilter={filter}
+                    onFilterChange={setFilter}
+                />
 
                 <ChatList
-                    chats={chats}
+                    chats={filteredChats}
                     activeChat={activeChat}
                     onChatSelect={(chat) => setActiveChat(chat)}
                 />

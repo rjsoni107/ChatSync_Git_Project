@@ -26,7 +26,7 @@ const ChatItem = forwardRef(({ chat, isActive, onClick }, ref) => {
             {isActive && (
                 <motion.div
                     layoutId="active-indicator"
-                    className="absolute left-0 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-r-full"
+                    className="absolute left-0 w-1 h-8 bg-blue-500 rounded-r-full"
                 />
             )}
 
