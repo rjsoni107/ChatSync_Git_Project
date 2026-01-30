@@ -6,6 +6,8 @@ import Chats from "../pages/Chats";
 import ProtectedRoute from "../components/ProtectedRoute";
 import useAuth from "../hooks/useAuth";
 import useUserPresence from "../hooks/useUserPresence";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import ResetPassword from "../pages/auth/ResetPassword";
 
 export default function AppRouter() {
     useAuth();
@@ -17,6 +19,8 @@ export default function AppRouter() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
                 <Route
                     path="/"

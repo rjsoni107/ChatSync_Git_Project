@@ -31,3 +31,11 @@ export const sendVerificationEmail = async (url) => {
 export const verifyEmail = async (userId, secret) => {
     return await account.updateVerification(userId, secret);
 };
+
+export const sendPasswordRecoveryEmail = async (email, url) => {
+    return await account.createRecovery(email, url);
+};
+
+export const resetPassword = async (userId, secret, password) => {
+    return await account.updateRecovery(userId, secret, password, password);
+};
