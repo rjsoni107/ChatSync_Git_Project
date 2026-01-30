@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     IoEllipsisVertical,
@@ -44,59 +45,62 @@ export default function HeaderMenu() {
                 <IoEllipsisVertical size={20} />
             </motion.button>
 
-            <AnimatePresence>
-                {showMenu && (
-                    <>
-                        <div
-                            className="fixed inset-0 z-30"
-                            onClick={() => setShowMenu(false)}
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                            className="absolute right-0 mt-2 w-64 bg-[#1f2c33] border border-white/5 rounded-2xl shadow-2xl py-2 z-40 overflow-hidden backdrop-blur-2xl"
-                        >
-                            <div className="flex flex-col">
-                                {menuItems.map((item, i) => (
+            {createPortal(
+                <AnimatePresence>
+                    {showMenu && (
+                        <>
+                            <div
+                                className="fixed inset-0 z-[100] bg-transparent"
+                                onClick={() => setShowMenu(false)}
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                className="fixed top-16 right-4 w-64 bg-[#1f2c33] border border-white/5 rounded-2xl shadow-2xl py-2 z-[101] overflow-hidden backdrop-blur-2xl"
+                            >
+                                <div className="flex flex-col">
+                                    {menuItems.map((item, i) => (
+                                        <button
+                                            key={i}
+                                            className="w-full px-4 py-3 flex items-center gap-3 text-[14px] text-gray-200 hover:bg-white/5 transition-colors font-medium group"
+                                        >
+                                            <item.icon size={20} className="text-gray-400 group-hover:text-white transition-colors" />
+                                            {item.label}
+                                        </button>
+                                    ))}
+
+                                    <div className="h-[1px] bg-white/5 my-1 mx-2" />
+
                                     <button
-                                        key={i}
+                                        onClick={() => {
+                                            clearActiveChat();
+                                            setShowMenu(false);
+                                        }}
                                         className="w-full px-4 py-3 flex items-center gap-3 text-[14px] text-gray-200 hover:bg-white/5 transition-colors font-medium group"
                                     >
-                                        <item.icon size={20} className="text-gray-400 group-hover:text-white transition-colors" />
-                                        {item.label}
+                                        <IoExitOutline size={20} className="text-gray-400 group-hover:text-white transition-colors" />
+                                        Close chat
                                     </button>
-                                ))}
 
-                                <div className="h-[1px] bg-white/5 my-1 mx-2" />
+                                    <div className="h-[1px] bg-white/5 my-1 mx-2" />
 
-                                <button
-                                    onClick={() => {
-                                        clearActiveChat();
-                                        setShowMenu(false);
-                                    }}
-                                    className="w-full px-4 py-3 flex items-center gap-3 text-[14px] text-gray-200 hover:bg-white/5 transition-colors font-medium group"
-                                >
-                                    <IoExitOutline size={20} className="text-gray-400 group-hover:text-white transition-colors" />
-                                    Close chat
-                                </button>
-
-                                <div className="h-[1px] bg-white/5 my-1 mx-2" />
-
-                                {dangerItems.map((item, i) => (
-                                    <button
-                                        key={i}
-                                        className={`w-full px-4 py-3 flex items-center gap-3 text-[14px] ${item.color} ${item.hover} transition-colors font-medium`}
-                                    >
-                                        <item.icon size={20} />
-                                        {item.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
+                                    {dangerItems.map((item, i) => (
+                                        <button
+                                            key={i}
+                                            className={`w-full px-4 py-3 flex items-center gap-3 text-[14px] ${item.color} ${item.hover} transition-colors font-medium`}
+                                        >
+                                            <item.icon size={20} />
+                                            {item.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 }

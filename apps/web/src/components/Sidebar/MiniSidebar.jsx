@@ -11,9 +11,8 @@ import Avatar from "../Avatar";
 export default function MiniSidebar({ user, onEditProfile }) {
     const navItems = [
         { icon: IoChatbubbleEllipses, label: "Chats", active: true },
-        { icon: IoRadioButtonOff, label: "Status" },
-        { icon: IoDiscOutline, label: "Channels" },
-        { icon: IoPeopleOutline, label: "Communities" },
+        { icon: IoDiscOutline, label: "Status" },
+        { icon: IoPeopleOutline, label: "Groups" },
     ];
 
     return (

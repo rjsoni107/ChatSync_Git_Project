@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import {
     IoChatbubbleEllipses,
-    IoRadioButtonOff,
     IoPeopleOutline,
     IoSettingsOutline,
     IoDiscOutline
@@ -11,9 +10,8 @@ import Avatar from "../Avatar";
 export default function MobileNav({ user, onEditProfile }) {
     const navItems = [
         { icon: IoChatbubbleEllipses, label: "Chats", active: true },
-        { icon: IoRadioButtonOff, label: "Status" },
-        { icon: IoDiscOutline, label: "Channels" },
-        { icon: IoPeopleOutline, label: "Communities" },
+        { icon: IoDiscOutline, label: "Status" },
+        { icon: IoPeopleOutline, label: "Groups" },
         { icon: IoSettingsOutline, label: "Settings" }
     ];
 
