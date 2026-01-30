@@ -5,7 +5,7 @@ import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { useChatStore } from "@chatsync/store/useChatStore";
 import { IoAdd, IoClose, IoPersonAddSharp, IoSearchOutline } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
-import Avatar from "./Avatar";
+import Avatar from "../Avatar";
 
 export default function NewChatModal({ onClose }) {
     const user = useAuthStore((s) => s.user);

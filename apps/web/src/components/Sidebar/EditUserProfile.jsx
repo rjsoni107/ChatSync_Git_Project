@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import Avatar from './Avatar'
+import Avatar from '../Avatar'
 import { FaCamera, FaPen, FaTimes } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
 import { uploadFile, getFileView } from '@chatsync/services/file.service'
