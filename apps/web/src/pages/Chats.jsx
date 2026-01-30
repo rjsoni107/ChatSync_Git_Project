@@ -14,7 +14,7 @@ export default function Chats() {
     const [editUserOpen, setEditUserOpen] = useState(false);
 
     return (
-        <div className="h-screen flex bg-[#0b141a] text-white overflow-hidden">
+        <div className="h-[100dvh] md:h-screen flex bg-[#0b141a] text-white overflow-hidden">
             {/* 1. Mini Sidebar (Vertical Nav) */}
             {/* Sidebars Container - Hidden on mobile if chat is active */}
             <div className={`flex flex-shrink-0 ${activeChat ? 'hidden md:flex' : 'flex w-full md:w-auto'}`}>

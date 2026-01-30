@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { signup, login, getCurrentUser } from "@chatsync/services/auth.service";
+import { signup, login, getCurrentUser, sendVerificationEmail } from "@chatsync/services/auth.service";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoMailOutline, IoLockClosedOutline, IoPersonOutline, IoArrowForward } from "react-icons/io5";
@@ -14,6 +14,7 @@ export default function Signup() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [emailSent, setEmailSent] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -23,9 +24,9 @@ export default function Signup() {
         try {
             await signup(email, password, name);
             await login(email, password);
-            const user = await getCurrentUser();
-            setUser(user);
-            navigate("/");
+            // Send verification email before setting user
+            await sendVerificationEmail(`${window.location.origin}/verify-email`);
+            setEmailSent(true);
         } catch (err) {
             console.log("Signup error", err);
             setError(err.message || "Signup failed");
@@ -52,6 +53,29 @@ export default function Signup() {
         hidden: { opacity: 0, y: 10 },
         visible: { opacity: 1, y: 0 }
     };
+
+    if (emailSent) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white font-sans p-4">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-[#111b21] p-8 rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full text-center"
+                >
+                    <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
+                        <IoMailOutline size={32} />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-2">Check your email</h2>
+                    <p className="text-gray-400 mb-6">
+                        We've sent a verification link to <span className="text-white font-medium">{email}</span>. Please verify your account to continue.
+                    </p>
+                    <p className="text-xs text-gray-500">
+                        Did not receive the email? Check your spam folder or try again.
+                    </p>
+                </motion.div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white relative overflow-hidden font-sans">

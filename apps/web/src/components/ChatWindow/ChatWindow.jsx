@@ -90,14 +90,14 @@ export default function ChatWindow() {
     }
 
     return (
-        <div className="h-full flex flex-col bg-[#0b141a]">
+        <div className="w-full h-[100dvh] md:h-full flex flex-col bg-[#0b141a]">
             <ChatHeader key={otherUser?.$id || activeChat?.$id} otherUser={otherUser} activeChat={activeChat} />
 
             <ChatMessages messages={messages} user={user} bottomRef={bottomRef} />
 
             <TypingIndicator users={typingUsers} />
 
-            <div className="p-4 backdrop-blur-sm">
+            <div className="p-2 md:p-4 backdrop-blur-sm bg-[#0b141a]/90 md:bg-transparent">
                 <MessageInput chatId={activeChat.$id} />
             </div>
         </div>

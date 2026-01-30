@@ -11,6 +11,7 @@ import SidebarHeader from "./SidebarHeader";
 import ChatList from "./ChatList";
 import SidebarSearch from "./SidebarSearch";
 import ChatListSkeleton from "./ChatListSkeleton";
+import EmptyChatList from "./EmptyChatList";
 
 export default function Sidebar() {
     const user = useAuthStore((s) => s.user);
@@ -161,8 +162,10 @@ export default function Sidebar() {
                     onFilterChange={setFilter}
                 />
 
-                {loading && chats.length === 0 ? (
+                {loading ? (
                     <ChatListSkeleton />
+                ) : chats.length === 0 ? (
+                    <EmptyChatList onStartChat={() => setOpenSearchUser(true)} />
                 ) : (
                     <ChatList
                         chats={filteredChats}

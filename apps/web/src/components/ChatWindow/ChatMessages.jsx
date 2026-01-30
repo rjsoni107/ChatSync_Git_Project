@@ -5,7 +5,7 @@ import { getFilePreview } from "@chatsync/services/storage.service";
 
 export default function ChatMessages({ messages, user, bottomRef }) {
     return (
-        <div className="flex-1 p-6 overflow-y-auto space-y-4 custom-scrollbar">
+        <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-4 custom-scrollbar overscroll-contain">
             <AnimatePresence mode="wait">
                 {messages.map((msg, index) => {
                     const isMe = msg.senderId === user.$id;

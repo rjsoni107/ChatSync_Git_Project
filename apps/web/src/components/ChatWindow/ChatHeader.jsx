@@ -74,7 +74,7 @@ export default function ChatHeader({ otherUser }) {
             <div className="flex items-center gap-4 min-w-0">
                 <button
                     onClick={() => setActiveChat(null)}
-                    className="md:hidden mr-1 text-gray-400 hover:text-white"
+                    className="md:hidden mr-3 text-gray-400 hover:text-white"
                 >
                     <IoArrowBack size={24} />
                 </button>

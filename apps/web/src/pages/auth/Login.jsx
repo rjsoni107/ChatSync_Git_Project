@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login, getCurrentUser } from "@chatsync/services/auth.service";
+import { login, getCurrentUser, logout } from "@chatsync/services/auth.service";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoMailOutline, IoLockClosedOutline, IoArrowForward } from "react-icons/io5";
@@ -21,7 +21,16 @@ export default function Login() {
 
         try {
             await login(email, password);
+            // Check verification status
             const user = await getCurrentUser();
+
+            if (!user.emailVerification) {
+                await logout();
+                setError("Email not verified. Please check your inbox.");
+                setLoading(false);
+                return;
+            }
+
             setUser(user);
             navigate("/");
         } catch (err) {

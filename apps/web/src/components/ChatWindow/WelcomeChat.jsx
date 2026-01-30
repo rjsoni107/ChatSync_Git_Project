@@ -4,13 +4,13 @@ import { IoChatbubblesOutline } from "react-icons/io5";
 export default function WelcomeChat() {
     return (
         <div className="h-full flex flex-col items-center justify-center bg-[#0b141a] relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 to-transparent pointer-events-none" />
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="flex flex-col items-center text-center px-6 z-10"
+                className="flex flex-col items-center text-center px-6 z-10 -mt-20"
             >
                 <div className="w-24 h-24 mb-8 relative">
                     <motion.div
