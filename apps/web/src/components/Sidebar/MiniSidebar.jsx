@@ -23,16 +23,10 @@ export default function MiniSidebar({ user, onEditProfile }) {
                     <motion.div
                         key={i}
                         whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-                        className={`p-3 rounded-full cursor-pointer relative group ${item.active ? "text-white bg-white/10" : "text-gray-400"}`}
+                        className={`p-3 rounded-full cursor-pointer relative group ${item.active ? "text-white bg-blue-400/30" : "text-gray-400"}`}
                         title={item.label}
                     >
                         <item.icon size={24} />
-                        {item.active && (
-                            <motion.div
-                                layoutId="nav-active"
-                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-green-500 rounded-r-full"
-                            />
-                        )}
                         <span className="absolute left-full ml-2 px-2 py-1 bg-[#2a3942] text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
                             {item.label}
                         </span>

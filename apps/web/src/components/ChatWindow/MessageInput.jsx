@@ -155,7 +155,7 @@ export default function MessageInput() {
                             }
                         }}
                         disabled={uploading}
-                        placeholder={uploading ? "Uploading..." : "Message..."}
+                        placeholder={uploading ? "Sending..." : "Message..."}
                         className="w-full bg-white/5 border border-white/5 rounded-2xl py-3 px-5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all duration-300 text-[15px] shadow-sm disabled:opacity-50"
                     />
                 </div>

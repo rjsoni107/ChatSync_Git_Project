@@ -123,7 +123,7 @@ export default function Sidebar() {
                 {/* Search & Filter Section */}
                 <div className="px-4 pb-2 space-y-3">
                     <div className="relative group">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#00a884] transition-colors">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors">
                             <IoSearchOutline size={18} />
                         </div>
                         <input
@@ -139,7 +139,7 @@ export default function Sidebar() {
                                 key={f}
                                 onClick={() => setFilter(f.toLowerCase())}
                                 className={`px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${filter === f.toLowerCase()
-                                    ? "bg-[#00a884] text-[#111b21]"
+                                    ? "bg-blue-600 text-white"
                                     : "bg-[#202c33] text-gray-400 hover:bg-[#2a3942]"
                                     }`}
                             >
