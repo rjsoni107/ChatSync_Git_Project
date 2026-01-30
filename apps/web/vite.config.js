@@ -7,6 +7,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
+            '@chatsync': path.resolve(__dirname, '../../packages'), // ✅ IMPORTANT
         },
     },
     server: {
