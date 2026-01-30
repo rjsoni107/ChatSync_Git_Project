@@ -58,14 +58,27 @@ export const getUserChats = async (userId) => {
                     Query.equal("chatId", chat.$id),
                     Query.equal("isSeen", false),
                     Query.notEqual("senderId", userId),
-                    Query.limit(100),
+                    Query.limit(10),
                 ]
             );
+
+            // 5️⃣ get last message seen status
+            const lastMsgRes = await databases.listDocuments(
+                DB_ID,
+                appwriteConfig.messageCollectionId,
+                [
+                    Query.equal("chatId", chat.$id),
+                    Query.orderDesc("createdAt"),
+                    Query.limit(1),
+                ]
+            );
+            const lastMsg = lastMsgRes.documents[0];
 
             return {
                 ...chat,
                 otherUser,
                 unreadCount: unreadRes.total,
+                lastMessageSeen: lastMsg ? lastMsg.isSeen : false,
             };
         })
     );

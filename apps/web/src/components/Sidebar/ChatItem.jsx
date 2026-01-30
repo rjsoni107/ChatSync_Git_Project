@@ -1,9 +1,13 @@
 import { forwardRef } from "react";
 import { motion } from "framer-motion";
 import Avatar from "../Avatar";
+import { IoCheckmarkDone } from "react-icons/io5";
+import { useAuthStore } from "@chatsync/store/useAuthStore";
 
 const ChatItem = forwardRef(({ chat, isActive, onClick }, ref) => {
+    const user = useAuthStore(s => s.user);
     const hasUnread = (chat.unreadCount || 0) > 0;
+    const isMe = chat.lastSenderId === user?.$id;
 
     return (
         <motion.div
@@ -41,6 +45,29 @@ const ChatItem = forwardRef(({ chat, isActive, onClick }, ref) => {
                         {chat.otherUser?.name || "Unknown User"}
                     </p>
 
+                    {chat.lastMessageAt && (
+                        <span className={` text-[9px] font-bold uppercase tracking-tight ${hasUnread ? "text-blue-400" : "text-gray-500"}`}>
+                            {new Intl.DateTimeFormat([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            }).format(new Date(chat.lastMessageAt))}
+                        </span>
+                    )}
+                </div>
+
+                <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                        {isMe && (
+                            <IoCheckmarkDone
+                                size={16}
+                                className={chat.lastMessageSeen ? "text-blue-400" : "text-gray-500"}
+                            />
+                        )}
+                        <p className={`text-xs truncate leading-relaxed ${hasUnread ? "text-gray-100 font-semibold" : "text-gray-400 font-medium"}`}>
+                            {chat.lastMessage || "Start a conversation..."}
+                        </p>
+                    </div>
+
                     {hasUnread && (
                         <motion.div
                             initial={{ scale: 0.5 }}
@@ -49,21 +76,6 @@ const ChatItem = forwardRef(({ chat, isActive, onClick }, ref) => {
                         >
                             {chat.unreadCount}
                         </motion.div>
-                    )}
-                </div>
-
-                <div className="flex items-center justify-between gap-2">
-                    <p className={`text-xs truncate flex-1 leading-relaxed ${hasUnread ? "text-gray-100 font-semibold" : "text-gray-400 font-medium"}`}>
-                        {chat.lastMessage || "Start a conversation..."}
-                    </p>
-
-                    {chat.lastMessageAt && (
-                        <span className={` text-[9px] font-bold uppercase tracking-tight ${hasUnread ? "text-blue-400" : "text-gray-500"}`}>
-                            {new Intl.DateTimeFormat([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            }).format(new Date(chat.lastMessageAt))}
-                        </span>
                     )}
                 </div>
             </div>

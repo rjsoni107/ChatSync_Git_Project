@@ -17,7 +17,7 @@ export default function UserStatus({ online, lastActiveAt }) {
                         <span className="text-[11px] font-black text-green-500/90 tracking-widest uppercase">Online</span>
                     </>
                 ) : (
-                    <span className="text-[11px] font-bold text-gray-500 tracking-wider">
+                    <span className="text-[11px] text-gray-300">
                         {lastActiveAt ? `Last seen ${formatLastSeen(lastActiveAt)}` : "Offline"}
                     </span>
                 )}

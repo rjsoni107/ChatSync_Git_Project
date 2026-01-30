@@ -3,15 +3,15 @@ import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { useChatStore } from "@chatsync/store/useChatStore";
 import { getUserChats } from "@chatsync/services/chat.service";
 import { subscribeChatsRealtime } from "@chatsync/services/realtime.service";
+import { subscribeMessages } from "@chatsync/services/message.service";
 import { logout } from "@chatsync/services/auth.service";
 import { setUserOffline } from "@chatsync/services/presence.service";
 import NewChatModal from "./NewChatModal";
-import EditUserProfile from "./EditUserProfile";
 import { AnimatePresence } from "framer-motion";
+import { IoSearchOutline } from "react-icons/io5";
 
 import SidebarHeader from "./SidebarHeader";
 import ChatList from "./ChatList";
-import SidebarFooter from "./SidebarFooter";
 
 export default function Sidebar() {
     const user = useAuthStore((s) => s.user);
@@ -19,9 +19,9 @@ export default function Sidebar() {
     const setChats = useChatStore((s) => s.setChats);
     const setActiveChat = useChatStore((s) => s.setActiveChat);
     const activeChat = useChatStore((s) => s.activeChat);
-    const clearUser = useAuthStore((s) => s.clearUser);
     const [openSearchUser, setOpenSearchUser] = useState(false);
-    const [editUserOpen, setEditUserOpen] = useState(false);
+    const [filter, setFilter] = useState("all");
+    const filters = ["All", "Unread", "Favourites", "Groups"];
 
     /* 1️⃣ INITIAL LOAD */
     useEffect(() => {
@@ -59,6 +59,7 @@ export default function Sidebar() {
                                 ...c,
                                 ...updatedChat,
                                 otherUser: c.otherUser || updatedChat.otherUser,
+                                lastMessageSeen: isNewMessage ? false : c.lastMessageSeen,
                                 unreadCount: (isNewMessage && isIncoming && !isActive)
                                     ? (c.unreadCount || 0) + 1
                                     : (isActive ? 0 : c.unreadCount)
@@ -69,9 +70,9 @@ export default function Sidebar() {
                 } else {
                     const inStore = state.chats.find(c => c.$id === updatedChat.$id);
                     if (inStore && inStore.otherUser) {
-                        updated = [{ ...inStore, ...updatedChat }, ...prev];
+                        updated = [{ ...inStore, ...updatedChat, lastMessageSeen: false }, ...prev];
                     } else {
-                        updated = [{ ...updatedChat, unreadCount: updatedChat.lastSenderId !== user.$id ? 1 : 0 }, ...prev];
+                        updated = [{ ...updatedChat, unreadCount: updatedChat.lastSenderId !== user.$id ? 1 : 0, lastMessageSeen: false }, ...prev];
                         (async () => {
                             try {
                                 const { getOtherUserFromChat } = await import("@chatsync/services/chat.service");
@@ -95,28 +96,59 @@ export default function Sidebar() {
         return () => unsubscribe();
     }, [user]);
 
-    /* 3️⃣ RESET UNREAD ON CLICK */
     useEffect(() => {
         if (!activeChat?.$id) return;
         setChats((prev) => prev.map((c) => c.$id === activeChat.$id ? { ...c, unreadCount: 0 } : c));
     }, [activeChat?.$id, setChats]);
 
-    const handleLogout = async () => {
+    /* 4️⃣ MESSAGE SEEN UPDATES */
+    useEffect(() => {
         if (!user) return;
-        try {
-            await setUserOffline(user.$id);
-            await logout();
-            clearUser();
-        } catch (err) {
-            console.error("Logout failed:", err);
-            clearUser();
-        }
-    };
+        const unsub = subscribeMessages((msg) => {
+            if (msg.isSeen) {
+                setChats((prev) => prev.map((c) =>
+                    c.$id === msg.chatId ? { ...c, lastMessageSeen: true } : c
+                ));
+            }
+        });
+        return () => unsub();
+    }, [user]);
 
     return (
-        <div className="h-full flex flex-col bg-[#0b141a] border-r border-white/5 shadow-2xl relative overflow-hidden">
+        <div className="h-full flex flex-col bg-[#111b21] relative overflow-hidden">
             <div className="flex-1 flex flex-col min-h-0">
+                {/* Header */}
                 <SidebarHeader onAddChat={() => setOpenSearchUser(true)} />
+
+                {/* Search & Filter Section */}
+                <div className="px-4 pb-2 space-y-3">
+                    <div className="relative group">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#00a884] transition-colors">
+                            <IoSearchOutline size={18} />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search or start new chat"
+                            className="w-full bg-[#202c33] border-none rounded-lg py-1.5 pl-12 pr-4 text-sm text-white placeholder-gray-400 focus:ring-0 focus:outline-none"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                        {filters.map((f) => (
+                            <button
+                                key={f}
+                                onClick={() => setFilter(f.toLowerCase())}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap ${filter === f.toLowerCase()
+                                    ? "bg-[#00a884] text-[#111b21]"
+                                    : "bg-[#202c33] text-gray-400 hover:bg-[#2a3942]"
+                                    }`}
+                            >
+                                {f}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 <ChatList
                     chats={chats}
                     activeChat={activeChat}
@@ -124,15 +156,8 @@ export default function Sidebar() {
                 />
             </div>
 
-            <SidebarFooter
-                user={user}
-                onEditProfile={() => setEditUserOpen(true)}
-                onLogout={handleLogout}
-            />
-
             <AnimatePresence>
                 {openSearchUser && <NewChatModal onClose={() => setOpenSearchUser(false)} />}
-                {editUserOpen && <EditUserProfile onClose={() => setEditUserOpen(false)} user={user} />}
             </AnimatePresence>
         </div>
     );
