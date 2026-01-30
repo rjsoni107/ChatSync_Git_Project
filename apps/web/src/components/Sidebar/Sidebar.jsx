@@ -10,6 +10,7 @@ import { AnimatePresence } from "framer-motion";
 import SidebarHeader from "./SidebarHeader";
 import ChatList from "./ChatList";
 import SidebarSearch from "./SidebarSearch";
+import ChatListSkeleton from "./ChatListSkeleton";
 
 export default function Sidebar() {
     const user = useAuthStore((s) => s.user);
@@ -21,15 +22,23 @@ export default function Sidebar() {
     const [openSearchUser, setOpenSearchUser] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("all");
+    const [loading, setLoading] = useState(true);
 
     /* 1️⃣ INITIAL LOAD */
     useEffect(() => {
         if (!user) return;
 
         const loadChats = async () => {
-            const data = await getUserChats(user.$id);
-            const sorted = data.sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
-            setChats(sorted);
+            setLoading(true);
+            try {
+                const data = await getUserChats(user.$id);
+                const sorted = data.sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
+                setChats(sorted);
+            } catch (err) {
+                console.error("Failed to load chats:", err);
+            } finally {
+                setLoading(false);
+            }
         };
         loadChats();
     }, [user]);
@@ -152,11 +161,15 @@ export default function Sidebar() {
                     onFilterChange={setFilter}
                 />
 
-                <ChatList
-                    chats={filteredChats}
-                    activeChat={activeChat}
-                    onChatSelect={(chat) => setActiveChat(chat)}
-                />
+                {loading && chats.length === 0 ? (
+                    <ChatListSkeleton />
+                ) : (
+                    <ChatList
+                        chats={filteredChats}
+                        activeChat={activeChat}
+                        onChatSelect={(chat) => setActiveChat(chat)}
+                    />
+                )}
             </div>
 
             <AnimatePresence>

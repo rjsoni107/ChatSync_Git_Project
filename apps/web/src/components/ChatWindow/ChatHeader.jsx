@@ -4,8 +4,11 @@ import Avatar from "../Avatar";
 import { motion } from "framer-motion";
 import UserStatus from "./UserStatus";
 import HeaderMenu from "./HeaderMenu";
+import { useChatStore } from "@chatsync/store/useChatStore";
+import { IoArrowBack } from "react-icons/io5";
 
 export default function ChatHeader({ otherUser }) {
+    const setActiveChat = useChatStore((s) => s.setActiveChat);
     const [userSnapshot, setUserSnapshot] = useState(otherUser);
     const [, setTick] = useState(0);
 
@@ -69,6 +72,13 @@ export default function ChatHeader({ otherUser }) {
             className="py-2 px-4 flex items-center justify-between bg-[#111b21]/80 backdrop-blur-xl border-b border-white/5 z-20 shadow-lg relative"
         >
             <div className="flex items-center gap-4 min-w-0">
+                <button
+                    onClick={() => setActiveChat(null)}
+                    className="md:hidden mr-1 text-gray-400 hover:text-white"
+                >
+                    <IoArrowBack size={24} />
+                </button>
+
                 <div className="relative">
                     <motion.div
                         whileHover={{ scale: 1.05 }}

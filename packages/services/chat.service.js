@@ -7,7 +7,7 @@ const MEMBERS_ID = appwriteConfig.chatMembersCollectionId;
 const USERS_ID = appwriteConfig.userCollectionId;
 
 export const getUserChats = async (userId) => {
-    // 1️⃣ find memberships
+    // 1️⃣ find memberships for the current user
     const memberships = await databases.listDocuments(
         DB_ID,
         MEMBERS_ID,
@@ -15,42 +15,55 @@ export const getUserChats = async (userId) => {
     );
 
     const chatIds = memberships.documents.map((m) => m.chatId);
-
     if (!chatIds.length) return [];
 
-    // 2️⃣ fetch chats
+    // 2️⃣ fetch chats objects
     const chatsRes = await databases.listDocuments(
         DB_ID,
         CHATS_ID,
         [Query.equal("$id", chatIds), Query.limit(100)]
     );
 
-    // 3️⃣ for each chat → find OTHER member
+    // 3️⃣ Batch fetch ALL members for ALL these chats
+    const allMembersRes = await databases.listDocuments(
+        DB_ID,
+        MEMBERS_ID,
+        [Query.equal("chatId", chatIds), Query.limit(100)]
+    );
+
+    // Group members by chatId and find other userIds
+    const otherUserIds = [];
+    const membersByChat = {};
+    allMembersRes.documents.forEach(m => {
+        if (!membersByChat[m.chatId]) membersByChat[m.chatId] = [];
+        membersByChat[m.chatId].push(m);
+        if (m.userId !== userId) {
+            otherUserIds.push(m.userId);
+        }
+    });
+
+    // 4️⃣ Batch fetch ALL other user profiles
+    let usersMap = {};
+    if (otherUserIds.length > 0) {
+        const uniqueOtherUserIds = [...new Set(otherUserIds)];
+        const usersRes = await databases.listDocuments(
+            DB_ID,
+            USERS_ID,
+            [Query.equal("$id", uniqueOtherUserIds), Query.limit(100)]
+        );
+        usersRes.documents.forEach(u => {
+            usersMap[u.$id] = u;
+        });
+    }
+
+    // 5️⃣ Final assembly with unread counts
     const chatsWithUser = await Promise.all(
         chatsRes.documents.map(async (chat) => {
-            const members = await databases.listDocuments(
-                DB_ID,
-                MEMBERS_ID,
-                [Query.equal("chatId", chat.$id)]
-            );
+            const chatMembers = membersByChat[chat.$id] || [];
+            const otherMember = chatMembers.find(m => m.userId !== userId);
+            const otherUser = otherMember ? usersMap[otherMember.userId] : null;
 
-            console.log("getUserChats find other member for chat:", chat.$id, "current userId:", userId);
-            const otherMember = members.documents.find(
-                (m) => String(m.userId) !== String(userId)
-            );
-            console.log("Found otherMember:", otherMember);
-
-            let otherUser = null;
-
-            if (otherMember) {
-                otherUser = await databases.getDocument(
-                    DB_ID,
-                    USERS_ID,
-                    otherMember.userId
-                );
-            }
-
-            // 4️⃣ count unread messages
+            // unread counts still need individual queries because of complex filters
             const unreadRes = await databases.listDocuments(
                 DB_ID,
                 appwriteConfig.messageCollectionId,
@@ -58,11 +71,10 @@ export const getUserChats = async (userId) => {
                     Query.equal("chatId", chat.$id),
                     Query.equal("isSeen", false),
                     Query.notEqual("senderId", userId),
-                    Query.limit(10),
+                    Query.limit(1), // Just total needed
                 ]
             );
 
-            // 5️⃣ get last message seen status
             const lastMsgRes = await databases.listDocuments(
                 DB_ID,
                 appwriteConfig.messageCollectionId,
