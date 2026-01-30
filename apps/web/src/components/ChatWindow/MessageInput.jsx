@@ -56,7 +56,12 @@ export default function MessageInput() {
                         useWebWorker: true
                     };
                     try {
-                        fileToUpload = await imageCompression(selectedFile, options);
+                        const compressedBlob = await imageCompression(selectedFile, options);
+                        // Create a new File object from the compressed blob to ensure it has a name and type
+                        fileToUpload = new File([compressedBlob], selectedFile.name, {
+                            type: compressedBlob.type,
+                            lastModified: Date.now(),
+                        });
                     } catch (compressionError) {
                         console.error("Compression failed, using original:", compressionError);
                     }

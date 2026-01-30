@@ -22,7 +22,7 @@ export default function ChatMessages({ messages, user, bottomRef }) {
                             className="space-y-4"
                         >
                             {showDateSeparator && (
-                                <div className="flex justify-center my-6">
+                                <div className="flex justify-center my-2">
                                     <span className="px-4 py-1.5 text-[11px] bg-white/5 text-gray-300 rounded-full border border-white/5 shadow-sm backdrop-blur-md">
                                         {dateLabel}
                                     </span>
