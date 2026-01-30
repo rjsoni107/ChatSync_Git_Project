@@ -12,6 +12,7 @@
     "@chatsync/store": "*",
     "@chatsync/types": "*",
     "@chatsync/utils": "*",
+    "browser-image-compression": "^2.0.2",
     "clsx": "^2.0.0",
     "framer-motion": "^10.0.0",
     "react": "^18.2.0",

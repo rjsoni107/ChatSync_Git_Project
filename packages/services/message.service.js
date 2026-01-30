@@ -5,7 +5,7 @@ const DB_ID = appwriteConfig.databaseId;
 const MESSAGES_ID = appwriteConfig.messageCollectionId;
 const CHATS_ID = appwriteConfig.chatCollectionId;
 
-export const sendMessage = async ({ chatId, senderId, content }) => {
+export const sendMessage = async ({ chatId, senderId, content, type = "text", fileId = null }) => {
     if (!chatId) {
         throw new Error("chatId is required to send a message");
     }
@@ -19,26 +19,29 @@ export const sendMessage = async ({ chatId, senderId, content }) => {
         {
             chatId,
             senderId,
-            type: "text",
+            type,
             content,
+            fileId,
             createdAt: now,
             isSeen: false,
         }
     );
 
     // 2️⃣ update chat last message
+    const lastMsgDisplay = type === "image" ? "📷 Image" : content;
+
     try {
         await databases.updateDocument(DB_ID, CHATS_ID, chatId, {
-            lastMessage: content,
+            lastMessage: lastMsgDisplay,
             lastMessageAt: now,
             lastSenderId: senderId,
         });
     } catch (err) {
-        console.warn("Failed to update chat metadata (possibly missing lastSenderId attribute):", err.message);
-        // Fallback update without lastSenderId if the schema isn't updated yet
+        console.warn("Failed to update chat metadata:", err.message);
+        // Fallback update
         try {
             await databases.updateDocument(DB_ID, CHATS_ID, chatId, {
-                lastMessage: content,
+                lastMessage: lastMsgDisplay,
                 lastMessageAt: now,
             });
         } catch (innerErr) {
