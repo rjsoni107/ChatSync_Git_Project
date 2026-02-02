@@ -3,12 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { login, getCurrentUser, logout } from "@chatsync/services/auth.service";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoMailOutline, IoLockClosedOutline, IoArrowForward } from "react-icons/io5";
+import { IoMailOutline, IoLockClosedOutline, IoArrowForward, IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 
 export default function Login() {
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -149,13 +150,25 @@ export default function Login() {
                             <div className="relative group/input">
                                 <IoLockClosedOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-blue-500 transition-colors" size={20} />
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full pl-12 pr-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all duration-300 text-white placeholder-gray-500 font-medium"
+                                    className="w-full pl-12 pr-12 py-2 rounded-2xl bg-white/[0.03] border border-white/5 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all duration-300 text-white placeholder-gray-500 font-medium"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white transition-colors focus:outline-none"
+                                >
+                                    {showPassword ? <IoEyeOffOutline size={20} /> : <IoEyeOutline size={20} />}
+                                </button>
+                            </div>
+                            <div className="flex justify-end mt-2">
+                                <Link to="/forgot-password" className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-wide">
+                                    Forgot Password?
+                                </Link>
                             </div>
                         </motion.div>
 

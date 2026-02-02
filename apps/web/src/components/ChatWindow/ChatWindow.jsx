@@ -34,7 +34,8 @@ export default function ChatWindow() {
     }, [activeChat]);
 
     useEffect(() => {
-        if (!activeChat) return;
+        if (!activeChat?.$id) return;
+
         const chatId = activeChat.$id || activeChat.chatId;
 
         const loadMessages = async () => {
@@ -44,12 +45,31 @@ export default function ChatWindow() {
 
         loadMessages();
 
-        const unsub = subscribeMessages((msg) => {
-            if (msg.chatId === chatId) {
-                addMessage(msg);
+        const unsub = subscribeMessages((event) => {
+            const msg = event.payload; // Extract payload from new event structure
 
-                if (msg.senderId !== user.$id && !msg.isSeen && !document.hidden) {
-                    markMessagesAsSeen(chatId, user.$id);
+            // Check if this is a create/update event relevant to this chat
+            const isDelete = event.events && event.events.some(e => e.includes('.delete'));
+
+            if (isDelete && msg.chatId === activeChat.$id) {
+                // Remove deleted message from list
+                setMessages((prev) => prev.filter(m => m.$id !== msg.$id));
+                return;
+            }
+
+            if (msg.chatId === activeChat.$id) {
+                // If message already exists (e.g. update), replace it vs add it
+                setMessages((prev) => {
+                    const exists = prev.find(m => m.$id === msg.$id);
+                    if (exists) {
+                        return prev.map(m => m.$id === msg.$id ? msg : m);
+                    }
+                    return [msg, ...prev];
+                });
+
+                // Mark seen if it's not mine
+                if (msg.senderId !== user.$id && !msg.isSeen) {
+                    markMessagesAsSeen(activeChat.$id, user.$id);
                 }
             }
         });

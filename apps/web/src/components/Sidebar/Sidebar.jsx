@@ -112,10 +112,34 @@ export default function Sidebar() {
     }, [activeChat?.$id, setChats]);
 
     /* 4️⃣ MESSAGE SEEN UPDATES */
+    /* 4️⃣ MESSAGE UPDATES (Seen, Delete, etc) */
     useEffect(() => {
         if (!user) return;
-        const unsub = subscribeMessages((msg) => {
-            if (msg.isSeen) {
+        const unsub = subscribeMessages(async (event) => {
+            // Check if it's a deletion event
+            const isDelete = event.events && event.events.some(e => e.includes('.delete'));
+            const msg = event.payload;
+
+            if (isDelete) {
+                // If a message was deleted, we need to refresh the chat's last message
+                // We can't know easily if it was the *last* message, so safest is to refetch the chat's details
+                // or at least its last message.
+                // For now, let's just trigger a reload of that specific chat
+                try {
+                    const data = await getUserChats(user.$id);
+                    // Optimization: fetch only the specific chat if possible, but getUserChats fetches all.
+                    // Given the bug, re-fetching all might be safest to sync everything. 
+                    // Or we can find which chat it belonged to. Deleted message payload usually has chatId.
+                    if (msg.chatId) {
+                        // TODO: implement getSingleChatWithDetails to avoid full refresh
+                        // For now, full refresh of list (debounced?)
+                        const sorted = data.sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
+                        setChats(sorted);
+                    }
+                } catch (e) {
+                    console.error("Refetch on delete failed", e);
+                }
+            } else if (msg.isSeen) {
                 setChats((prev) => prev.map((c) =>
                     c.$id === msg.chatId ? { ...c, lastMessageSeen: true } : c
                 ));

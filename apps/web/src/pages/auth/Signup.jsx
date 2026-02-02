@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { signup, login, getCurrentUser, sendVerificationEmail } from "@chatsync/services/auth.service";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoMailOutline, IoLockClosedOutline, IoPersonOutline, IoArrowForward } from "react-icons/io5";
+import { IoMailOutline, IoLockClosedOutline, IoPersonOutline, IoArrowForward, IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 
 export default function Signup() {
     const navigate = useNavigate();
@@ -12,6 +12,7 @@ export default function Signup() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [emailSent, setEmailSent] = useState(false);
@@ -182,13 +183,20 @@ export default function Signup() {
                             <div className="relative group/input">
                                 <IoLockClosedOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/input:text-blue-500 transition-colors" size={20} />
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Enter your password"
-                                    className="w-full pl-12 pr-4 py-2 rounded-2xl bg-white/[0.03] border border-white/5 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all duration-300 text-white placeholder-gray-500 font-medium"
+                                    className="w-full pl-12 pr-12 py-2 rounded-2xl bg-white/[0.03] border border-white/5 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] transition-all duration-300 text-white placeholder-gray-500 font-medium"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white transition-colors focus:outline-none"
+                                >
+                                    {showPassword ? <IoEyeOffOutline size={20} /> : <IoEyeOutline size={20} />}
+                                </button>
                             </div>
                         </motion.div>
 
@@ -210,11 +218,11 @@ export default function Signup() {
                         </motion.button>
                     </form>
 
-                    <motion.div variants={itemVariants} className="pt-8 border-t border-white/5 text-center">
+                    <motion.div variants={itemVariants} className="pt-6 border-t border-white/5 text-center">
                         <p className="text-gray-400 font-bold text-sm">
                             Already part of ChatSync?{" "}
                             <Link to="/login" className="text-blue-400 hover:text-blue-300 transition-colors ml-1">
-                                Sign In
+                                Log In
                             </Link>
                         </p>
                     </motion.div>

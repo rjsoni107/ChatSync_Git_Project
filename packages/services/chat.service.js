@@ -91,6 +91,11 @@ export const getUserChats = async (userId) => {
                 otherUser,
                 unreadCount: unreadRes.total,
                 lastMessageSeen: lastMsg ? lastMsg.isSeen : false,
+                // Overwrite stale chat document data with actual latest message data
+                lastMessage: lastMsg ? (lastMsg.body || lastMsg.content) : "", // Check your message schema for body/content
+                lastMessageAt: lastMsg ? lastMsg.createdAt : chat.lastMessageAt,
+                // Also update type if needed, e.g. for "Image" text logic in UI
+                lastMessageType: lastMsg ? lastMsg.type : "text"
             };
         })
     );

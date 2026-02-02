@@ -26,7 +26,11 @@ export default function VerifyEmail() {
                     navigate("/");
                 }, 3000);
             } catch (error) {
-                console.error("Verification failed", error);
+                console.error("Verification failed:", {
+                    message: error.message,
+                    code: error.code,
+                    type: error.type
+                });
                 setStatus("error");
             }
         };
@@ -46,6 +50,14 @@ export default function VerifyEmail() {
                         <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
                         <h2 className="text-xl font-bold">Verifying Email...</h2>
                         <p className="text-gray-400 text-sm">Please wait while we confirm your email address.</p>
+                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                            <motion.div
+                                initial={{ x: "-100%" }}
+                                animate={{ x: "0%" }}
+                                transition={{ duration: 3, ease: "linear" }}
+                                className="w-full h-full bg-green-500"
+                            />
+                        </div>
                     </div>
                 )}
 
@@ -56,6 +68,14 @@ export default function VerifyEmail() {
                         </div>
                         <h2 className="text-xl font-bold">Email Verified!</h2>
                         <p className="text-gray-400 text-sm">Your account has been successfully verified. Redirecting...</p>
+                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                            <motion.div
+                                initial={{ x: "-100%" }}
+                                animate={{ x: "0%" }}
+                                transition={{ duration: 3, ease: "linear" }}
+                                className="w-full h-full bg-green-500"
+                            />
+                        </div>
                     </div>
                 )}
 
