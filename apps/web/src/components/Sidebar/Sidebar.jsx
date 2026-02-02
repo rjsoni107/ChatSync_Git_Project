@@ -33,6 +33,9 @@ export default function Sidebar() {
             setLoading(true);
             try {
                 const data = await getUserChats(user.$id);
+                if (!data || data.length === 0) {
+                    setActiveChat(null);
+                }
                 const sorted = data.sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
                 setChats(sorted);
             } catch (err) {
