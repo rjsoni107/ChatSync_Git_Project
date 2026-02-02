@@ -88,7 +88,7 @@ export default function ChatHeader({ otherUser }) {
                 <div className="relative">
                     <motion.div
                         whileHover={{ scale: 1.05 }}
-                        className="p-0.5 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-lg shadow-blue-500/10"
+                        className="p-0.5 rounded-full shadow-lg shadow-blue-500/10"
                     >
                         <div className="bg-[#111b21] rounded-full p-0.5">
                             <Avatar

@@ -81,11 +81,6 @@ export default function MessageInput() {
                 type,
                 fileId,
             });
-
-            // Optimistic update: Add message to local state immediately
-            // The realtime subscription will handle updates/duplicates
-            console.log("Message sent successfully:", sentMessage);
-
         } catch (err) {
             console.error("Failed to send message:", err);
             // Restore message if it failed

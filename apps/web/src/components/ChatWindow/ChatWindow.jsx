@@ -32,18 +32,15 @@ export default function ChatWindow() {
 
         // Only reload messages if chat ID actually changed
         if (currentChatId !== prevChatIdRef.current) {
-            console.log("🔄 Chat changed from", prevChatIdRef.current, "to", currentChatId);
             prevChatIdRef.current = currentChatId;
 
             if (!currentChatId) {
-                console.log("⚠️ No active chat, clearing messages");
                 setMessages([]);
                 return;
             }
 
             const loadMessages = async () => {
                 const data = await getMessagesByChat(currentChatId);
-                console.log("📥 Loaded messages:", data?.length || 0);
                 setMessages(Array.isArray(data) ? data : []);
             };
 
@@ -58,30 +55,18 @@ export default function ChatWindow() {
 
     // Realtime subscription - runs once and uses store to get current chat
     useEffect(() => {
-        console.log("🎧 Setting up message subscription");
-
         const unsub = subscribeMessages((event) => {
-            console.log("📨 Message event received:", event);
             const msg = event.payload;
 
             // Get current active chat ID from store to avoid stale closure
             const currentChatId = useChatStore.getState().activeChat?.$id;
             if (!currentChatId) {
-                console.log("⚠️ No active chat in subscription callback");
                 return;
             }
 
             const isDelete = event.events && event.events.some(e => e.includes('.delete'));
 
-            console.log("Event details:", {
-                isDelete,
-                msgChatId: msg.chatId,
-                activeChatId: currentChatId,
-                matches: msg.chatId === currentChatId
-            });
-
             if (isDelete && msg.chatId === currentChatId) {
-                console.log("🗑️ Deleting message:", msg.$id);
                 setMessages((prev) => {
                     const prevArray = Array.isArray(prev) ? prev : [];
                     return prevArray.filter(m => m.$id !== msg.$id);
@@ -90,8 +75,6 @@ export default function ChatWindow() {
             }
 
             if (msg.chatId === currentChatId) {
-                console.log("✅ Adding/updating message for active chat");
-                console.log("📝 Using addMessage from store");
                 addMessage(msg);
 
                 // Mark seen if it's not mine
@@ -103,7 +86,6 @@ export default function ChatWindow() {
         });
 
         return () => {
-            console.log("🧹 Cleaning up message subscription");
             unsub();
         };
     }, []); // Empty dependency - subscription runs once
@@ -121,7 +103,6 @@ export default function ChatWindow() {
     }, [activeChat?.$id, user?.$id]);
 
     useEffect(() => {
-        console.log("🔍 useEffect triggered - activeChat:", activeChat, "user:", user);
         if (!activeChat || !user) {
             setOtherUser(null);
             return;
