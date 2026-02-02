@@ -11,7 +11,11 @@ import { AnimatePresence } from "framer-motion";
 export default function Chats() {
     const user = useAuthStore((s) => s.user);
     const activeChat = useChatStore((s) => s.activeChat);
+    const clearActiveChat = useChatStore((s) => s.clearActiveChat);
     const [editUserOpen, setEditUserOpen] = useState(false);
+
+    // Initial check: If no chats exist, ensure no active chat is selected (fixes mobile view bug)
+    // However, we need to wait for chats to load. For now, rely on auth logout clearing it.
 
     return (
         <div className="h-[100dvh] md:h-screen flex bg-[#0b141a] text-white overflow-hidden">
