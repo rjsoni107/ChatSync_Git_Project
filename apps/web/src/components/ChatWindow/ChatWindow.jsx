@@ -1,10 +1,8 @@
 import { useRef, useEffect, useState } from "react";
 import { useChatStore } from "@chatsync/store/useChatStore";
-import { getMessagesByChat } from "@chatsync/services/message.service";
-import { subscribeMessages } from "@chatsync/services/message.service";
+import { getMessagesByChat, markMessagesAsSeen, subscribeMessages } from "@chatsync/services/message.service";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 import MessageInput from "./MessageInput";
-import { markMessagesAsSeen } from "@chatsync/services/message.service";
 import { useTyping } from "../../hooks/useTyping";
 import TypingIndicator from "./TypingIndicator";
 import ChatHeader from "./ChatHeader";
@@ -27,68 +25,103 @@ export default function ChatWindow() {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    useEffect(() => {
-        if (!activeChat || !user) return;
-
-        markMessagesAsSeen(activeChat.$id || activeChat.chatId, user.$id);
-    }, [activeChat]);
+    const prevChatIdRef = useRef(null);
 
     useEffect(() => {
-        if (!activeChat?.$id) return;
+        const currentChatId = activeChat?.$id;
 
-        const chatId = activeChat.$id || activeChat.chatId;
+        // Only reload messages if chat ID actually changed
+        if (currentChatId !== prevChatIdRef.current) {
+            console.log("🔄 Chat changed from", prevChatIdRef.current, "to", currentChatId);
+            prevChatIdRef.current = currentChatId;
 
-        const loadMessages = async () => {
-            const data = await getMessagesByChat(chatId);
-            setMessages(data);
-        };
-
-        loadMessages();
-
-        const unsub = subscribeMessages((event) => {
-            const msg = event.payload; // Extract payload from new event structure
-
-            // Check if this is a create/update event relevant to this chat
-            const isDelete = event.events && event.events.some(e => e.includes('.delete'));
-
-            if (isDelete && msg.chatId === activeChat.$id) {
-                // Remove deleted message from list
-                setMessages((prev) => prev.filter(m => m.$id !== msg.$id));
+            if (!currentChatId) {
+                console.log("⚠️ No active chat, clearing messages");
+                setMessages([]);
                 return;
             }
 
-            if (msg.chatId === activeChat.$id) {
-                // If message already exists (e.g. update), replace it vs add it
+            const loadMessages = async () => {
+                const data = await getMessagesByChat(currentChatId);
+                console.log("📥 Loaded messages:", data?.length || 0);
+                setMessages(Array.isArray(data) ? data : []);
+            };
+
+            loadMessages();
+
+            // Mark as seen when opening chat
+            if (user?.$id) {
+                markMessagesAsSeen(currentChatId, user.$id);
+            }
+        }
+    }, [activeChat?.$id, user?.$id, setMessages]);
+
+    // Realtime subscription - runs once and uses store to get current chat
+    useEffect(() => {
+        console.log("🎧 Setting up message subscription");
+
+        const unsub = subscribeMessages((event) => {
+            console.log("📨 Message event received:", event);
+            const msg = event.payload;
+
+            // Get current active chat ID from store to avoid stale closure
+            const currentChatId = useChatStore.getState().activeChat?.$id;
+            if (!currentChatId) {
+                console.log("⚠️ No active chat in subscription callback");
+                return;
+            }
+
+            const isDelete = event.events && event.events.some(e => e.includes('.delete'));
+
+            console.log("Event details:", {
+                isDelete,
+                msgChatId: msg.chatId,
+                activeChatId: currentChatId,
+                matches: msg.chatId === currentChatId
+            });
+
+            if (isDelete && msg.chatId === currentChatId) {
+                console.log("🗑️ Deleting message:", msg.$id);
                 setMessages((prev) => {
-                    const exists = prev.find(m => m.$id === msg.$id);
-                    if (exists) {
-                        return prev.map(m => m.$id === msg.$id ? msg : m);
-                    }
-                    return [msg, ...prev];
+                    const prevArray = Array.isArray(prev) ? prev : [];
+                    return prevArray.filter(m => m.$id !== msg.$id);
                 });
+                return;
+            }
+
+            if (msg.chatId === currentChatId) {
+                console.log("✅ Adding/updating message for active chat");
+                console.log("📝 Using addMessage from store");
+                addMessage(msg);
 
                 // Mark seen if it's not mine
-                if (msg.senderId !== user.$id && !msg.isSeen) {
-                    markMessagesAsSeen(activeChat.$id, user.$id);
+                const currentUser = useAuthStore.getState().user;
+                if (currentUser && msg.senderId !== currentUser.$id && !msg.isSeen) {
+                    markMessagesAsSeen(currentChatId, currentUser.$id);
                 }
             }
         });
 
-        const handleVisibilityMark = () => {
-            if (!document.hidden && activeChat) {
-                markMessagesAsSeen(chatId, user.$id);
+        return () => {
+            console.log("🧹 Cleaning up message subscription");
+            unsub();
+        };
+    }, []); // Empty dependency - subscription runs once
+
+    // Visibility change handler
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden && activeChat?.$id && user?.$id) {
+                markMessagesAsSeen(activeChat.$id, user.$id);
             }
         };
 
-        document.addEventListener("visibilitychange", handleVisibilityMark);
-
-        return () => {
-            unsub();
-            document.removeEventListener("visibilitychange", handleVisibilityMark);
-        };
-    }, [activeChat]);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [activeChat?.$id, user?.$id]);
 
     useEffect(() => {
+        console.log("🔍 useEffect triggered - activeChat:", activeChat, "user:", user);
         if (!activeChat || !user) {
             setOtherUser(null);
             return;

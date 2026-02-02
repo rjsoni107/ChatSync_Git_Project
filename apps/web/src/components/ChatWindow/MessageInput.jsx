@@ -39,6 +39,8 @@ export default function MessageInput() {
         if ((!content && !selectedFile) || !chatId || !user) return;
 
         setUploading(true);
+        const tempMessage = message; // Store for optimistic update
+        const tempFile = selectedFile;
         setMessage("");
         clearSelection();
 
@@ -46,19 +48,19 @@ export default function MessageInput() {
             let fileId = null;
             let type = "text";
 
-            if (selectedFile) {
+            if (tempFile) {
                 // Compress image before upload
-                let fileToUpload = selectedFile;
-                if (selectedFile.type.startsWith("image/")) {
+                let fileToUpload = tempFile;
+                if (tempFile.type.startsWith("image/")) {
                     const options = {
                         maxSizeMB: 1,
                         maxWidthOrHeight: 1280, // Slightly higher for better quality
                         useWebWorker: true
                     };
                     try {
-                        const compressedBlob = await imageCompression(selectedFile, options);
+                        const compressedBlob = await imageCompression(tempFile, options);
                         // Create a new File object from the compressed blob to ensure it has a name and type
-                        fileToUpload = new File([compressedBlob], selectedFile.name, {
+                        fileToUpload = new File([compressedBlob], tempFile.name, {
                             type: compressedBlob.type,
                             lastModified: Date.now(),
                         });
@@ -72,16 +74,26 @@ export default function MessageInput() {
                 type = "image";
             }
 
-            await sendMessage({
+            const sentMessage = await sendMessage({
                 chatId,
                 senderId: user.$id,
-                content: type === "image" ? "" : content,
+                content: type === "image" ? "" : tempMessage,
                 type,
                 fileId,
             });
+
+            // Optimistic update: Add message to local state immediately
+            // The realtime subscription will handle updates/duplicates
+            console.log("Message sent successfully:", sentMessage);
+
         } catch (err) {
             console.error("Failed to send message:", err);
-            // Optionally restore message if it failed
+            // Restore message if it failed
+            setMessage(tempMessage);
+            if (tempFile) {
+                setSelectedFile(tempFile);
+                setPreviewUrl(URL.createObjectURL(tempFile));
+            }
         } finally {
             setUploading(false);
         }

@@ -4,13 +4,16 @@ import { getMessageDateLabel } from "../../../../../packages/utils/date";
 import { getFilePreview } from "@chatsync/services/storage.service";
 
 export default function ChatMessages({ messages, user, bottomRef }) {
+    // Safety check: ensure messages is always an array
+    const messageList = Array.isArray(messages) ? messages : [];
+
     return (
         <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-4 custom-scrollbar overscroll-contain">
-            <AnimatePresence mode="wait">
-                {messages.map((msg, index) => {
+            <AnimatePresence>
+                {messageList.map((msg, index) => {
                     const isMe = msg.senderId === user.$id;
                     const dateLabel = getMessageDateLabel(msg.createdAt);
-                    const prevMsg = messages[index - 1];
+                    const prevMsg = messageList[index - 1];
                     const prevDateLabel = prevMsg ? getMessageDateLabel(prevMsg.createdAt) : null;
                     const showDateSeparator = dateLabel !== prevDateLabel;
 
