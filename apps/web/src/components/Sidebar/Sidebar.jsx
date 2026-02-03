@@ -3,7 +3,7 @@ import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { useChatStore } from "@chatsync/store/useChatStore";
 import { getUserChats } from "@chatsync/services/chat.service";
 import { subscribeChatsRealtime, subscribeUserPresence } from "@chatsync/services/realtime.service";
-import { subscribeMessages } from "@chatsync/services/message.service";
+import { subscribeMessages, markMessagesAsDelivered } from "@chatsync/services/message.service";
 import NewChatModal from "./NewChatModal";
 import { AnimatePresence } from "framer-motion";
 
@@ -152,9 +152,13 @@ export default function Sidebar() {
                 const data = await getUserChats(user.$id);
                 const sorted = data.sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
                 setChats(sorted);
+            } else if (event.events.some(e => e.includes('.create'))) {
+                // If a new message arrived from another user, mark as delivered
+                if (msg.senderId !== user.$id && !msg.isDelivered) {
+                    markMessagesAsDelivered(msg.chatId, user.$id);
+                }
             } else if (msg.isSeen) {
                 // When a message is marked as seen, we need to refresh unread counts
-                // Re-fetching is the most reliable way to get accurate counts from Appwrite
                 const data = await getUserChats(user.$id);
                 const sorted = data.sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
                 setChats(sorted);

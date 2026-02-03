@@ -24,6 +24,7 @@ export const sendMessage = async ({ chatId, senderId, content, type = "text", fi
             fileId,
             createdAt: now,
             isSeen: false,
+            isDelivered: false,
         }
     );
 
@@ -102,6 +103,25 @@ export const markMessagesAsSeen = async (chatId, userId) => {
     for (const msg of res.documents) {
         await databases.updateDocument(DB_ID, MESSAGES_ID, msg.$id, {
             isSeen: true,
+            isDelivered: true,
+        });
+    }
+};
+
+export const markMessagesAsDelivered = async (chatId, userId) => {
+    if (!chatId || !userId) return;
+
+    // Fetch messages delivered=false and not sent by current user
+    const res = await databases.listDocuments(DB_ID, MESSAGES_ID, [
+        Query.equal("chatId", chatId),
+        Query.notEqual("senderId", userId),
+        Query.equal("isDelivered", false),
+        Query.limit(100),
+    ]);
+
+    for (const msg of res.documents) {
+        await databases.updateDocument(DB_ID, MESSAGES_ID, msg.$id, {
+            isDelivered: true,
         });
     }
 };
