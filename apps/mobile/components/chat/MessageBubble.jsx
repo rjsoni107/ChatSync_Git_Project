@@ -1,7 +1,8 @@
-import { View, Text } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import React from 'react';
 import { format } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
+import { getFilePreview, getMobileFilePreview } from '@chatsync/services/storage.service';
 
 const MessageBubble = ({ message, isMe }) => {
     if (!message) return null;
@@ -23,8 +24,19 @@ const MessageBubble = ({ message, isMe }) => {
                     : 'bg-[#202c33] rounded-tl-none'
                     }`}
             >
+                {message.type === 'image' && message.fileId && (
+                    <View className="mb-2 rounded-xl overflow-hidden bg-black/10">
+                        <Image
+                            source={{ uri: getMobileFilePreview(message.fileId) }}
+                            style={{ width: 250, height: 250 }}
+                            resizeMode="cover"
+                            onLoadStart={() => console.log('Image URI:', getMobileFilePreview(message.fileId))}
+                            onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)}
+                        />
+                    </View>
+                )}
                 <Text className="text-white text-base leading-5">
-                    {message.body || message.content || '...'}
+                    {message.body || message.content || (message.type === 'image' ? '' : '...')}
                 </Text>
 
                 <View className="flex-row items-center justify-end mt-1">

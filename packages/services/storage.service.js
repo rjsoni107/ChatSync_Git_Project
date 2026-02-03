@@ -38,6 +38,22 @@ export const getFilePreview = (fileId) => {
 };
 
 /**
+ * Mobile-specific preview that might use different SDK methods if needed.
+ */
+export const getMobileFilePreview = (fileId) => {
+    try {
+        // Construct URL manually to avoid SDK object stringification issues in RN/Hermes
+        // https://{endpoint}/storage/buckets/{bucketId}/files/{fileId}/view?project={projectId}
+        const baseUrl = appwriteConfig.endpoint;
+        const finalUrl = `${baseUrl}/storage/buckets/${BUCKET_ID}/files/${fileId}/view?project=${appwriteConfig.projectId}`;
+        return finalUrl;
+    } catch (error) {
+        console.error("Mobile storage preview failed:", error);
+        return getFilePreview(fileId); // Fallback
+    }
+};
+
+/**
  * Get a download URL for a file
  * @param {string} fileId 
  * @returns {string}

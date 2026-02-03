@@ -86,6 +86,17 @@ export const getUserChats = async (userId) => {
             );
             const lastMsg = lastMsgRes.documents[0];
 
+            // Overwrite stale chat document data with actual latest message data
+            // Case-insensitive check for image and manual override for preview
+            let preview = (chat.lastMessage || "").includes('📷') ? chat.lastMessage : "";
+            if (lastMsg) {
+                if (lastMsg.type?.toLowerCase() === 'image') {
+                    preview = '📷 Photo';
+                } else {
+                    preview = (lastMsg.body || lastMsg.content || chat.lastMessage || "");
+                }
+            }
+
             return {
                 ...chat,
                 otherUser,
@@ -93,10 +104,8 @@ export const getUserChats = async (userId) => {
                 lastMessageSeen: lastMsg ? lastMsg.isSeen : false,
                 lastMessageDelivered: lastMsg ? lastMsg.isDelivered : false,
                 lastSenderId: lastMsg ? lastMsg.senderId : chat.lastSenderId,
-                // Overwrite stale chat document data with actual latest message data
-                lastMessage: lastMsg ? (lastMsg.body || lastMsg.content) : "", // Check your message schema for body/content
+                lastMessage: preview || "Start a conversation...",
                 lastMessageAt: lastMsg ? lastMsg.createdAt : chat.lastMessageAt,
-                // Also update type if needed, e.g. for "Image" text logic in UI
                 lastMessageType: lastMsg ? lastMsg.type : "text"
             };
         })

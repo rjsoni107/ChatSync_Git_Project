@@ -102,15 +102,16 @@ const ChatScreen = () => {
         return () => unsubscribe();
     }, [otherUser?.$id]);
 
-    const handleSendMessage = async (content) => {
-        if (!content.trim() || !user?.$id) return;
+    const handleSendMessage = async (content, type = 'text', fileId = null) => {
+        if ((!content?.trim() && !fileId) || !user?.$id) return;
 
         try {
             await sendMessage({
                 chatId,
                 senderId: user.$id,
-                content: content.trim(),
-                type: 'text'
+                content: content?.trim() || '',
+                type,
+                fileId
             });
             // remove typing indicator once message sent
             handleStopTyping();
