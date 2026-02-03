@@ -3,6 +3,7 @@ import React from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatLastSeen } from '@chatsync/utils/date';
 
 const ChatHeader = ({ user, typing }) => {
     const router = useRouter();
@@ -34,7 +35,7 @@ const ChatHeader = ({ user, typing }) => {
                         {user?.name || 'Loading...'}
                     </Text>
                     <Text className="text-[#8696a0] text-xs">
-                        {typing ? 'typing...' : (user?.isOnline ? 'online' : (user?.lastSeen ? `last seen ${new Date(user.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'offline'))}
+                        {typing ? 'typing...' : (user?.isOnline ? 'online' : formatLastSeen(user?.lastSeen))}
                     </Text>
                 </TouchableOpacity>
 

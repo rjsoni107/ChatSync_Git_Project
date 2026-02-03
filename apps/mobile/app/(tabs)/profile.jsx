@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@chatsync/store/useAuthStore';
@@ -8,10 +8,13 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import SettingsItem from '../../components/settings/SettingsItem';
 
+import { useAlertStore } from '@chatsync/store/useAlertStore';
+
 const Profile = () => {
     const router = useRouter();
     const user = useAuthStore((s) => s.user);
     const clearUser = useAuthStore((s) => s.clearUser);
+    const showAlert = useAlertStore(s => s.showAlert);
 
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -33,7 +36,7 @@ const Profile = () => {
     }, [user?.$id]);
 
     const handleLogout = () => {
-        Alert.alert(
+        showAlert(
             'Logout',
             'Are you sure you want to log out?',
             [
@@ -47,7 +50,7 @@ const Profile = () => {
                             clearUser();
                             router.replace('/(auth)/login');
                         } catch (err) {
-                            alert('Logout failed. Please try again.');
+                            showAlert('Error', 'Logout failed. Please try again.');
                         }
                     }
                 },

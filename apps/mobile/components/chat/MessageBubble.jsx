@@ -1,4 +1,4 @@
-import { View, Text, Pressable, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Pressable, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
@@ -6,13 +6,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { getMobileFilePreview } from '@chatsync/services/storage.service';
 import { addReactionToMessage, deleteMessage, deleteMessageForUser } from '@chatsync/services/message.service';
 import { useAuthStore } from '@chatsync/store/useAuthStore';
-import ReactionBar from './ReactionBar';
+import { useAlertStore } from '@chatsync/store/useAlertStore';
+import { useImagePreviewStore } from '@chatsync/store/useImagePreviewStore';
 import MessageMenu from './MessageMenu';
 
 const getTime = (date) => {
     if (!date) return '';
     try {
-        return format(new Date(date), 'HH:mm');
+        return format(new Date(date), 'hh:mm a');
     } catch (e) {
         return '';
     }
@@ -20,6 +21,8 @@ const getTime = (date) => {
 
 const MessageBubble = React.memo(({ message, isMe }) => {
     const user = useAuthStore(s => s.user);
+    const showAlert = useAlertStore(s => s.showAlert);
+    const showImage = useImagePreviewStore(s => s.showImage);
     const [showMenu, setShowMenu] = useState(false);
 
     if (!message) return null;
@@ -54,6 +57,17 @@ const MessageBubble = React.memo(({ message, isMe }) => {
         setShowMenu(true);
     };
 
+    const handleMessagePress = () => {
+        if (showMenu) {
+            setShowMenu(false);
+            return;
+        }
+
+        if (message.type === 'image' && message.fileId) {
+            showImage(getMobileFilePreview(message.fileId));
+        }
+    };
+
     const handleSelectReaction = async (emoji) => {
         try {
             await addReactionToMessage(message.$id, emoji, user.$id);
@@ -64,7 +78,7 @@ const MessageBubble = React.memo(({ message, isMe }) => {
 
     const handleMenuAction = async (actionId) => {
         if (actionId === 'unsend') {
-            Alert.alert('Unsend Message?', 'This will remove the message for everyone.', [
+            showAlert('Unsend Message?', 'This will remove the message for everyone.', [
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Unsend',
@@ -74,7 +88,7 @@ const MessageBubble = React.memo(({ message, isMe }) => {
                             await deleteMessage(message.$id);
                         } catch (e) {
                             console.error("Unsend Error Details:", e);
-                            Alert.alert('Error', `Failed to unsend: ${e.message || 'Unknown error'}`);
+                            showAlert('Error', `Failed to unsend: ${e.message || 'Unknown error'}`);
                         }
                     }
                 }
@@ -82,7 +96,9 @@ const MessageBubble = React.memo(({ message, isMe }) => {
         } else if (actionId === 'delete_for_me') {
             try {
                 await deleteMessageForUser(message.$id, user.$id);
-            } catch (e) { Alert.alert('Error', 'Failed to delete message'); }
+            } catch (e) {
+                showAlert('Error', 'Failed to delete message');
+            }
         }
     };
 
@@ -96,7 +112,7 @@ const MessageBubble = React.memo(({ message, isMe }) => {
                     onSelectEmoji={handleSelectReaction}
                     onShowMore={() => {
                         setShowMenu(false);
-                        Alert.alert("Coming Soon", "Full emoji picker for reactions is on the way!");
+                        showAlert("Coming Soon", "Full emoji picker for reactions is on the way!");
                     }}
                     isMe={isMe}
                     timestamp={getTime(message.$createdAt || message.createdAt)}
@@ -105,22 +121,17 @@ const MessageBubble = React.memo(({ message, isMe }) => {
                 <Pressable
                     onLongPress={handleLongPress}
                     delayLongPress={300}
-                    onPress={() => {
-                        if (showMenu) {
-                            setShowMenu(false);
-                            setShowReactions(false);
-                        }
-                    }}
-                    className={`max-w-[280px] min-w-[100px] rounded-2xl px-3 py-2 shadow-sm ${isMe
+                    onPress={handleMessagePress}
+                    className={`max-w-[280px] min-w-[100px] rounded-2xl shadow-sm ${message.type === 'image' ? 'p-1' : 'px-3 py-2'} ${isMe
                         ? 'bg-[#005c4b] rounded-tr-none'
                         : 'bg-[#202c33] rounded-tl-none'
                         }`}
                 >
                     {message.type === 'image' && message.fileId && (
-                        <View className="mb-2 rounded-xl overflow-hidden bg-black/10">
+                        <View className="rounded-xl overflow-hidden bg-black/10">
                             <Image
                                 source={getMobileFilePreview(message.fileId)}
-                                style={{ width: 240, height: 240 }}
+                                style={{ width: 240, height: undefined, aspectRatio: 1 }}
                                 contentFit="cover"
                                 transition={200}
                                 cachePolicy="memory-disk"
@@ -128,9 +139,11 @@ const MessageBubble = React.memo(({ message, isMe }) => {
                         </View>
                     )}
 
-                    <Text className="text-white text-base leading-5">
-                        {message.body || message.content || (message.type === 'image' ? '' : '...')}
-                    </Text>
+                    {message.content && message.content !== "[Image]" && (
+                        <Text className="text-white text-base leading-5 mt-1 px-2">
+                            {message.body || message.content}
+                        </Text>
+                    )}
 
                     <View className="flex-row items-center justify-end mt-1">
                         <Text className="text-[#8696a0] text-[10px] mr-1">

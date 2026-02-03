@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Keyboard, ActivityIndicator, Alert, } from 'react-native';
+import { View, TextInput, TouchableOpacity, Keyboard, ActivityIndicator, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadFile } from '@chatsync/services/storage.service';
 import { EmojiKeyboard } from 'rn-emoji-keyboard';
 
+import { useAlertStore } from '@chatsync/store/useAlertStore';
+
 const EMOJI_HEIGHT = 320;
 
 const MessageInput = ({ onSendMessage, onTyping }) => {
+    const showAlert = useAlertStore(s => s.showAlert);
     const [message, setMessage] = useState('');
     const [uploading, setUploading] = useState(false);
     const [showEmojis, setShowEmojis] = useState(false);
@@ -28,7 +31,7 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
     const handlePickImage = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Gallery access is required');
+            showAlert('Permission Denied', 'Gallery access is required');
             return;
         }
 
@@ -46,7 +49,7 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
     const handleTakePhoto = async () => {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Camera access is required');
+            showAlert('Permission Denied', 'Camera access is required');
             return;
         }
 
@@ -75,7 +78,7 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
                 onSendMessage('', 'image', uploaded.$id);
             }
         } catch (err) {
-            Alert.alert('Upload Failed', 'Please try again');
+            showAlert('Upload Failed', 'Please try again');
         } finally {
             setUploading(false);
         }

@@ -12,6 +12,8 @@ import MessageBubble from '../../components/chat/MessageBubble';
 import MessageInput from '../../components/chat/MessageInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { getMessageDateLabel } from '@chatsync/utils/date';
+
 const ChatScreen = () => {
     const { chatId } = useLocalSearchParams();
     const user = useAuthStore((s) => s.user);
@@ -155,15 +157,32 @@ const ChatScreen = () => {
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
 
-    const renderMessage = useCallback(({ item }) => {
+    const renderMessage = useCallback(({ item, index }) => {
         if (!item) return null;
+
+        const dateLabel = getMessageDateLabel(item.$createdAt || item.createdAt);
+        const prevMessage = index > 0 ? messages[index - 1] : null;
+        const prevDateLabel = prevMessage ? getMessageDateLabel(prevMessage.$createdAt || prevMessage.createdAt) : null;
+        const showDateLabel = dateLabel !== prevDateLabel;
+
         return (
-            <MessageBubble
-                message={item}
-                isMe={item.senderId === user?.$id}
-            />
+            <View>
+                {showDateLabel && (
+                    <View className="items-center my-4">
+                        <View className="bg-[#1f2c34] px-3 py-1 rounded-lg">
+                            <Text className="text-[#8696a0] text-[11px] font-medium uppercase tracking-wider">
+                                {dateLabel}
+                            </Text>
+                        </View>
+                    </View>
+                )}
+                <MessageBubble
+                    message={item}
+                    isMe={item.senderId === user?.$id}
+                />
+            </View>
         );
-    }, [user?.$id]);
+    }, [user?.$id, messages]);
 
     const keyExtractor = useCallback((item) => item?.$id || Math.random().toString(), []);
 

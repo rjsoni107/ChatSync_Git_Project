@@ -26,10 +26,7 @@ export const formatLastSeen = (isoDate) => {
     const diffDays =
         (todayDate - lastDate) / (1000 * 60 * 60 * 24);
 
-    const time = last.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-    });
+    const time = format(last, 'hh:mm a');
 
     if (diffDays === 0) {
         return `Today at ${time}`;
@@ -39,11 +36,12 @@ export const formatLastSeen = (isoDate) => {
         return `Yesterday at ${time}`;
     }
 
-    const dateVal = last.toLocaleDateString("en-GB"); // dd/mm/yyyy
+    const dateVal = format(last, 'dd/MM/yyyy');
     return `${dateVal}, ${time}`;
 };
 
 export const getMessageDateLabel = (dateString) => {
+    if (!dateString) return "";
     const date = new Date(dateString);
     const now = new Date();
 
@@ -56,9 +54,5 @@ export const getMessageDateLabel = (dateString) => {
     if (isToday) return "Today";
     if (isYesterday) return "Yesterday";
 
-    return date.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-    });
+    return format(date, 'd MMMM yyyy');
 };

@@ -7,6 +7,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator } from 'react-native';
 
+import CustomAlert from '../components/ui/CustomAlert';
+import ImagePreviewModal from '../components/ui/ImagePreviewModal';
+
 export default function RootLayout() {
     const setUser = useAuthStore((s) => s.setUser);
     const user = useAuthStore((s) => s.user);
@@ -75,6 +78,8 @@ export default function RootLayout() {
                     }}
                 />
             </Stack>
+            <CustomAlert />
+            <ImagePreviewModal />
         </GestureHandlerRootView>
     );
 }
