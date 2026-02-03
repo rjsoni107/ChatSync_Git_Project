@@ -34,29 +34,34 @@ export const useChatStore = create((set) => ({
         }
         set({ activeChat: null, messages: [] });
     },
-    setMessages: (messages) => set({ messages }),
+    setMessages: (messages) =>
+        set((state) => ({
+            messages: typeof messages === "function" ? messages(state.messages || []) : messages,
+        })),
     addMessage: (msg) =>
         set((state) => {
-            const exists = state.messages.find((m) => m.$id === msg.$id);
+            const currentMessages = Array.isArray(state.messages) ? state.messages : [];
+            const exists = currentMessages.find((m) => m?.$id === msg?.$id);
             if (exists) {
                 return {
-                    messages: state.messages.map((m) =>
-                        m.$id === msg.$id ? { ...m, ...msg } : m
+                    messages: currentMessages.map((m) =>
+                        m?.$id === msg?.$id ? { ...m, ...msg } : m
                     ),
                 };
             }
-            return { messages: [...state.messages, msg] };
+            return { messages: [...currentMessages, msg] };
         }),
     addChat: (chat) =>
         set((state) => {
-            const exists = state.chats.find((c) => c.$id === chat.$id);
+            const currentChats = Array.isArray(state.chats) ? state.chats : [];
+            const exists = currentChats.find((c) => c?.$id === chat?.$id);
             if (exists) {
                 return {
-                    chats: state.chats.map((c) =>
-                        c.$id === chat.$id ? { ...c, ...chat } : c
+                    chats: currentChats.map((c) =>
+                        c?.$id === chat?.$id ? { ...c, ...chat } : c
                     ),
                 };
             }
-            return { chats: [chat, ...state.chats] };
+            return { chats: [chat, ...currentChats] };
         }),
 }));
