@@ -3,11 +3,14 @@ import { create } from "zustand";
 export const useChatStore = create((set) => ({
     chats: [],
     activeChat: (() => {
-        try {
-            return JSON.parse(localStorage.getItem("activeChat"));
-        } catch (e) {
-            return null;
+        if (typeof window !== "undefined" && window.localStorage) {
+            try {
+                return JSON.parse(localStorage.getItem("activeChat"));
+            } catch (e) {
+                return null;
+            }
         }
+        return null;
     })(),
     messages: [],
 
@@ -16,15 +19,19 @@ export const useChatStore = create((set) => ({
             chats: typeof chats === "function" ? chats(state.chats) : chats,
         })),
     setActiveChat: (chat) => {
-        if (chat) {
-            localStorage.setItem("activeChat", JSON.stringify(chat));
-        } else {
-            localStorage.removeItem("activeChat");
+        if (typeof window !== "undefined" && window.localStorage) {
+            if (chat) {
+                localStorage.setItem("activeChat", JSON.stringify(chat));
+            } else {
+                localStorage.removeItem("activeChat");
+            }
         }
         set({ activeChat: chat });
     },
     clearActiveChat: () => {
-        localStorage.removeItem("activeChat");
+        if (typeof window !== "undefined" && window.localStorage) {
+            localStorage.removeItem("activeChat");
+        }
         set({ activeChat: null, messages: [] });
     },
     setMessages: (messages) => set({ messages }),

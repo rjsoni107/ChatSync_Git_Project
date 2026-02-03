@@ -53,20 +53,21 @@ export const sendMessage = async ({ chatId, senderId, content, type = "text", fi
 };
 
 export const subscribeMessages = (callback) => {
-    return client.subscribe(`databases.${DB_ID}.collections.${MESSAGES_ID}.documents`, (res) => {
+    if (!DB_ID || !MESSAGES_ID) {
+        console.warn('Realtime: Missing DB_ID or MESSAGES_ID in message service');
+        return () => { };
+    }
+    const channel = `databases.${DB_ID}.collections.${MESSAGES_ID}.documents`;
+    console.log(`Subscribing to messages: ${channel}`);
+
+    return client.subscribe(channel, (res) => {
         const events = [
             "databases.*.collections.*.documents.*.create",
             "databases.*.collections.*.documents.*.update",
-            "databases.*.collections.*.documents.*.delete" // Added delete event explicitly
+            "databases.*.collections.*.documents.*.delete"
         ];
 
-        // Pass full response so consumers can check event type (create/update/delete)
-        if (res.events.some(e => events.some(pattern => {
-            // Simple match or regex match could be better, but for now exact or wildcard logic
-            // The events array usually contains specific strings. 
-            // Appwrite wildcard subscription returns specific events.
-            return e.includes('.documents.') // Simple check that it's a document event
-        }))) {
+        if (res.events.some(e => e.includes('.documents.'))) {
             callback(res);
         }
     });

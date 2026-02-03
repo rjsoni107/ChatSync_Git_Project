@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 import { useChatStore } from "@chatsync/store/useChatStore";
 import { getUserChats } from "@chatsync/services/chat.service";
-import { subscribeChatsRealtime } from "@chatsync/services/realtime.service";
+import { subscribeChatsRealtime, subscribeUserPresence } from "@chatsync/services/realtime.service";
 import { subscribeMessages } from "@chatsync/services/message.service";
 import NewChatModal from "./NewChatModal";
 import { AnimatePresence } from "framer-motion";
@@ -24,6 +24,7 @@ export default function Sidebar() {
     const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState("all");
     const [loading, setLoading] = useState(true);
+    const [presenceMap, setPresenceMap] = useState({});
 
     /* 1️⃣ INITIAL LOAD */
     useEffect(() => {
@@ -38,6 +39,15 @@ export default function Sidebar() {
                 }
                 const sorted = data.sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
                 setChats(sorted);
+
+                // Initialize presence map from fetched user data
+                const initialPresence = {};
+                data.forEach(c => {
+                    if (c.otherUser) {
+                        initialPresence[c.otherUser.$id] = c.otherUser.isOnline;
+                    }
+                });
+                setPresenceMap(initialPresence);
             } catch (err) {
                 console.error("Failed to load chats:", err);
             } finally {
@@ -45,7 +55,7 @@ export default function Sidebar() {
             }
         };
         loadChats();
-    }, [user]);
+    }, [user, setActiveChat, setChats]);
 
     /* 2️⃣ REALTIME UPDATES */
     useEffect(() => {
@@ -106,6 +116,20 @@ export default function Sidebar() {
         });
 
         return () => unsubscribe();
+    }, [user, setChats]);
+
+    /* 2.5️⃣ PRESENCE UPDATES */
+    useEffect(() => {
+        if (!user) return;
+        const unsubscribe = subscribeUserPresence((event) => {
+            if (event.payload) {
+                setPresenceMap(prev => ({
+                    ...prev,
+                    [event.payload.$id]: event.payload.isOnline
+                }));
+            }
+        });
+        return () => unsubscribe();
     }, [user]);
 
     /* 3️⃣ RESET UNREAD ON CLICK */
@@ -124,32 +148,20 @@ export default function Sidebar() {
             const msg = event.payload;
 
             if (isDelete) {
-                // If a message was deleted, we need to refresh the chat's last message
-                // We can't know easily if it was the *last* message, so safest is to refetch the chat's details
-                // or at least its last message.
-                // For now, let's just trigger a reload of that specific chat
-                try {
-                    const data = await getUserChats(user.$id);
-                    // Optimization: fetch only the specific chat if possible, but getUserChats fetches all.
-                    // Given the bug, re-fetching all might be safest to sync everything. 
-                    // Or we can find which chat it belonged to. Deleted message payload usually has chatId.
-                    if (msg.chatId) {
-                        // TODO: implement getSingleChatWithDetails to avoid full refresh
-                        // For now, full refresh of list (debounced?)
-                        const sorted = data.sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
-                        setChats(sorted);
-                    }
-                } catch (e) {
-                    console.error("Refetch on delete failed", e);
-                }
+                // If a message was deleted, refresh everything to be safe
+                const data = await getUserChats(user.$id);
+                const sorted = data.sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
+                setChats(sorted);
             } else if (msg.isSeen) {
-                setChats((prev) => prev.map((c) =>
-                    c.$id === msg.chatId ? { ...c, lastMessageSeen: true } : c
-                ));
+                // When a message is marked as seen, we need to refresh unread counts
+                // Re-fetching is the most reliable way to get accurate counts from Appwrite
+                const data = await getUserChats(user.$id);
+                const sorted = data.sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
+                setChats(sorted);
             }
         });
         return () => unsub();
-    }, [user]);
+    }, [user, setChats]);
 
     /* 5️⃣ FILTERING LOGIC */
     const filteredChats = useMemo(() => {
@@ -197,6 +209,7 @@ export default function Sidebar() {
                     <ChatList
                         chats={filteredChats}
                         activeChat={activeChat}
+                        presenceMap={presenceMap}
                         onChatSelect={(chat) => setActiveChat(chat)}
                     />
                 )}

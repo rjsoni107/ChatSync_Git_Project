@@ -8,8 +8,10 @@ const USERS_ID = appwriteConfig.userCollectionId;
 const MEMBERS_ID = appwriteConfig.chatMembersCollectionId;
 
 export const subscribeChatsRealtime = (callback) => {
+    const channel = `databases.${DB_ID}.collections.${CHATS_ID}.documents`;
+    console.log(`Subscribing to channel: ${channel}`);
     return client.subscribe(
-        `databases.${DB_ID}.collections.${CHATS_ID}.documents`,
+        channel,
         (event) => {
             callback(event);
         }
@@ -17,17 +19,23 @@ export const subscribeChatsRealtime = (callback) => {
 };
 
 export const subscribeTyping = (callback) => {
-    return client.subscribe(
-        `databases.${DB_ID}.collections.${TYPING_STATUS_ID}.documents`,
-        (event) => callback(event)
-    );
+    if (!DB_ID || !TYPING_STATUS_ID) {
+        console.warn('Realtime: Missing DB_ID or TYPING_STATUS_ID');
+        return () => { };
+    }
+    const channel = `databases.${DB_ID}.collections.${TYPING_STATUS_ID}.documents`;
+    console.log(`Subscribing to typing: ${channel}`);
+    return client.subscribe(channel, (event) => callback(event));
 };
 
 export const subscribeUserPresence = (callback) => {
-    return client.subscribe(
-        `databases.${DB_ID}.collections.${USERS_ID}.documents.*`,
-        (event) => callback(event)
-    );
+    if (!DB_ID || !USERS_ID) {
+        console.warn('Realtime: Missing DB_ID or USERS_ID');
+        return () => { };
+    }
+    const channel = `databases.${DB_ID}.collections.${USERS_ID}.documents`;
+    console.log(`Subscribing to presence: ${channel}`);
+    return client.subscribe(channel, (event) => callback(event));
 };
 
 export const subscribeSingleUserPresence = (userId, callback) => {
