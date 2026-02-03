@@ -150,6 +150,18 @@ const ChatScreen = () => {
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
 
+    const renderMessage = useCallback(({ item }) => {
+        if (!item) return null;
+        return (
+            <MessageBubble
+                message={item}
+                isMe={item.senderId === user?.$id}
+            />
+        );
+    }, [user?.$id]);
+
+    const keyExtractor = useCallback((item) => item?.$id || Math.random().toString(), []);
+
     if (loading && !messages.length) {
         return (
             <View className="flex-1 bg-[#111b21] items-center justify-center">
@@ -170,20 +182,15 @@ const ChatScreen = () => {
                 <FlatList
                     ref={flatListRef}
                     data={messages || []}
-                    renderItem={({ item }) => {
-                        if (!item) return null;
-                        return (
-                            <MessageBubble
-                                message={item}
-                                isMe={item.senderId === user?.$id}
-                            />
-                        );
-                    }}
-                    keyExtractor={(item) => item?.$id || Math.random().toString()}
+                    renderItem={renderMessage}
+                    keyExtractor={keyExtractor}
                     contentContainerStyle={{ paddingVertical: 10, flexGrow: 1, justifyContent: 'flex-end' }}
                     showsVerticalScrollIndicator={false}
                     onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                     onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                    initialNumToRender={15}
+                    maxToRenderPerBatch={10}
+                    windowSize={10}
                 />
 
                 <MessageInput

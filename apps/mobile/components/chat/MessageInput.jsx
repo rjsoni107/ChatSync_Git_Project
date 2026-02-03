@@ -1,24 +1,34 @@
-import { View, TextInput, TouchableOpacity, Keyboard, ActivityIndicator, Alert, ScrollView, Text } from 'react-native';
 import React, { useState } from 'react';
+import { View, TextInput, TouchableOpacity, Keyboard, ActivityIndicator, Alert, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadFile } from '@chatsync/services/storage.service';
+import { EmojiKeyboard } from 'rn-emoji-keyboard';
+
+const EMOJI_HEIGHT = 320;
 
 const MessageInput = ({ onSendMessage, onTyping }) => {
     const [message, setMessage] = useState('');
     const [uploading, setUploading] = useState(false);
     const [showEmojis, setShowEmojis] = useState(false);
 
-    const emojis = ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '❤️', '👍', '🔥', '✨', '✔️'];
+    /* ---------------- emoji ---------------- */
 
-    const addEmoji = (emoji) => {
-        setMessage(prev => prev + emoji);
+    const addEmoji = (emojiObject) => {
+        setMessage(prev => prev + emojiObject.emoji);
     };
+
+    const toggleEmojis = () => {
+        Keyboard.dismiss();
+        setShowEmojis(prev => !prev);
+    };
+
+    /* ---------------- media ---------------- */
 
     const handlePickImage = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Gallery access is required to send images.');
+            Alert.alert('Permission Denied', 'Gallery access is required');
             return;
         }
 
@@ -36,7 +46,7 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
     const handleTakePhoto = async () => {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission Denied', 'Camera access is required to take photos.');
+            Alert.alert('Permission Denied', 'Camera access is required');
             return;
         }
 
@@ -53,25 +63,25 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
     const uploadImage = async (asset) => {
         setUploading(true);
         try {
-            // Appwrite RN SDK expects an object like this for files
             const file = {
                 name: asset.uri.split('/').pop() || 'image.jpg',
-                type: 'image/jpeg', // Appwrite will detect if we leave it or use a default
+                type: 'image/jpeg',
                 size: asset.fileSize || 0,
                 uri: asset.uri,
             };
 
-            const uploadedFile = await uploadFile(file);
-            if (uploadedFile?.$id) {
-                onSendMessage('', 'image', uploadedFile.$id);
+            const uploaded = await uploadFile(file);
+            if (uploaded?.$id) {
+                onSendMessage('', 'image', uploaded.$id);
             }
-        } catch (error) {
-            console.error('Upload failed:', error);
-            Alert.alert('Upload Failed', 'Could not upload image. Please try again.');
+        } catch (err) {
+            Alert.alert('Upload Failed', 'Please try again');
         } finally {
             setUploading(false);
         }
     };
+
+    /* ---------------- send ---------------- */
 
     const handleSend = () => {
         if (!message.trim()) return;
@@ -79,62 +89,48 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
         setMessage('');
     };
 
-    const handleChangeText = (text) => {
-        setMessage(text);
-        if (onTyping) onTyping();
-    };
+    /* ---------------- UI ---------------- */
 
     return (
-        <View className="bg-[#111b21]">
-            {showEmojis && (
-                <View className="h-12 border-b border-[#202c33]">
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: 10, alignItems: 'center' }}
-                    >
-                        {emojis.map((emoji, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                onPress={() => addEmoji(emoji)}
-                                className="mr-4"
-                            >
-                                <Text className="text-2xl">{emoji}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-            )}
-
-            <View className="flex-row items-center p-2">
+        <View className="bg-[#111b21] relative">
+            {/* INPUT BAR */}
+            <View
+                className={`flex-row items-center p-2 bg-[#111b21] z-20 ${showEmojis ? 'mb-[320px]' : ''
+                    }`}
+            >
                 <View className="flex-row flex-1 items-center bg-[#202c33] rounded-3xl px-3 h-12">
-                    <TouchableOpacity
-                        className="mr-2"
-                        onPress={() => setShowEmojis(!showEmojis)}
-                    >
+                    <TouchableOpacity onPress={toggleEmojis} className="mr-2">
                         <Ionicons
-                            name={showEmojis ? "keypad-outline" : "happy-outline"}
+                            name={showEmojis ? 'keypad-outline' : 'happy-outline'}
                             size={24}
-                            color={showEmojis ? "#00a884" : "#8696a0"}
+                            color={showEmojis ? '#00a884' : '#8696a0'}
                         />
                     </TouchableOpacity>
 
                     <TextInput
-                        className="flex-1 text-white text-base pt-0 pb-0"
+                        className="flex-1 text-white text-base"
                         placeholder="Type a message"
                         placeholderTextColor="#8696a0"
                         value={message}
-                        onChangeText={handleChangeText}
+                        onChangeText={(t) => {
+                            setMessage(t);
+                            onTyping?.();
+                        }}
                         onFocus={() => setShowEmojis(false)}
                         multiline
                     />
 
-                    <TouchableOpacity className="ml-2" onPress={handlePickImage}>
-                        <Ionicons name="attach-outline" size={24} color="#8696a0" className="rotate-45" />
+                    <TouchableOpacity onPress={handlePickImage} className="ml-2">
+                        <Ionicons
+                            name="attach-outline"
+                            size={24}
+                            color="#8696a0"
+                            className="rotate-45"
+                        />
                     </TouchableOpacity>
 
-                    {(!message.trim() && !uploading) && (
-                        <TouchableOpacity className="ml-3" onPress={handleTakePhoto}>
+                    {!message.trim() && !uploading && (
+                        <TouchableOpacity onPress={handleTakePhoto} className="ml-3">
                             <Ionicons name="camera-outline" size={24} color="#8696a0" />
                         </TouchableOpacity>
                     )}
@@ -149,15 +145,42 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
                 <TouchableOpacity
                     onPress={handleSend}
                     disabled={uploading}
-                    className={`ml-2 w-12 h-12 rounded-full items-center justify-center shadow-md ${uploading ? 'bg-gray-600' : 'bg-[#00a884]'}`}
+                    className={`ml-2 w-12 h-12 rounded-full items-center justify-center ${uploading ? 'bg-gray-600' : 'bg-[#00a884]'
+                        }`}
                 >
                     <Ionicons
-                        name={message.trim() ? "send" : "mic"}
+                        name={message.trim() ? 'send' : 'mic'}
                         size={24}
-                        color="#ffffff"
+                        color="#fff"
                     />
                 </TouchableOpacity>
             </View>
+
+            {/* EMOJI PANEL */}
+            {showEmojis && (
+                <View className="absolute bottom-0 left-0 right-0 h-[320px] bg-[#111b21] rounded-t-2xl overflow-hidden z-10">
+                    {/* drag knob */}
+                    <View className="h-1 w-10 bg-[#2a3942] rounded-full self-center my-2" />
+
+                    <EmojiKeyboard
+                        onEmojiSelected={addEmoji}
+                        enableSearchBar={false}
+                        categoryPosition="bottom"
+                        theme={{
+                            container: '#111b21',
+                            backdrop: '#111b21',
+                            knob: '#00a884',
+                            skinTonesContainer: '#202c33',
+                            category: {
+                                icon: '#8696a0',
+                                iconActive: '#00a884',
+                                container: '#111b21',
+                                containerActive: '#202c33',
+                            },
+                        }}
+                    />
+                </View>
+            )}
         </View>
     );
 };
