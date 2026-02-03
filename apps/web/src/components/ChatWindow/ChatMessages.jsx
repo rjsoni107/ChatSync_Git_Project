@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { IoCheckmarkDone, IoDownloadOutline } from "react-icons/io5";
+import { IoCheckmarkDone, IoCheckmark, IoDownloadOutline } from "react-icons/io5";
 import { getMessageDateLabel } from "../../../../../packages/utils/date";
 import { getFilePreview } from "@chatsync/services/storage.service";
 
@@ -77,8 +77,14 @@ export default function ChatMessages({ messages, user, bottomRef }) {
                                         </span>
 
                                         {isMe && (
-                                            <div className={`flex items-center ${msg.isSeen ? "text-green-400" : "text-white/60"}`}>
-                                                <IoCheckmarkDone size={14} />
+                                            <div className="flex items-center">
+                                                {msg.isSeen ? (
+                                                    <IoCheckmarkDone size={16} className="text-green-400" title="Read" />
+                                                ) : msg.isDelivered ? (
+                                                    <IoCheckmarkDone size={16} className="text-gray-500" title="Delivered" />
+                                                ) : (
+                                                    <IoCheckmark size={16} className="text-gray-500/50" title="Sent" />
+                                                )}
                                             </div>
                                         )}
                                     </div>

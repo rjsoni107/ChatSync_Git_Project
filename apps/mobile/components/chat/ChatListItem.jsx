@@ -2,9 +2,12 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';
 import { formatDistanceToNow } from 'date-fns';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuthStore } from '@chatsync/store/useAuthStore';
 
 const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
     const router = useRouter();
+    const user = useAuthStore((s) => s.user);
 
     const getTime = (date) => {
         if (!date) return '';
@@ -48,9 +51,22 @@ const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
                 </View>
 
                 <View className="flex-row justify-between items-center">
-                    <Text className="text-[#8696a0] text-sm flex-1" numberOfLines={1}>
-                        {lastMessage?.content || 'No messages yet'}
-                    </Text>
+                    <View className="flex-row items-center flex-1 pr-2">
+                        {lastMessage?.senderId === user?.$id && (
+                            <View className="mr-1">
+                                {lastMessage.isSeen ? (
+                                    <Ionicons name="checkmark-done" size={16} color="#53bdeb" />
+                                ) : lastMessage.isDelivered ? (
+                                    <Ionicons name="checkmark-done" size={16} color="#8696a0" />
+                                ) : (
+                                    <Ionicons name="checkmark" size={16} color="#8696a0" />
+                                )}
+                            </View>
+                        )}
+                        <Text className="text-[#8696a0] text-sm flex-1" numberOfLines={1}>
+                            {lastMessage?.content || 'No messages yet'}
+                        </Text>
+                    </View>
                     {unreadCount > 0 && (
                         <View className="bg-[#00a884] rounded-full min-w-[20px] h-5 items-center justify-center px-1">
                             <Text className="text-[#111b21] text-xs font-bold">

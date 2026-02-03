@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '@chatsync/store/useAuthStore';
 import { useChatStore } from '@chatsync/store/useChatStore';
-import { getMessagesByChat, sendMessage, markMessagesAsSeen, subscribeMessages } from '@chatsync/services/message.service';
+import { getMessagesByChat, sendMessage, markMessagesAsSeen, markMessagesAsDelivered, subscribeMessages } from '@chatsync/services/message.service';
 import { getOtherUserFromChat } from '@chatsync/services/chat.service';
 import { setTyping, removeTyping } from '@chatsync/services/typing.service';
 import { subscribeTyping, subscribeSingleUserPresence, subscribeChatTyping } from '@chatsync/services/realtime.service';
@@ -40,6 +40,7 @@ const ChatScreen = () => {
 
             // Mark messages as seen when opening the chat
             markMessagesAsSeen(chatId, user.$id);
+            markMessagesAsDelivered(chatId, user.$id);
         } catch (error) {
             console.error('Error loading chat data:', error);
         } finally {
@@ -61,6 +62,7 @@ const ChatScreen = () => {
                     // Mark as seen if it's from the other user
                     if (newMessage.senderId !== user.$id) {
                         markMessagesAsSeen(chatId, user.$id);
+                        markMessagesAsDelivered(chatId, user.$id);
                     }
                 }
             } else if (res.events.includes('databases.*.collections.*.documents.*.update')) {
@@ -160,9 +162,9 @@ const ChatScreen = () => {
             <ChatHeader user={otherUser} typing={isOtherUserTyping} />
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 className="flex-1"
-                keyboardVerticalOffset={0}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 90}
             >
                 <FlatList
                     ref={flatListRef}

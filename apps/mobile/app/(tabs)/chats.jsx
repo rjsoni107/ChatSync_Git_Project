@@ -93,7 +93,13 @@ const Chats = () => {
                 name: item.name || item.otherUser?.name,
                 avatar: item.otherUser?.avatar
             }}
-            lastMessage={item.lastMessage ? { content: item.lastMessage, $createdAt: item.lastMessageAt } : null}
+            lastMessage={item.lastMessage ? {
+                content: item.lastMessage,
+                $createdAt: item.lastMessageAt,
+                isSeen: item.lastMessageSeen,
+                isDelivered: item.lastMessageDelivered,
+                senderId: item.lastSenderId
+            } : null}
             unreadCount={item.unreadCount}
             onlineStatus={presenceMap[item.otherUser?.$id] || item.otherUser?.status}
         />

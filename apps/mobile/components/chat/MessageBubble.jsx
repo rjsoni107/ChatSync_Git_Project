@@ -32,11 +32,15 @@ const MessageBubble = ({ message, isMe }) => {
                         {getTime(message.$createdAt || message.createdAt)}
                     </Text>
                     {isMe && (
-                        <Ionicons
-                            name={message.isSeen ? "checkmark-done" : "checkmark"}
-                            size={14}
-                            color={message.isSeen ? "#53bdeb" : "#8696a0"}
-                        />
+                        <View className="flex-row items-center">
+                            {message.isSeen ? (
+                                <Ionicons name="checkmark-done" size={16} color="#53bdeb" />
+                            ) : message.isDelivered ? (
+                                <Ionicons name="checkmark-done" size={16} color="#8696a0" />
+                            ) : (
+                                <Ionicons name="checkmark" size={16} color="#8696a0" />
+                            )}
+                        </View>
                     )}
                 </View>
             </View>
