@@ -47,3 +47,15 @@ export const subscribeSingleUserPresence = (userId, callback) => {
     );
 };
 
+export const subscribeChatTyping = (chatId, otherUserId, callback) => {
+    if (!DB_ID || !TYPING_STATUS_ID || !chatId || !otherUserId) return () => { };
+
+    const docId = `${chatId.slice(0, 15)}_${otherUserId.slice(0, 15)}`;
+    const channel = `databases.${DB_ID}.collections.${TYPING_STATUS_ID}.documents.${docId}`;
+
+    console.log(`Subscribing to specific typing: ${channel}`);
+    return client.subscribe(channel, (event) => {
+        callback(event.payload);
+    });
+};
+

@@ -6,7 +6,7 @@ import { useChatStore } from '@chatsync/store/useChatStore';
 import { getMessagesByChat, sendMessage, markMessagesAsSeen, subscribeMessages } from '@chatsync/services/message.service';
 import { getOtherUserFromChat } from '@chatsync/services/chat.service';
 import { setTyping, removeTyping } from '@chatsync/services/typing.service';
-import { subscribeTyping, subscribeSingleUserPresence } from '@chatsync/services/realtime.service';
+import { subscribeTyping, subscribeSingleUserPresence, subscribeChatTyping } from '@chatsync/services/realtime.service';
 import ChatHeader from '../../components/chat/ChatHeader';
 import MessageBubble from '../../components/chat/MessageBubble';
 import MessageInput from '../../components/chat/MessageInput';
@@ -24,6 +24,7 @@ const ChatScreen = () => {
     const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
     const flatListRef = useRef(null);
     const typingTimeoutRef = useRef(null);
+    const isTypingRef = useRef(false);
 
     const loadChatData = useCallback(async () => {
         if (!chatId || !user?.$id) return;
@@ -71,20 +72,20 @@ const ChatScreen = () => {
             }
         });
 
-        // Subscribe to typing indicators
-        const unsubscribeTyping = subscribeTyping((event) => {
-            const payload = event.payload;
-            if (payload.chatId === chatId && payload.userId !== user.$id) {
+        // Listen for typing from the OTHER user specifically
+        let unsubscribeTyping = () => { };
+        if (otherUser?.$id) {
+            unsubscribeTyping = subscribeChatTyping(chatId, otherUser.$id, (payload) => {
                 setIsOtherUserTyping(payload.isTyping);
-            }
-        });
+            });
+        }
 
         return () => {
             unsubscribeMessages();
             unsubscribeTyping();
             if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         };
-    }, [loadChatData, addMessage, chatId, user?.$id, setMessages]);
+    }, [loadChatData, addMessage, chatId, user?.$id, setMessages, otherUser?.$id]);
 
     // Handle other user's presence updates in real-time
     useEffect(() => {
@@ -117,27 +118,33 @@ const ChatScreen = () => {
     };
 
     const handleTyping = () => {
+        if (!isTypingRef.current) {
+            isTypingRef.current = true;
+            setTyping({
+                chatId,
+                userId: user.$id,
+                name: user.name,
+                isTyping: true
+            });
+        }
+
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-
-        setTyping({
-            chatId,
-            userId: user.$id,
-            name: user.name,
-            isTyping: true
-        });
-
         typingTimeoutRef.current = setTimeout(() => {
             handleStopTyping();
         }, 3000);
     };
 
     const handleStopTyping = () => {
-        setTyping({
-            chatId,
-            userId: user.$id,
-            name: user.name,
-            isTyping: false
-        });
+        if (isTypingRef.current) {
+            isTypingRef.current = false;
+            setTyping({
+                chatId,
+                userId: user.$id,
+                name: user.name,
+                isTyping: false
+            });
+        }
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
 
     if (loading && !messages.length) {
