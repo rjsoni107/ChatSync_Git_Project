@@ -163,9 +163,9 @@ const ChatScreen = () => {
             <ChatHeader user={otherUser} typing={isOtherUserTyping} />
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
                 className="flex-1"
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 90}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 25}
             >
                 <FlatList
                     ref={flatListRef}

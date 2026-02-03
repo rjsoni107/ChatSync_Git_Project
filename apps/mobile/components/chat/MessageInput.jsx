@@ -113,7 +113,7 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
                         onPress={() => setShowEmojis(!showEmojis)}
                     >
                         <Ionicons
-                            name={showEmojis ? "keyboard-outline" : "happy-outline"}
+                            name={showEmojis ? "keypad-outline" : "happy-outline"}
                             size={24}
                             color={showEmojis ? "#00a884" : "#8696a0"}
                         />
@@ -125,6 +125,7 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
                         placeholderTextColor="#8696a0"
                         value={message}
                         onChangeText={handleChangeText}
+                        onFocus={() => setShowEmojis(false)}
                         multiline
                     />
 
