@@ -126,3 +126,77 @@ export const markMessagesAsDelivered = async (chatId, userId) => {
     }
 };
 
+export const addReactionToMessage = async (messageId, emoji, userId) => {
+    if (!messageId || !emoji || !userId) return;
+
+    try {
+        const msg = await databases.getDocument(DB_ID, MESSAGES_ID, messageId);
+        let reactions = [];
+
+        try {
+            reactions = msg.reactions ? JSON.parse(msg.reactions) : [];
+        } catch (e) {
+            reactions = [];
+        }
+
+        // Check if user already has ANY reaction
+        const existingReactionIndex = reactions.findIndex(r => r.userId === userId);
+
+        if (existingReactionIndex > -1) {
+            const previousEmoji = reactions[existingReactionIndex].emoji;
+            // Remove the old reaction
+            reactions.splice(existingReactionIndex, 1);
+
+            // If they clicked a DIFFERENT emoji, add the new one.
+            // If they clicked the SAME emoji, we already removed it (toggle off).
+            if (previousEmoji !== emoji) {
+                reactions.push({ userId, emoji, createdAt: new Date().toISOString() });
+            }
+        } else {
+            // First time reacting, just add it
+            reactions.push({ userId, emoji, createdAt: new Date().toISOString() });
+        }
+
+        return await databases.updateDocument(DB_ID, MESSAGES_ID, messageId, {
+            reactions: JSON.stringify(reactions)
+        });
+    } catch (error) {
+        console.error("Error adding reaction:", error);
+        throw error;
+    }
+};
+
+export const deleteMessage = async (messageId) => {
+    if (!messageId) return;
+    try {
+        return await databases.deleteDocument(DB_ID, MESSAGES_ID, messageId);
+    } catch (error) {
+        console.error("Error deleting message:", error);
+        throw error;
+    }
+};
+
+export const deleteMessageForUser = async (messageId, userId) => {
+    if (!messageId || !userId) return;
+    try {
+        const msg = await databases.getDocument(DB_ID, MESSAGES_ID, messageId);
+        let deletedFor = [];
+        try {
+            deletedFor = msg.deletedForUsers ? JSON.parse(msg.deletedForUsers) : [];
+        } catch (e) {
+            deletedFor = [];
+        }
+
+        if (!deletedFor.includes(userId)) {
+            deletedFor.push(userId);
+        }
+
+        return await databases.updateDocument(DB_ID, MESSAGES_ID, messageId, {
+            deletedForUsers: JSON.stringify(deletedFor)
+        });
+    } catch (error) {
+        console.error("Error hiding message for user:", error);
+        throw error;
+    }
+};
+

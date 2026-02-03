@@ -66,11 +66,16 @@ const ChatScreen = () => {
                     }
                 }
             } else if (res.events.includes('databases.*.collections.*.documents.*.update')) {
-                // Update message (e.g. isSeen updated)
+                // Update message (e.g. isSeen updated or deletedForUsers updated)
                 const updatedMessage = res.payload;
                 if (updatedMessage.chatId === chatId) {
                     setMessages(prev => prev.map(m => m.$id === updatedMessage.$id ? updatedMessage : m));
                 }
+            } else if (res.events.includes('databases.*.collections.*.documents.*.delete')) {
+                // Delete message (Unsend)
+                const deletedMessage = res.payload;
+                // res.payload for delete event in Appwrite usually contains the deleted document
+                setMessages(prev => prev.filter(m => m.$id !== deletedMessage.$id));
             }
         });
 
