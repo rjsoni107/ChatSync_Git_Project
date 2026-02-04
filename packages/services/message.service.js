@@ -24,6 +24,7 @@ export const sendMessage = async ({ chatId, senderId, content, type = "text", fi
             fileId,
             createdAt: now,
             isSeen: false,
+            isDelivered: false,
         }
     );
 
@@ -53,20 +54,21 @@ export const sendMessage = async ({ chatId, senderId, content, type = "text", fi
 };
 
 export const subscribeMessages = (callback) => {
-    return client.subscribe(`databases.${DB_ID}.collections.${MESSAGES_ID}.documents`, (res) => {
+    if (!DB_ID || !MESSAGES_ID) {
+        console.warn('Realtime: Missing DB_ID or MESSAGES_ID in message service');
+        return () => { };
+    }
+    const channel = `databases.${DB_ID}.collections.${MESSAGES_ID}.documents`;
+    console.log(`Subscribing to messages: ${channel}`);
+
+    return client.subscribe(channel, (res) => {
         const events = [
             "databases.*.collections.*.documents.*.create",
             "databases.*.collections.*.documents.*.update",
-            "databases.*.collections.*.documents.*.delete" // Added delete event explicitly
+            "databases.*.collections.*.documents.*.delete"
         ];
 
-        // Pass full response so consumers can check event type (create/update/delete)
-        if (res.events.some(e => events.some(pattern => {
-            // Simple match or regex match could be better, but for now exact or wildcard logic
-            // The events array usually contains specific strings. 
-            // Appwrite wildcard subscription returns specific events.
-            return e.includes('.documents.') // Simple check that it's a document event
-        }))) {
+        if (res.events.some(e => e.includes('.documents.'))) {
             callback(res);
         }
     });
@@ -101,7 +103,100 @@ export const markMessagesAsSeen = async (chatId, userId) => {
     for (const msg of res.documents) {
         await databases.updateDocument(DB_ID, MESSAGES_ID, msg.$id, {
             isSeen: true,
+            isDelivered: true,
         });
+    }
+};
+
+export const markMessagesAsDelivered = async (chatId, userId) => {
+    if (!chatId || !userId) return;
+
+    // Fetch messages delivered=false and not sent by current user
+    const res = await databases.listDocuments(DB_ID, MESSAGES_ID, [
+        Query.equal("chatId", chatId),
+        Query.notEqual("senderId", userId),
+        Query.equal("isDelivered", false),
+        Query.limit(100),
+    ]);
+
+    for (const msg of res.documents) {
+        await databases.updateDocument(DB_ID, MESSAGES_ID, msg.$id, {
+            isDelivered: true,
+        });
+    }
+};
+
+export const addReactionToMessage = async (messageId, emoji, userId) => {
+    if (!messageId || !emoji || !userId) return;
+
+    try {
+        const msg = await databases.getDocument(DB_ID, MESSAGES_ID, messageId);
+        let reactions = [];
+
+        try {
+            reactions = msg.reactions ? JSON.parse(msg.reactions) : [];
+        } catch (e) {
+            reactions = [];
+        }
+
+        // Check if user already has ANY reaction
+        const existingReactionIndex = reactions.findIndex(r => r.userId === userId);
+
+        if (existingReactionIndex > -1) {
+            const previousEmoji = reactions[existingReactionIndex].emoji;
+            // Remove the old reaction
+            reactions.splice(existingReactionIndex, 1);
+
+            // If they clicked a DIFFERENT emoji, add the new one.
+            // If they clicked the SAME emoji, we already removed it (toggle off).
+            if (previousEmoji !== emoji) {
+                reactions.push({ userId, emoji, createdAt: new Date().toISOString() });
+            }
+        } else {
+            // First time reacting, just add it
+            reactions.push({ userId, emoji, createdAt: new Date().toISOString() });
+        }
+
+        return await databases.updateDocument(DB_ID, MESSAGES_ID, messageId, {
+            reactions: JSON.stringify(reactions)
+        });
+    } catch (error) {
+        console.error("Error adding reaction:", error);
+        throw error;
+    }
+};
+
+export const deleteMessage = async (messageId) => {
+    if (!messageId) return;
+    try {
+        return await databases.deleteDocument(DB_ID, MESSAGES_ID, messageId);
+    } catch (error) {
+        console.error("Error deleting message:", error);
+        throw error;
+    }
+};
+
+export const deleteMessageForUser = async (messageId, userId) => {
+    if (!messageId || !userId) return;
+    try {
+        const msg = await databases.getDocument(DB_ID, MESSAGES_ID, messageId);
+        let deletedFor = [];
+        try {
+            deletedFor = msg.deletedForUsers ? JSON.parse(msg.deletedForUsers) : [];
+        } catch (e) {
+            deletedFor = [];
+        }
+
+        if (!deletedFor.includes(userId)) {
+            deletedFor.push(userId);
+        }
+
+        return await databases.updateDocument(DB_ID, MESSAGES_ID, messageId, {
+            deletedForUsers: JSON.stringify(deletedFor)
+        });
+    } catch (error) {
+        console.error("Error hiding message for user:", error);
+        throw error;
     }
 };
 

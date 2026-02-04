@@ -21,7 +21,6 @@ export const getCurrentUser = async () => {
 };
 
 export const logout = async () => {
-    localStorage.removeItem("activeChat");
     return await account.deleteSession("current");
 };
 

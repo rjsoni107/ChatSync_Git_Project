@@ -1,7 +1,7 @@
 import React from 'react'
 import { PiUserCircle } from "react-icons/pi";
 import bgColor from './bgColor';
-const Avatar = ({ name, imageUrl, width, height }) => {
+const Avatar = ({ name, imageUrl, width, height, isOnline }) => {
     let avatarName = ""
 
     if (name) {
@@ -18,7 +18,7 @@ const Avatar = ({ name, imageUrl, width, height }) => {
     const colorIndex = nameHash % (bgColor.length || 1);
 
     return (
-        <div className={`text-slate-800  rounded-full border-cyan-100 border font-bold relative`} style={{ width: width + "px", height: height + "px" }}>
+        <div className={`text-slate-800 rounded-full border-cyan-100 border font-bold relative`} style={{ width: width + "px", height: height + "px" }}>
             {
                 imageUrl ? (
                     <img
@@ -41,6 +41,9 @@ const Avatar = ({ name, imageUrl, width, height }) => {
                 )
             }
 
+            {isOnline && (
+                <div className='bg-green-600 p-1 absolute bottom-0 right-0 z-10 rounded-full border-2 border-[#111b21] shadow-sm animate-pulse'></div>
+            )}
         </div>
     )
 }

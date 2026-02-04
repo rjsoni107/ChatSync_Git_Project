@@ -4,7 +4,7 @@ import Avatar from "../Avatar";
 import { IoCheckmarkDone } from "react-icons/io5";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 
-const ChatItem = forwardRef(({ chat, isActive, onClick }, ref) => {
+const ChatItem = forwardRef(({ chat, isActive, isOnline, onClick }, ref) => {
     const user = useAuthStore(s => s.user);
     const hasUnread = (chat.unreadCount || 0) > 0;
     const isMe = chat.lastSenderId === user?.$id;
@@ -36,6 +36,7 @@ const ChatItem = forwardRef(({ chat, isActive, onClick }, ref) => {
                     height={40}
                     imageUrl={chat.otherUser?.profile_pic}
                     name={chat.otherUser?.name}
+                    isOnline={isOnline}
                 />
             </div>
 

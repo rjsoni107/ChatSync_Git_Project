@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { useChatStore } from "@chatsync/store/useChatStore";
-import { getMessagesByChat, markMessagesAsSeen, subscribeMessages } from "@chatsync/services/message.service";
+import { getMessagesByChat, markMessagesAsSeen, markMessagesAsDelivered, subscribeMessages } from "@chatsync/services/message.service";
 import { useAuthStore } from "@chatsync/store/useAuthStore";
 import MessageInput from "./MessageInput";
 import { useTyping } from "../../hooks/useTyping";
@@ -49,6 +49,7 @@ export default function ChatWindow() {
             // Mark as seen when opening chat
             if (user?.$id) {
                 markMessagesAsSeen(currentChatId, user.$id);
+                markMessagesAsDelivered(currentChatId, user.$id);
             }
         }
     }, [activeChat?.$id, user?.$id, setMessages]);
@@ -81,6 +82,9 @@ export default function ChatWindow() {
                 const currentUser = useAuthStore.getState().user;
                 if (currentUser && msg.senderId !== currentUser.$id && !msg.isSeen) {
                     markMessagesAsSeen(currentChatId, currentUser.$id);
+                    markMessagesAsDelivered(currentChatId, currentUser.$id);
+                } else if (currentUser && msg.senderId !== currentUser.$id && !msg.isDelivered) {
+                    markMessagesAsDelivered(currentChatId, currentUser.$id);
                 }
             }
         });
