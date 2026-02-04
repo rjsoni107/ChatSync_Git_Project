@@ -1,14 +1,14 @@
 import { useRef, useEffect, useState } from "react";
-import { useChatStore } from "@chatsync/store/useChatStore";
-import { getMessagesByChat, markMessagesAsSeen, markMessagesAsDelivered, subscribeMessages } from "@chatsync/services/message.service";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
+import { useChatStore } from "@chatterapp/store/useChatStore";
+import { getMessagesByChat, markMessagesAsSeen, markMessagesAsDelivered, subscribeMessages } from "@chatterapp/services/message.service";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
 import MessageInput from "./MessageInput";
 import { useTyping } from "../../hooks/useTyping";
 import TypingIndicator from "./TypingIndicator";
 import ChatHeader from "./ChatHeader";
 import ChatMessages from "./ChatMessages";
 import WelcomeChat from "./WelcomeChat";
-import { getOtherUserFromChat } from "@chatsync/services/chat.service";
+import { getOtherUserFromChat } from "@chatterapp/services/chat.service";
 
 export default function ChatWindow() {
     const activeChat = useChatStore((s) => s.activeChat);

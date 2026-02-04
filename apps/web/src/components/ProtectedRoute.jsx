@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
 
 export default function ProtectedRoute({ children }) {
     const { user, loading } = useAuthStore();

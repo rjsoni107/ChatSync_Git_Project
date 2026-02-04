@@ -27,7 +27,7 @@ export default function WelcomeChat() {
                 </div>
 
                 <h1 className="text-4xl font-black text-white mb-4 tracking-tight">
-                    Welcome to <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">ChatSync</span>
+                    Welcome to <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">ChatterApp</span>
                 </h1>
                 <p className="text-gray-400 max-w-sm leading-relaxed text-lg font-medium opacity-80">
                     Send and receive messages in real-time with end-to-end synchronization. Select a friend to start chatting.

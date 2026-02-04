@@ -3,11 +3,11 @@ import { Image } from 'expo-image';
 import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
-import { getMobileFilePreview } from '@chatsync/services/storage.service';
-import { addReactionToMessage, deleteMessage, deleteMessageForUser } from '@chatsync/services/message.service';
-import { useAuthStore } from '@chatsync/store/useAuthStore';
-import { useAlertStore } from '@chatsync/store/useAlertStore';
-import { useImagePreviewStore } from '@chatsync/store/useImagePreviewStore';
+import { getMobileFilePreview } from '@chatterapp/services/storage.service';
+import { addReactionToMessage, deleteMessage, deleteMessageForUser } from '@chatterapp/services/message.service';
+import { useAuthStore } from '@chatterapp/store/useAuthStore';
+import { useAlertStore } from '@chatterapp/store/useAlertStore';
+import { useImagePreviewStore } from '@chatterapp/store/useImagePreviewStore';
 import MessageMenu from './MessageMenu';
 
 const getTime = (date) => {

@@ -1,9 +1,9 @@
 {
-  "name": "@chatsync/services",
+  "name": "@chatterapp/services",
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "@chatsync/api": "*",
-    "@chatsync/types": "*"
+    "@chatterapp/api": "*",
+    "@chatterapp/types": "*"
   }
 }

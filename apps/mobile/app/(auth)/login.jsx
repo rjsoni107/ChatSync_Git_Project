@@ -1,8 +1,8 @@
 import { View, Text, ScrollValue, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { login } from '@chatsync/services/auth.service';
-import { useAuthStore } from '@chatsync/store/useAuthStore';
+import { login } from '@chatterapp/services/auth.service';
+import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import AuthInput from '../../components/auth/AuthInput';
 import AuthButton from '../../components/auth/AuthButton';
 import AuthHeader from '../../components/auth/AuthHeader';
@@ -30,7 +30,7 @@ const Login = () => {
             const session = await login(email, password);
             if (session) {
                 // Fetch user data after successful login
-                const { getCurrentUser } = await import('@chatsync/services/auth.service');
+                const { getCurrentUser } = await import('@chatterapp/services/auth.service');
                 const user = await getCurrentUser();
                 setUser(user);
                 router.replace('/(tabs)/chats');

@@ -1,4 +1,4 @@
-import { databases, client, Query, ID } from "@chatsync/api/appwrite";
+import { databases, client, Query, ID } from "@chatterapp/api/appwrite";
 import { appwriteConfig } from '../api/config';
 
 const DB_ID = appwriteConfig.databaseId;

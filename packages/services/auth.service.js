@@ -1,5 +1,5 @@
 //auth.service.js
-import { account } from "@chatsync/api/appwrite";
+import { account } from "@chatterapp/api/appwrite";
 
 export const signup = async (email, password, name) => {
     return await account.create("unique()", email, password, name);

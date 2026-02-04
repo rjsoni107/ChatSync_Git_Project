@@ -1,1 +1,1 @@
-export * from '@chatsync/api/appwrite';
+export * from '@chatterapp/api/appwrite';

@@ -1,4 +1,4 @@
-import { authService } from '@chatsync/services/auth.service';
+import { authService } from '@chatterapp/services/auth.service';
 
 export const useAuth = () => {
     // Implementation

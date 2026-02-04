@@ -5,9 +5,12 @@ const AuthHeader = ({ title, subtitle }) => {
     return (
         <View className="items-center mb-10 pt-10">
             <View className="w-20 h-20 bg-[#00a884] rounded-3xl items-center justify-center mb-6 shadow-lg">
-                <Text className="text-white text-4xl font-black">CS</Text>
+                <Text className="text-white text-4xl font-black">CA</Text>
             </View>
-            <Text className="text-white text-3xl font-bold mb-2">{title}</Text>
+            <Text className="text-white text-3xl font-bold mb-1">{title}</Text>
+            <Text className="text-[#00a884] text-xs font-semibold mb-3 uppercase tracking-widest">
+                ChatterApp – Real-time Chat Application
+            </Text>
             {subtitle && (
                 <Text className="text-[#8696a0] text-center px-6 leading-5">
                     {subtitle}

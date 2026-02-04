@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { searchUsers } from "@chatsync/services/user.service";
-import { findPrivateChat, createChat, addChatMember } from "@chatsync/services/chat.service";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
-import { useChatStore } from "@chatsync/store/useChatStore";
+import { searchUsers } from "@chatterapp/services/user.service";
+import { findPrivateChat, createChat, addChatMember } from "@chatterapp/services/chat.service";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
+import { useChatStore } from "@chatterapp/store/useChatStore";
 import { IoAdd, IoClose, IoPersonAddSharp, IoSearchOutline } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 import Avatar from "../Avatar";

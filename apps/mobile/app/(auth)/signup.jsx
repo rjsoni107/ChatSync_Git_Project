@@ -1,8 +1,8 @@
 import { View, Text, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { signup, login } from '@chatsync/services/auth.service';
-import { useAuthStore } from '@chatsync/store/useAuthStore';
+import { signup, login } from '@chatterapp/services/auth.service';
+import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import AuthInput from '../../components/auth/AuthInput';
 import AuthButton from '../../components/auth/AuthButton';
 import AuthHeader from '../../components/auth/AuthHeader';
@@ -43,7 +43,7 @@ const Signup = () => {
             // After signup, automatically log the user in
             const session = await login(email, password);
             if (session) {
-                const { getCurrentUser } = await import('@chatsync/services/auth.service');
+                const { getCurrentUser } = await import('@chatterapp/services/auth.service');
                 const user = await getCurrentUser();
                 setUser(user);
                 router.replace('/(tabs)/chats');
@@ -70,20 +70,20 @@ const Signup = () => {
                         <View className="px-6 flex-1 justify-center pb-10">
                             <AuthHeader
                                 title="Create Account"
-                                subtitle="Join ChatSync and start messaging with friends"
+                                subtitle="Join ChatterApp and start messaging with friends"
                             />
 
                             <View className="space-y-4">
                                 <AuthInput
                                     label="Full Name"
-                                    placeholder="John Doe"
+                                    placeholder="Enter your full name"
                                     value={name}
                                     onChangeText={setName}
                                 />
 
                                 <AuthInput
                                     label="Email Address"
-                                    placeholder="your@email.com"
+                                    placeholder="Enter your email address"
                                     value={email}
                                     onChangeText={setEmail}
                                     keyboardType="email-address"

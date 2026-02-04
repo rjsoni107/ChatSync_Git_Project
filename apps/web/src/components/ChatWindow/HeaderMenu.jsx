@@ -13,7 +13,7 @@ import {
     IoCheckboxOutline,
     IoHeartOutline
 } from "react-icons/io5";
-import { useChatStore } from "@chatsync/store/useChatStore";
+import { useChatStore } from "@chatterapp/store/useChatStore";
 
 export default function HeaderMenu() {
     const [showMenu, setShowMenu] = useState(false);

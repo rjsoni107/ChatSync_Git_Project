@@ -1,5 +1,5 @@
 {
-  "name": "chatsync-monorepo",
+  "name": "chatterapp-monorepo",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
@@ -7,13 +7,13 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:web": "npm run dev --workspace=@chatsync/web",
-    "dev:mobile": "npm run start --workspace=@chatsync/mobile"
+    "dev:web": "npm run dev --workspace=@chatterapp/web",
+    "dev:mobile": "npm run start --workspace=@chatterapp/mobile"
   },
   "devDependencies": {
+    "expo": "~54.0.32",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "expo": "~54.0.32",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "~2.20.2"
   }

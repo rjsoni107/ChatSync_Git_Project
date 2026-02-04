@@ -1,14 +1,14 @@
 import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '@chatsync/store/useAuthStore';
-import { getUserProfile } from '@chatsync/services/user.service';
-import { logout } from '@chatsync/services/auth.service';
+import { useAuthStore } from '@chatterapp/store/useAuthStore';
+import { getUserProfile } from '@chatterapp/services/user.service';
+import { logout } from '@chatterapp/services/auth.service';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import SettingsItem from '../../components/settings/SettingsItem';
 
-import { useAlertStore } from '@chatsync/store/useAlertStore';
+import { useAlertStore } from '@chatterapp/store/useAlertStore';
 
 const Profile = () => {
     const router = useRouter();
@@ -155,7 +155,7 @@ const Profile = () => {
                     </TouchableOpacity>
 
                     <View className="items-center mt-6">
-                        <Text className="text-gray-600 text-xs">ChatSync v1.0.0</Text>
+                        <Text className="text-gray-600 text-xs">ChatterApp v1.0.0</Text>
                         <Text className="text-gray-600 text-[10px] mt-1">from Google DeepMind</Text>
                     </View>
                 </View>

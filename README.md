@@ -1,1 +1,1 @@
-# ChatSync_Git_Project
+# ChatterApp_Git_Project

@@ -2,7 +2,7 @@ import { forwardRef } from "react";
 import { motion } from "framer-motion";
 import Avatar from "../Avatar";
 import { IoCheckmarkDone } from "react-icons/io5";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
 
 const ChatItem = forwardRef(({ chat, isActive, isOnline, onClick }, ref) => {
     const user = useAuthStore(s => s.user);

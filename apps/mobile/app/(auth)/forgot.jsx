@@ -1,7 +1,7 @@
 import { View, Text, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { sendPasswordRecoveryEmail } from '@chatsync/services/auth.service';
+import { sendPasswordRecoveryEmail } from '@chatterapp/services/auth.service';
 import AuthInput from '../../components/auth/AuthInput';
 import AuthButton from '../../components/auth/AuthButton';
 import AuthHeader from '../../components/auth/AuthHeader';
@@ -25,7 +25,7 @@ const ForgotPassword = () => {
 
         try {
             // In a real app, the URL would be a deep link to the app or a web reset page
-            const resetUrl = 'https://chatsync.app/reset-password';
+            const resetUrl = 'https://chatterapp.app/reset-password';
             await sendPasswordRecoveryEmail(email, resetUrl);
             setSuccess(true);
         } catch (err) {

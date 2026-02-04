@@ -1,5 +1,5 @@
-import { databases } from "@chatsync/api/appwrite";
-import { appwriteConfig } from "@chatsync/api/config";
+import { databases } from "@chatterapp/api/appwrite";
+import { appwriteConfig } from "@chatterapp/api/config";
 
 const DB_ID = appwriteConfig.databaseId;
 const TYPING_ID = appwriteConfig.typingStatusCollectionId;

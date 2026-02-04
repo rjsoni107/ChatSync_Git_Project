@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { IoMailOutline, IoArrowBack } from "react-icons/io5";
-import { sendPasswordRecoveryEmail } from "@chatsync/services/auth.service";
+import { sendPasswordRecoveryEmail } from "@chatterapp/services/auth.service";
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState("");

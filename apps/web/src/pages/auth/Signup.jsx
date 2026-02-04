@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { signup, login, getCurrentUser, sendVerificationEmail } from "@chatsync/services/auth.service";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
+import { signup, login, getCurrentUser, sendVerificationEmail } from "@chatterapp/services/auth.service";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoMailOutline, IoLockClosedOutline, IoPersonOutline, IoArrowForward, IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 
@@ -127,7 +127,7 @@ export default function Signup() {
                             transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
                             className="w-[10rem] h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-xl shadow-blue-500/20 rotate-3"
                         >
-                            <span className="text-2xl font-black italic tracking-tighter text-white">ChatSync</span>
+                            <span className="text-2xl font-black italic tracking-tighter text-white">ChatterApp</span>
                         </motion.div>
                         <motion.h1 variants={itemVariants} className="text-3xl font-black text-white mb-3 tracking-tight">Create Account</motion.h1>
                         <motion.p variants={itemVariants} className="text-gray-300 font-medium text-sm">Join the next generation of real-time chatting</motion.p>
@@ -220,7 +220,7 @@ export default function Signup() {
 
                     <motion.div variants={itemVariants} className="pt-6 border-t border-white/5 text-center">
                         <p className="text-gray-400 font-bold text-sm">
-                            Already part of ChatSync?{" "}
+                            Already part of ChatterApp?{" "}
                             <Link to="/login" className="text-blue-400 hover:text-blue-300 transition-colors ml-1">
                                 Log In
                             </Link>
@@ -235,7 +235,7 @@ export default function Signup() {
                     transition={{ delay: 1.5 }}
                     className="mt-6 text-center"
                 >
-                    <p className="text-[10px] uppercase tracking-[0.3em] font-black text-white/40">Privacy First • Powered by ChatSync</p>
+                    <p className="text-[10px] uppercase tracking-[0.3em] font-black text-white/40">Privacy First • Powered by ChatterApp</p>
                 </motion.div>
             </motion.div>
         </div>

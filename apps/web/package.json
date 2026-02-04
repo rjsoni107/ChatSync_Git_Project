@@ -1,5 +1,5 @@
 {
-  "name": "@chatsync/web",
+  "name": "@chatterapp/web",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -8,10 +8,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@chatsync/services": "*",
-    "@chatsync/store": "*",
-    "@chatsync/types": "*",
-    "@chatsync/utils": "*",
+    "@chatterapp/services": "*",
+    "@chatterapp/store": "*",
+    "@chatterapp/types": "*",
+    "@chatterapp/utils": "*",
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.0.0",
     "framer-motion": "^10.0.0",

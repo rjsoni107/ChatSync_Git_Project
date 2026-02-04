@@ -10,9 +10,9 @@ import {
     IoListOutline
 } from "react-icons/io5";
 import { useState } from "react";
-import { logout } from "@chatsync/services/auth.service";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
-import { setUserOffline } from "@chatsync/services/presence.service";
+import { logout } from "@chatterapp/services/auth.service";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
+import { setUserOffline } from "@chatterapp/services/presence.service";
 
 export default function SidebarHeader({ onAddChat }) {
     const [showMenu, setShowMenu] = useState(false);

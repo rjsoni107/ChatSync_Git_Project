@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { IoCheckmarkDone, IoCheckmark, IoDownloadOutline } from "react-icons/io5";
 import { getMessageDateLabel } from "../../../../../packages/utils/date";
-import { getFilePreview } from "@chatsync/services/storage.service";
+import { getFilePreview } from "@chatterapp/services/storage.service";
 
 export default function ChatMessages({ messages, user, bottomRef }) {
     // Safety check: ensure messages is always an array

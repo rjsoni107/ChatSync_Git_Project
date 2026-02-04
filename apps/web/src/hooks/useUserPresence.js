@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { heartbeat, setUserOnline, setUserOffline } from "@chatsync/services/presence.service";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
+import { heartbeat, setUserOnline, setUserOffline } from "@chatterapp/services/presence.service";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
 
 export default function useUserPresence() {
     const user = useAuthStore((s) => s.user);

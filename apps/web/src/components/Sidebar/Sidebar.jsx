@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
-import { useChatStore } from "@chatsync/store/useChatStore";
-import { getUserChats } from "@chatsync/services/chat.service";
-import { subscribeChatsRealtime, subscribeUserPresence } from "@chatsync/services/realtime.service";
-import { subscribeMessages, markMessagesAsDelivered } from "@chatsync/services/message.service";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
+import { useChatStore } from "@chatterapp/store/useChatStore";
+import { getUserChats } from "@chatterapp/services/chat.service";
+import { subscribeChatsRealtime, subscribeUserPresence } from "@chatterapp/services/realtime.service";
+import { subscribeMessages, markMessagesAsDelivered } from "@chatterapp/services/message.service";
 import NewChatModal from "./NewChatModal";
 import { AnimatePresence } from "framer-motion";
 
@@ -97,7 +97,7 @@ export default function Sidebar() {
                         updated = [{ ...updatedChat, unreadCount: updatedChat.lastSenderId !== user.$id ? 1 : 0, lastMessageSeen: false }, ...prev];
                         (async () => {
                             try {
-                                const { getOtherUserFromChat } = await import("@chatsync/services/chat.service");
+                                const { getOtherUserFromChat } = await import("@chatterapp/services/chat.service");
                                 const freshOtherUser = await getOtherUserFromChat(updatedChat.$id, user.$id);
                                 if (freshOtherUser) {
                                     setChats(currentChats => currentChats.map(c =>

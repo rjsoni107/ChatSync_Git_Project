@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { realtimeService } from '@chatsync/services/realtime.service';
+import { realtimeService } from '@chatterapp/services/realtime.service';
 
 export const useRealtime = () => {
     useEffect(() => {

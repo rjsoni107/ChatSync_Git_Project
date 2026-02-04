@@ -1,4 +1,4 @@
-package com.chatsync.app
+package com.chatterapp.app
 
 import android.app.Application
 import android.content.res.Configuration

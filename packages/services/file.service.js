@@ -1,4 +1,4 @@
-import { storage, ID } from "@chatsync/api/appwrite";
+import { storage, ID } from "@chatterapp/api/appwrite";
 import { appwriteConfig } from '../api/config';
 
 const BUCKET_ID = appwriteConfig.bucketId;

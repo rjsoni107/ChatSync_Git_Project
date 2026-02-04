@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { verifyEmail } from "@chatsync/services/auth.service";
+import { verifyEmail } from "@chatterapp/services/auth.service";
 import { motion } from "framer-motion";
 import { IoCheckmarkCircleOutline, IoAlertCircleOutline } from "react-icons/io5";
 

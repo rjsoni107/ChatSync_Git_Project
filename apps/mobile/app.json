@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "ChatSync",
-    "slug": "chatsync",
-    "scheme": "chatsync",
-    "version": "1.0.0",
+    "name": "ChatterApp",
+    "slug": "chatterapp",
+    "scheme": "chatterapp",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -17,14 +17,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.chatsync.app"
+      "bundleIdentifier": "com.chatterapp.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#111b21"
       },
-      "package": "com.chatsync.app",
+      "package": "com.chatterapp.app",
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ]
@@ -38,8 +38,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow ChatSync to access your photos to share images in chats.",
-          "cameraPermission": "Allow ChatSync to access your camera to take photos."
+          "photosPermission": "Allow ChatterApp to access your photos to share images in chats.",
+          "cameraPermission": "Allow ChatterApp to access your camera to take photos."
         }
       ]
     ],
@@ -50,6 +50,7 @@
       "eas": {
         "projectId": "e7f8d15e-3695-462c-86c7-f2fbc9f06d7d"
       }
-    }
+    },
+    "jsEngine": "hermes"
   }
 }

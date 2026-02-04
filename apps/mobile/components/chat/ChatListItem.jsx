@@ -3,7 +3,7 @@ import React from 'react';
 import { useRouter } from 'expo-router';
 import { formatDistanceToNow } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore } from '@chatsync/store/useAuthStore';
+import { useAuthStore } from '@chatterapp/store/useAuthStore';
 
 const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
     const router = useRouter();

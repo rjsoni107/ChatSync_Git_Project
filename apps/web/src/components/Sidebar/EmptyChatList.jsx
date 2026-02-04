@@ -28,7 +28,7 @@ export default function EmptyChatList({ onStartChat }) {
                 transition={{ delay: 0.2 }}
                 className="text-gray-400 text-sm mb-8 max-w-[200px]"
             >
-                Start a new conversation with friends and family using ChatSync.
+                Start a new conversation with friends and family using ChatterApp.
             </motion.p>
 
             <motion.button

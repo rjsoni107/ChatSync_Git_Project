@@ -3,7 +3,7 @@ import React from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { formatLastSeen } from '@chatsync/utils/date';
+import { formatLastSeen } from '@chatterapp/utils/date';
 
 const ChatHeader = ({ user, typing }) => {
     const router = useRouter();

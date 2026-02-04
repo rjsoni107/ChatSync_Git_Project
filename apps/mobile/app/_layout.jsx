@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { useAuthStore } from '@chatsync/store/useAuthStore';
-import { getCurrentUser } from '@chatsync/services/auth.service';
+import { useAuthStore } from '@chatterapp/store/useAuthStore';
+import { getCurrentUser } from '@chatterapp/services/auth.service';
 import { useUserPresence } from '../hooks/useUserPresence';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';

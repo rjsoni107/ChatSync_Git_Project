@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { subscribeSingleUserPresence } from "@chatsync/services/realtime.service";
+import { subscribeSingleUserPresence } from "@chatterapp/services/realtime.service";
 import Avatar from "../Avatar";
 import { motion } from "framer-motion";
 import UserStatus from "./UserStatus";
 import HeaderMenu from "./HeaderMenu";
-import { useChatStore } from "@chatsync/store/useChatStore";
+import { useChatStore } from "@chatterapp/store/useChatStore";
 import { IoArrowBack } from "react-icons/io5";
 
 export default function ChatHeader({ otherUser }) {
@@ -25,7 +25,7 @@ export default function ChatHeader({ otherUser }) {
 
         const fetchFreshUser = async () => {
             try {
-                const { getUserProfile } = await import("@chatsync/services/user.service");
+                const { getUserProfile } = await import("@chatterapp/services/user.service");
                 const freshUser = await getUserProfile(otherUser.$id);
                 setUserSnapshot(freshUser);
             } catch (err) {

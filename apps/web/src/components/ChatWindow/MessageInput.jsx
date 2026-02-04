@@ -1,10 +1,10 @@
 import { useState, useRef } from "react";
 import imageCompression from "browser-image-compression";
-import { sendMessage } from "@chatsync/services/message.service";
-import { uploadFile } from "@chatsync/services/storage.service";
-import { useChatStore } from "@chatsync/store/useChatStore";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
-import { setTyping } from "@chatsync/services/typing.service";
+import { sendMessage } from "@chatterapp/services/message.service";
+import { uploadFile } from "@chatterapp/services/storage.service";
+import { useChatStore } from "@chatterapp/store/useChatStore";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
+import { setTyping } from "@chatterapp/services/typing.service";
 import { IoSend, IoCloseCircle, IoImagesOutline } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 

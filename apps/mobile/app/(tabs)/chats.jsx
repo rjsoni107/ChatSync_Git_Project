@@ -1,11 +1,11 @@
 import { View, Text, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '@chatsync/store/useAuthStore';
-import { useChatStore } from '@chatsync/store/useChatStore';
-import { getUserChats } from '@chatsync/services/chat.service';
-import { subscribeChatsRealtime, subscribeUserPresence } from '@chatsync/services/realtime.service';
-import { subscribeMessages } from '@chatsync/services/message.service';
+import { useAuthStore } from '@chatterapp/store/useAuthStore';
+import { useChatStore } from '@chatterapp/store/useChatStore';
+import { getUserChats } from '@chatterapp/services/chat.service';
+import { subscribeChatsRealtime, subscribeUserPresence } from '@chatterapp/services/realtime.service';
+import { subscribeMessages } from '@chatterapp/services/message.service';
 import ChatListItem from '../../components/chat/ChatListItem';
 import SearchBar from '../../components/chat/SearchBar';
 import { Ionicons } from '@expo/vector-icons';
@@ -109,7 +109,7 @@ const Chats = () => {
         <SafeAreaView className="flex-1 bg-[#111b21]">
             {/* Header */}
             <View className="flex-row items-center justify-between px-4 py-3">
-                <Text className="text-white text-2xl font-bold">ChatSync</Text>
+                <Text className="text-white text-2xl font-bold">ChatterApp</Text>
                 <View className="flex-row items-center">
                     <TouchableOpacity className="p-2" onPress={() => router.push('/(tabs)/search')}>
                         <Ionicons name="camera-outline" size={24} color="#8696a0" />

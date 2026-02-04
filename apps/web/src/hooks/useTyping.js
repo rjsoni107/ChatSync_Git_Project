@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { subscribeTyping } from "@chatsync/services/realtime.service";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
+import { subscribeTyping } from "@chatterapp/services/realtime.service";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
 
 export const useTyping = (chatId) => {
     const user = useAuthStore((s) => s.user);

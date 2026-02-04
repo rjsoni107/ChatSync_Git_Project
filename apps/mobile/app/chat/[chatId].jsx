@@ -1,12 +1,12 @@
 import { View, Text, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard } from 'react-native';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { useAuthStore } from '@chatsync/store/useAuthStore';
-import { useChatStore } from '@chatsync/store/useChatStore';
-import { getMessagesByChat, sendMessage, markMessagesAsSeen, markMessagesAsDelivered, subscribeMessages } from '@chatsync/services/message.service';
-import { getOtherUserFromChat } from '@chatsync/services/chat.service';
-import { setTyping, removeTyping } from '@chatsync/services/typing.service';
-import { subscribeTyping, subscribeSingleUserPresence, subscribeChatTyping } from '@chatsync/services/realtime.service';
+import { useAuthStore } from '@chatterapp/store/useAuthStore';
+import { useChatStore } from '@chatterapp/store/useChatStore';
+import { getMessagesByChat, sendMessage, markMessagesAsSeen, markMessagesAsDelivered, subscribeMessages } from '@chatterapp/services/message.service';
+import { getOtherUserFromChat } from '@chatterapp/services/chat.service';
+import { setTyping, removeTyping } from '@chatterapp/services/typing.service';
+import { subscribeTyping, subscribeSingleUserPresence, subscribeChatTyping } from '@chatterapp/services/realtime.service';
 import ChatHeader from '../../components/chat/ChatHeader';
 import MessageBubble from '../../components/chat/MessageBubble';
 import MessageInput from '../../components/chat/MessageInput';
@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { InteractionManager } from 'react-native';
 
 
-import { getMessageDateLabel } from '@chatsync/utils/date';
+import { getMessageDateLabel } from '@chatterapp/utils/date';
 
 const ChatScreen = () => {
     const { chatId } = useLocalSearchParams();
@@ -266,7 +266,6 @@ const ChatScreen = () => {
                         }}
                         scrollEventThrottle={5}
                     />
-
 
                     <MessageInput
                         onSendMessage={handleSendMessage}

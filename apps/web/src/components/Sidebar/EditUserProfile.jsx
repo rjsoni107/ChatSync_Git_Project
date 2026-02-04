@@ -2,10 +2,10 @@ import React, { useEffect, useState, useRef } from 'react'
 import Avatar from '../Avatar'
 import { FaCamera, FaPen, FaTimes } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
-import { uploadFile, getFileView } from '@chatsync/services/file.service'
-import { checkUsernameAvailability, updateUserProfile } from '@chatsync/services/user.service'
+import { uploadFile, getFileView } from '@chatterapp/services/file.service'
+import { checkUsernameAvailability, updateUserProfile } from '@chatterapp/services/user.service'
 import { IoAtOutline } from 'react-icons/io5'
-import { useAuthStore } from '@chatsync/store/useAuthStore'
+import { useAuthStore } from '@chatterapp/store/useAuthStore'
 
 export default function EditUserProfile({ onClose, user }) {
     const setUser = useAuthStore((s) => s.setUser);
@@ -209,7 +209,7 @@ export default function EditUserProfile({ onClose, user }) {
                                     value={about}
                                     onChange={(e) => setAbout(e.target.value)}
                                     className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-2 text-white outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all duration-300 text-sm"
-                                    placeholder="Hey there! I am using ChatSync"
+                                    placeholder="Hey there! I am using ChatterApp"
                                 />
                                 <FaPen className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 text-[9px] group-focus-within:text-blue-500 transition-colors" />
                             </div>

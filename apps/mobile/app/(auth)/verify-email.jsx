@@ -1,8 +1,8 @@
 import { View, Text, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { verifyEmail, sendVerificationEmail, getCurrentUser } from '@chatsync/services/auth.service';
-import { useAuthStore } from '@chatsync/store/useAuthStore';
+import { verifyEmail, sendVerificationEmail, getCurrentUser } from '@chatterapp/services/auth.service';
+import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import AuthButton from '../../components/auth/AuthButton';
 import AuthHeader from '../../components/auth/AuthHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -53,7 +53,7 @@ const VerifyEmail = () => {
         setError('');
         try {
             // In a real app, this URL would be a deep link to the app
-            const verificationUrl = 'https://chatsync.app/verify-email';
+            const verificationUrl = 'https://chatterapp.app/verify-email';
             await sendVerificationEmail(verificationUrl);
             alert('Verification email sent! Please check your inbox.');
         } catch (err) {

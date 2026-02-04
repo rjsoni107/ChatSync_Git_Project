@@ -10,9 +10,9 @@ export default defineConfig({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.svg'],
             manifest: {
-                name: 'ChatSync',
-                short_name: 'ChatSync',
-                description: 'Real-time chat application',
+                name: 'ChatterApp',
+                short_name: 'ChatterApp',
+                description: 'ChatterApp – Real-time Chat Application',
                 start_url: '/',
                 display: 'standalone',
                 background_color: '#0b1220',
@@ -36,7 +36,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
-            '@chatsync': path.resolve(__dirname, '../../packages'),
+            '@chatterapp': path.resolve(__dirname, '../../packages'),
         },
     },
 

@@ -1,9 +1,9 @@
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuthStore } from '@chatsync/store/useAuthStore';
-import { searchUsers } from '@chatsync/services/user.service';
-import { findPrivateChat, createChat, addChatMember } from '@chatsync/services/chat.service';
+import { useAuthStore } from '@chatterapp/store/useAuthStore';
+import { searchUsers } from '@chatterapp/services/user.service';
+import { findPrivateChat, createChat, addChatMember } from '@chatterapp/services/chat.service';
 import SearchBar from '../../components/chat/SearchBar';
 import UserListItem from '../../components/contacts/UserListItem';
 import { useRouter } from 'expo-router';

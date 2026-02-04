@@ -1,8 +1,8 @@
 //useAuth.js
 import { useEffect } from "react";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
-import { getCurrentUser } from "@chatsync/services/auth.service";
-import { createUserProfile } from "@chatsync/services/user.service";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
+import { getCurrentUser } from "@chatterapp/services/auth.service";
+import { createUserProfile } from "@chatterapp/services/user.service";
 
 export default function useAuth() {
     const setUser = useAuthStore((s) => s.setUser);

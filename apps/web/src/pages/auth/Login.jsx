@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login, getCurrentUser, logout } from "@chatsync/services/auth.service";
-import { useAuthStore } from "@chatsync/store/useAuthStore";
+import { login, getCurrentUser, logout } from "@chatterapp/services/auth.service";
+import { useAuthStore } from "@chatterapp/store/useAuthStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoMailOutline, IoLockClosedOutline, IoArrowForward, IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 
@@ -109,10 +109,10 @@ export default function Login() {
                             transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
                             className="w-[10rem] h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-xl shadow-blue-500/20 rotate-3"
                         >
-                            <span className="text-2xl font-black italic tracking-tighter text-white">ChatSync</span>
+                            <span className="text-2xl font-black italic tracking-tighter text-white">ChatterApp</span>
                         </motion.div>
                         <motion.h1 variants={itemVariants} className="text-3xl font-black text-white mb-3 tracking-tight">Welcome back</motion.h1>
-                        <motion.p variants={itemVariants} className="text-gray-300 font-medium text-sm">Continue your journey with ChatSync</motion.p>
+                        <motion.p variants={itemVariants} className="text-gray-300 font-medium text-sm">Continue your journey with ChatterApp</motion.p>
                     </div>
 
                     <AnimatePresence mode="wait">
@@ -206,7 +206,7 @@ export default function Login() {
                     transition={{ delay: 1 }}
                     className="mt-6 text-center"
                 >
-                    <p className="text-[10px] uppercase tracking-[0.3em] font-black text-white/60">Secure & Encrypted • Powered by ChatSync</p>
+                    <p className="text-[10px] uppercase tracking-[0.3em] font-black text-white/60">Secure & Encrypted • Powered by ChatterApp</p>
                 </motion.div>
             </motion.div>
         </div>

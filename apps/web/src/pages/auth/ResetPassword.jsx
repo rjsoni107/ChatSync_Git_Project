@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { IoLockClosedOutline, IoCheckmarkCircle } from "react-icons/io5";
-import { resetPassword } from "@chatsync/services/auth.service";
+import { resetPassword } from "@chatterapp/services/auth.service";
 
 export default function ResetPassword() {
     const [searchParams] = useSearchParams();

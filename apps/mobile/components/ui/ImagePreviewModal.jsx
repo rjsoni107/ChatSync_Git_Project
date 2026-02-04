@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, TouchableOpacity, Modal, Animated, Pressable, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { useImagePreviewStore } from '@chatsync/store/useImagePreviewStore';
+import { useImagePreviewStore } from '@chatterapp/store/useImagePreviewStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');

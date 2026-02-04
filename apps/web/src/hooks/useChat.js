@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { chatService } from '@chatsync/services/chat.service';
-import { useChatStore } from '@chatsync/store/chat.store';
+import { chatService } from '@chatterapp/services/chat.service';
+import { useChatStore } from '@chatterapp/store/chat.store';
 
 export const useChat = (userId) => {
     const { chats, setChats } = useChatStore();

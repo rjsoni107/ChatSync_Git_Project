@@ -1,5 +1,5 @@
-import { client } from "@chatsync/api/appwrite";
-import { appwriteConfig } from "@chatsync/api/config";
+import { client } from "@chatterapp/api/appwrite";
+import { appwriteConfig } from "@chatterapp/api/config";
 
 const DB_ID = appwriteConfig.databaseId;
 const CHATS_ID = appwriteConfig.chatCollectionId;

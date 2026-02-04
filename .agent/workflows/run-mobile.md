@@ -1,5 +1,5 @@
 ---
-description: How to run the ChatSync mobile app
+description: How to run the ChatterApp mobile app
 ---
 
 To run the mobile application, follow these steps:

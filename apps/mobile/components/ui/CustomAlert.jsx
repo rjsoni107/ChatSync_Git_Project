@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, Animated, Pressable } from 'react-native';
-import { useAlertStore } from '@chatsync/store/useAlertStore';
+import { useAlertStore } from '@chatterapp/store/useAlertStore';
 
 const CustomAlert = () => {
     const { isVisible, title, message, buttons, hideAlert } = useAlertStore();

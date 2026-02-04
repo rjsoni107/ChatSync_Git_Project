@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Keyboard, ActivityIndicator, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { uploadFile } from '@chatsync/services/storage.service';
+import { uploadFile } from '@chatterapp/services/storage.service';
 import { EmojiKeyboard } from 'rn-emoji-keyboard';
 
-import { useAlertStore } from '@chatsync/store/useAlertStore';
+import { useAlertStore } from '@chatterapp/store/useAlertStore';
 
 const EMOJI_HEIGHT = 320;
 
