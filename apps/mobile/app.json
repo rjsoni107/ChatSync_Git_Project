@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "ChatterApp",
-    "slug": "chatterapp",
+    "slug": "chatsync",
     "scheme": "chatterapp",
     "version": "1.0.1",
     "orientation": "portrait",
@@ -51,6 +51,7 @@
         "projectId": "e7f8d15e-3695-462c-86c7-f2fbc9f06d7d"
       }
     },
-    "jsEngine": "hermes"
+    "jsEngine": "hermes",
+    "owner": "rjsoni107"
   }
 }
