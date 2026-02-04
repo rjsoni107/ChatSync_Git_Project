@@ -24,7 +24,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#111b21"
       },
-      "package": "com.chatsync.app"
+      "package": "com.chatsync.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -43,6 +46,9 @@
     "extra": {
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "e7f8d15e-3695-462c-86c7-f2fbc9f06d7d"
       }
     }
   }

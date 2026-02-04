@@ -1,0 +1,18 @@
+{
+  "cli": {
+    "version": ">= 16.32.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "node": "20.20.0",
+      "env": {
+        "EXPO_USE_METRO_WORKSPACE_ROOT": "1"
+      }
+    }
+  }
+}
