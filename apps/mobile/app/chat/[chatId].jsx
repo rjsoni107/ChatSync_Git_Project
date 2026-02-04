@@ -1,4 +1,4 @@
-import { View, Text, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard } from 'react-native';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '@chatsync/store/useAuthStore';
@@ -11,6 +11,8 @@ import ChatHeader from '../../components/chat/ChatHeader';
 import MessageBubble from '../../components/chat/MessageBubble';
 import MessageInput from '../../components/chat/MessageInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { InteractionManager } from 'react-native';
+
 
 import { getMessageDateLabel } from '@chatsync/utils/date';
 
@@ -27,6 +29,8 @@ const ChatScreen = () => {
     const flatListRef = useRef(null);
     const typingTimeoutRef = useRef(null);
     const isTypingRef = useRef(false);
+    const isAtBottomRef = useRef(true);
+    const didInitialScrollRef = useRef(false);
 
     const loadChatData = useCallback(async () => {
         if (!chatId || !user?.$id) return;
@@ -108,6 +112,38 @@ const ChatScreen = () => {
 
         return () => unsubscribe();
     }, [otherUser?.$id]);
+
+    useEffect(() => {
+        if (!messages.length) return;
+        if (didInitialScrollRef.current) return;
+
+        InteractionManager.runAfterInteractions(() => {
+            flatListRef.current?.scrollToEnd({ animated: false });
+            didInitialScrollRef.current = true;
+        });
+    }, [messages.length]);
+
+    // Force scroll to bottom when keyboard opens
+    useEffect(() => {
+        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+        const onKeyboardShow = () => {
+            if (isAtBottomRef.current) {
+                // Small delay to allow layout calculation
+                setTimeout(() => {
+                    flatListRef.current?.scrollToEnd({ animated: true });
+                }, 100);
+            }
+        };
+
+        const showSubscription = Keyboard.addListener(showEvent, onKeyboardShow);
+
+        return () => {
+            showSubscription.remove();
+        };
+    }, []);
+
 
     const handleSendMessage = async (content, type = 'text', fileId = null) => {
         if ((!content?.trim() && !fileId) || !user?.$id) return;
@@ -199,28 +235,44 @@ const ChatScreen = () => {
             <ChatHeader user={otherUser} typing={isOtherUserTyping} />
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 className="flex-1"
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 25}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
-                <FlatList
-                    ref={flatListRef}
-                    data={messages || []}
-                    renderItem={renderMessage}
-                    keyExtractor={keyExtractor}
-                    contentContainerStyle={{ paddingVertical: 10, flexGrow: 1, justifyContent: 'flex-end' }}
-                    showsVerticalScrollIndicator={false}
-                    onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                    onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                    initialNumToRender={15}
-                    maxToRenderPerBatch={10}
-                    windowSize={10}
-                />
+                <View className="flex-1">
+                    <FlatList
+                        ref={flatListRef}
+                        data={messages}
+                        renderItem={renderMessage}
+                        keyExtractor={keyExtractor}
+                        showsVerticalScrollIndicator={false}
 
-                <MessageInput
-                    onSendMessage={handleSendMessage}
-                    onTyping={handleTyping}
-                />
+                        contentContainerStyle={{
+                            paddingTop: 10,
+                            paddingBottom: 12,
+                        }}
+
+                        onContentSizeChange={() => {
+                            if (didInitialScrollRef.current && isAtBottomRef.current) {
+                                flatListRef.current?.scrollToEnd({ animated: true });
+                            }
+                        }}
+
+                        onScroll={(e) => {
+                            const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
+                            const distanceFromBottom = contentSize.height - (layoutMeasurement.height + contentOffset.y);
+
+                            isAtBottomRef.current = distanceFromBottom < 60;
+                        }}
+                        scrollEventThrottle={5}
+                    />
+
+
+                    <MessageInput
+                        onSendMessage={handleSendMessage}
+                        onTyping={handleTyping}
+                    />
+                </View>
             </KeyboardAvoidingView>
         </View>
     );

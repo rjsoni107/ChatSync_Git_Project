@@ -122,7 +122,7 @@ const MessageBubble = React.memo(({ message, isMe }) => {
                     onLongPress={handleLongPress}
                     delayLongPress={300}
                     onPress={handleMessagePress}
-                    className={`max-w-[280px] min-w-[100px] rounded-2xl shadow-sm ${message.type === 'image' ? 'p-1' : 'px-3 py-2'} ${isMe
+                    className={`max-w-[280px] min-w-[120px] rounded-2xl shadow-sm ${message.type === 'image' ? 'p-1' : 'px-1 py-1'} ${isMe
                         ? 'bg-[#005c4b] rounded-tr-none'
                         : 'bg-[#202c33] rounded-tl-none'
                         }`}
@@ -145,8 +145,8 @@ const MessageBubble = React.memo(({ message, isMe }) => {
                         </Text>
                     )}
 
-                    <View className="flex-row items-center justify-end mt-1">
-                        <Text className="text-[#8696a0] text-[10px] mr-1">
+                    <View className="flex-row items-center justify-end">
+                        <Text className="text-[#bcc1c4] text-[10px] mr-1">
                             {getTime(message.$createdAt || message.createdAt)}
                         </Text>
                         {isMe && (
@@ -164,10 +164,10 @@ const MessageBubble = React.memo(({ message, isMe }) => {
 
                     {/* Reactions Display */}
                     {reactions.length > 0 && (
-                        <View className={`absolute -bottom-3 flex-row items-center bg-[#202c33] rounded-full px-1 py-0.5 border border-[#111b21] shadow-sm ${isMe ? 'right-0' : 'left-0'}`}>
+                        <View className={`absolute -bottom-5 flex-row items-center bg-[#202c33] rounded-full px-1 py-0.5 border border-[#111b21] shadow-sm ${isMe ? 'right-0' : 'left-0'}`}>
                             {Object.entries(groupedReactions).map(([emoji, count]) => (
                                 <View key={emoji} className="flex-row items-center mx-0.5">
-                                    <Text className="text-[12px]">{emoji}</Text>
+                                    <Text className="text-[14px]">{emoji}</Text>
                                     {reactions.length > 1 && (
                                         <Text className="text-white text-[10px] ml-0.5">{count}</Text>
                                     )}

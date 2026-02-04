@@ -98,8 +98,8 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
         <View className="bg-[#111b21] relative">
             {/* INPUT BAR */}
             <View
-                className={`flex-row items-center p-2 bg-[#111b21] z-20 ${showEmojis ? 'mb-[320px]' : ''
-                    }`}
+                className="flex-row items-center p-2 bg-[#111b21] z-20"
+            // style={{ marginBottom: showEmojis ? 320 : 0 }}
             >
                 <View className="flex-row flex-1 items-center bg-[#202c33] rounded-3xl px-3 h-12">
                     <TouchableOpacity onPress={toggleEmojis} className="mr-2">
