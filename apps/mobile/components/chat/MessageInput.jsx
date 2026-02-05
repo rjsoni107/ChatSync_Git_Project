@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Keyboard, ActivityIndicator, } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, TextInput, TouchableOpacity, Keyboard, ActivityIndicator, PanResponder, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadFile } from '@chatterapp/services/storage.service';
@@ -23,8 +23,54 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
 
     const toggleEmojis = () => {
         Keyboard.dismiss();
-        setShowEmojis(prev => !prev);
+        if (showEmojis) {
+            // Close with animation
+            Animated.timing(panY, {
+                toValue: 300,
+                duration: 200,
+                useNativeDriver: true,
+            }).start(() => {
+                setShowEmojis(false);
+                panY.setValue(0);
+            });
+        } else {
+            setShowEmojis(true);
+        }
     };
+
+    /* ---------------- drag to close ---------------- */
+
+    const panY = useRef(new Animated.Value(0)).current;
+
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onPanResponderMove: (_, gestureState) => {
+                if (gestureState.dy > 0) {
+                    panY.setValue(gestureState.dy);
+                }
+            },
+            onPanResponderRelease: (_, gestureState) => {
+                if (gestureState.dy > 80) {
+                    // Swipe down threshold met
+                    Animated.timing(panY, {
+                        toValue: 300,
+                        duration: 200,
+                        useNativeDriver: true,
+                    }).start(() => {
+                        setShowEmojis(false);
+                        panY.setValue(0);
+                    });
+                } else {
+                    // Return to original position
+                    Animated.spring(panY, {
+                        toValue: 0,
+                        useNativeDriver: true,
+                    }).start();
+                }
+            },
+        })
+    ).current;
 
     /* ---------------- media ---------------- */
 
@@ -97,10 +143,7 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
     return (
         <View className="bg-[#111b21] relative">
             {/* INPUT BAR */}
-            <View
-                className="flex-row items-center p-2 bg-[#111b21] z-20"
-            // style={{ marginBottom: showEmojis ? 320 : 0 }}
-            >
+            <View className="flex-row items-center p-2 bg-[#111b21] z-20" >
                 <View className="flex-row flex-1 items-center bg-surface rounded-3xl px-3 h-12">
                     <TouchableOpacity onPress={toggleEmojis} className="mr-2">
                         <Ionicons
@@ -160,19 +203,33 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
 
             {/* EMOJI PANEL */}
             {showEmojis && (
-                <View className="absolute bottom-0 left-0 right-0 h-[320px] bg-[#111b21] rounded-t-2xl overflow-hidden z-10">
-                    {/* drag knob */}
-                    <View className="h-1 w-10 bg-[#2a3942] rounded-full self-center my-2" />
+                <Animated.View
+                    style={{ transform: [{ translateY: panY }] }}
+                    {...panResponder.panHandlers}
+                    className="h-[300px] bg-[#111b21] rounded-t-2xl overflow-hidden z-10"
+                >
+                    {/* drag knob area */}
+                    <View className="items-center justify-center">
+                        <View className="h-1 w-12 bg-[#2a3942] rounded-full" />
+                    </View>
 
                     <EmojiKeyboard
                         onEmojiSelected={addEmoji}
-                        enableSearchBar={false}
+                        enableSearchBar={true}
                         categoryPosition="bottom"
                         theme={{
                             container: '#0f172a',
                             backdrop: '#0f172a',
                             knob: '#3b82f6',
+                            header: '#ffffff',
                             skinTonesContainer: '#202c33',
+                            search: {
+                                placeholder: '#8696a0',
+                                placeholderTextColor: '#8696a0',
+                                text: '#ffffff',
+                                background: '#202c33',
+                                icon: '#8696a0',
+                            },
                             category: {
                                 icon: '#8696a0',
                                 iconActive: '#3b82f6',
@@ -181,7 +238,7 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
                             },
                         }}
                     />
-                </View>
+                </Animated.View>
             )}
         </View>
     );

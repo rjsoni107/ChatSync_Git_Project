@@ -9,6 +9,7 @@ import { View, ActivityIndicator } from 'react-native';
 
 import CustomAlert from '../components/ui/CustomAlert';
 import ImagePreviewModal from '../components/ui/ImagePreviewModal';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
     const setUser = useAuthStore((s) => s.setUser);
@@ -60,26 +61,28 @@ export default function RootLayout() {
     }
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <StatusBar style="light" />
-            <Stack
-                screenOptions={{
-                    headerShown: false,
-                    contentStyle: { backgroundColor: '#111b21' },
-                }}
-            >
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen
-                    name="chat/[chatId]"
-                    options={{
+        <SafeAreaProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+                <StatusBar style="light" />
+                <Stack
+                    screenOptions={{
                         headerShown: false,
-                        animation: 'slide_from_right'
+                        contentStyle: { backgroundColor: '#111b21' },
                     }}
-                />
-            </Stack>
-            <CustomAlert />
-            <ImagePreviewModal />
-        </GestureHandlerRootView>
+                >
+                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen
+                        name="chat/[chatId]"
+                        options={{
+                            headerShown: false,
+                            animation: 'slide_from_right'
+                        }}
+                    />
+                </Stack>
+                <CustomAlert />
+                <ImagePreviewModal />
+            </GestureHandlerRootView>
+        </SafeAreaProvider>
     );
 }
