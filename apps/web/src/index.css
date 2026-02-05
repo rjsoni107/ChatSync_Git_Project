@@ -3,7 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --primary: #6366f1;
+  --primary: #2563eb;
+  --secondary: #3b82f6;
+  --bg-dark: #0f172a;
+  --bg-surface: #1e293b;
+  --accent-light: #60a5fa;
+  --accent-dark: #1d4ed8;
 }
 
 .dot {
@@ -60,9 +65,9 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 textarea:-webkit-autofill,
 select:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0px 1000px #0b1220 inset;
-  /* apna dark bg color */
-  box-shadow: 0 0 0px 1000px #0b1220 inset;
+  -webkit-box-shadow: 0 0 0px 1000px #0f172a inset;
+  /* naya dark bg color */
+  box-shadow: 0 0 0px 1000px #0f172a inset;
   -webkit-text-fill-color: #ffffff !important;
   transition: background-color 9999s ease-in-out 0s;
 }

@@ -87,7 +87,7 @@ const Search = () => {
 
             {startingChat && (
                 <View className="absolute inset-0 bg-black/50 z-50 items-center justify-center">
-                    <ActivityIndicator size="large" color="#00a884" />
+                    <ActivityIndicator size="large" color="#2563eb" />
                     <Text className="text-white mt-4 font-bold text-lg">Initializing chat...</Text>
                 </View>
             )}
@@ -105,7 +105,7 @@ const Search = () => {
                 ListEmptyComponent={
                     <View className="flex-1 items-center justify-center pt-20 px-10">
                         {loading ? (
-                            <ActivityIndicator size="large" color="#00a884" />
+                            <ActivityIndicator size="large" color="#2563eb" />
                         ) : query.length < 2 ? (
                             <>
                                 <Ionicons name="people-outline" size={80} color="#202c33" />

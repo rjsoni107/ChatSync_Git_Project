@@ -1,16 +1,16 @@
 {
   "expo": {
     "name": "ChatterApp",
-    "slug": "chatsync",
+    "slug": "chatterapp",
     "scheme": "chatterapp",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon.webp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash.webp",
       "resizeMode": "contain",
-      "backgroundColor": "#111b21"
+      "backgroundColor": "#0f172a"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -21,8 +21,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#111b21"
+        "foregroundImage": "./assets/adaptive-icon.webp",
+        "backgroundColor": "#0f172a"
       },
       "package": "com.chatterapp.app",
       "permissions": [
@@ -30,7 +30,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.webp"
     },
     "plugins": [
       "expo-router",

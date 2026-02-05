@@ -4,7 +4,7 @@ export default function SidebarSearch({ searchTerm, onSearchChange, activeFilter
     const filters = ["All", "Unread", "Favourites", "Groups"];
 
     return (
-        <div className="px-4 pb-2 space-y-3 bg-[#111b21]">
+        <div className="px-4 pb-2 space-y-3 bg-[#0f172a]">
             <div className="relative group">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-400 transition-colors">
                     <IoSearchOutline size={18} />

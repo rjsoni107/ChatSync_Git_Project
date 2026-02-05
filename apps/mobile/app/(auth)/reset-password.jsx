@@ -1,22 +1,39 @@
 import { View, Text, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
 import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
-import { sendPasswordRecoveryEmail } from '@chatterapp/services/auth.service';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { resetPassword } from '@chatterapp/services/auth.service';
 import AuthInput from '../../components/auth/AuthInput';
 import AuthButton from '../../components/auth/AuthButton';
 import AuthHeader from '../../components/auth/AuthHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const ForgotPassword = () => {
+const ResetPassword = () => {
     const router = useRouter();
-    const [email, setEmail] = useState('');
+    const { userId, secret } = useLocalSearchParams();
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
-    const handleResetRequest = async () => {
-        if (!email) {
-            setError('Please enter your email address');
+    const handleResetPassword = async () => {
+        if (!password || !confirmPassword) {
+            setError('Please fill in all fields');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters');
+            return;
+        }
+
+        if (!userId || !secret) {
+            setError('Invalid or expired reset link. Please request a new one.');
             return;
         }
 
@@ -24,15 +41,11 @@ const ForgotPassword = () => {
         setLoading(true);
 
         try {
-            // In a real app, the URL would be a deep link to the app or a web reset page
-            // We use the Web URL for password reset because the Web platform is already registered in Appwrite.
-            // This avoids the 3-platform limit and eliminates "Invalid URI" errors.
-            const resetUrl = 'https://chatsync-web.vercel.app/reset-password';
-            await sendPasswordRecoveryEmail(email, resetUrl);
+            await resetPassword(userId, secret, password);
             setSuccess(true);
         } catch (err) {
-            console.error('Password recovery error:', err);
-            setError(err.message || 'Failed to send recovery email. Please try again.');
+            console.error('Reset password error:', err);
+            setError(err.message || 'Failed to reset password. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -51,30 +64,41 @@ const ForgotPassword = () => {
                     >
                         <View className="px-6 flex-1 justify-center pb-10">
                             <AuthHeader
-                                title="Forgot Password"
-                                subtitle="Enter your email and we'll send you a link to reset your password"
+                                title="Set New Password"
+                                subtitle="Choose a strong password to protect your account"
+                                logo={require('../../assets/chatterApp.webp')}
                             />
 
                             {success ? (
                                 <View className="bg-surface p-6 rounded-2xl items-center">
-                                    <Text className="text-secondary text-xl font-bold mb-2">Email Sent!</Text>
+                                    <View className="w-16 h-16 bg-secondary/10 rounded-full items-center justify-center mb-4">
+                                        <Text className="text-secondary text-4xl">✓</Text>
+                                    </View>
+                                    <Text className="text-white text-xl font-bold mb-2">Password Updated!</Text>
                                     <Text className="text-gray-400 text-center mb-6">
-                                        We've sent a password reset link to {email}. Please check your inbox.
+                                        Your password has been reset successfully. You can now log in with your new password.
                                     </Text>
                                     <AuthButton
-                                        title="Back to Login"
+                                        title="Go to Login"
                                         onPress={() => router.replace('/(auth)/login')}
                                     />
                                 </View>
                             ) : (
                                 <View className="space-y-4">
                                     <AuthInput
-                                        label="Email Address"
-                                        placeholder="your@email.com"
-                                        value={email}
-                                        onChangeText={setEmail}
-                                        keyboardType="email-address"
-                                        autoCapitalize="none"
+                                        label="New Password"
+                                        placeholder="Min. 8 characters"
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        secureTextEntry
+                                    />
+
+                                    <AuthInput
+                                        label="Confirm New Password"
+                                        placeholder="Repeat your password"
+                                        value={confirmPassword}
+                                        onChangeText={setConfirmPassword}
+                                        secureTextEntry
                                     />
 
                                     {error ? (
@@ -83,15 +107,15 @@ const ForgotPassword = () => {
 
                                     <View className="mt-4">
                                         <AuthButton
-                                            title="Send Reset Link"
-                                            onPress={handleResetRequest}
+                                            title="Update Password"
+                                            onPress={handleResetPassword}
                                             loading={loading}
                                         />
 
                                         <AuthButton
-                                            title="Back to Login"
+                                            title="Cancel"
                                             variant="secondary"
-                                            onPress={() => router.back()}
+                                            onPress={() => router.replace('/(auth)/login')}
                                         />
                                     </View>
                                 </View>
@@ -104,4 +128,4 @@ const ForgotPassword = () => {
     );
 };
 
-export default ForgotPassword;
+export default ResetPassword;

@@ -123,8 +123,8 @@ const MessageBubble = React.memo(({ message, isMe }) => {
                     delayLongPress={300}
                     onPress={handleMessagePress}
                     className={`max-w-[280px] min-w-[120px] rounded-2xl shadow-sm ${message.type === 'image' ? 'p-1' : 'px-1 py-1'} ${isMe
-                        ? 'bg-[#005c4b] rounded-tr-none'
-                        : 'bg-[#202c33] rounded-tl-none'
+                        ? 'bg-[#043d72] rounded-tr-none'
+                        : 'bg-surface rounded-tl-none'
                         }`}
                 >
                     {message.type === 'image' && message.fileId && (
@@ -146,13 +146,13 @@ const MessageBubble = React.memo(({ message, isMe }) => {
                     )}
 
                     <View className="flex-row items-center justify-end">
-                        <Text className="text-[#bcc1c4] text-[10px] mr-1">
+                        <Text className="text-[#bcc4bc] text-[10px] mr-1">
                             {getTime(message.$createdAt || message.createdAt)}
                         </Text>
                         {isMe && (
                             <View className="flex-row items-center">
                                 {message.isSeen ? (
-                                    <Ionicons name="checkmark-done" size={16} color="#53bdeb" />
+                                    <Ionicons name="checkmark-done" size={16} color="#3ec93e" />
                                 ) : message.isDelivered ? (
                                     <Ionicons name="checkmark-done" size={16} color="#8696a0" />
                                 ) : (
@@ -164,7 +164,7 @@ const MessageBubble = React.memo(({ message, isMe }) => {
 
                     {/* Reactions Display */}
                     {reactions.length > 0 && (
-                        <View className={`absolute -bottom-5 flex-row items-center bg-[#202c33] rounded-full px-1 py-0.5 border border-[#111b21] shadow-sm ${isMe ? 'right-0' : 'left-0'}`}>
+                        <View className={`absolute -bottom-5 flex-row items-center bg-surface rounded-full px-1 py-0.5 border border-background shadow-sm ${isMe ? 'right-0' : 'left-0'}`}>
                             {Object.entries(groupedReactions).map(([emoji, count]) => (
                                 <View key={emoji} className="flex-row items-center mx-0.5">
                                     <Text className="text-[14px]">{emoji}</Text>

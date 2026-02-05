@@ -13,8 +13,8 @@ export default function UserStatus({ online, lastActiveAt }) {
             >
                 {online ? (
                     <>
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                        <span className="text-[11px] font-black text-green-500/90 tracking-widest uppercase">Online</span>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                        <span className="text-[11px] font-black text-blue-500/90 tracking-widest uppercase">Online</span>
                     </>
                 ) : (
                     <span className="text-[11px] text-gray-300">

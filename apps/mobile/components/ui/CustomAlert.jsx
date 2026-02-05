@@ -63,7 +63,7 @@ const CustomAlert = () => {
                                 onPress={hideAlert}
                                 className="flex-1 py-4 items-center active:bg-[#374248]"
                             >
-                                <Text className="text-[#00a884] text-base font-bold">OK</Text>
+                                <Text className="text-secondary text-base font-bold">OK</Text>
                             </TouchableOpacity>
                         ) : (
                             buttons.map((btn, idx) => (
@@ -77,7 +77,7 @@ const CustomAlert = () => {
                                         }`}
                                 >
                                     <Text
-                                        style={{ color: btn.style === 'destructive' ? '#ff4b4b' : '#00a884' }}
+                                        style={{ color: btn.style === 'destructive' ? '#ff4b4b' : '#3b82f6' }}
                                         className={`text-base ${btn.style === 'cancel' ? 'font-normal' : 'font-bold'}`}
                                     >
                                         {btn.text}

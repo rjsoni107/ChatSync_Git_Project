@@ -76,8 +76,8 @@ const VerifyEmail = () => {
                     <View className="bg-[#202c33] p-8 rounded-3xl items-center shadow-lg">
                         {success ? (
                             <>
-                                <View className="w-20 h-20 bg-[#00a884]/20 rounded-full items-center justify-center mb-6">
-                                    <Ionicons name="checkmark-circle" size={60} color="#00a884" />
+                                <View className="w-20 h-20 bg-primary/20 rounded-full items-center justify-center mb-6">
+                                    <Ionicons name="checkmark-circle" size={60} color="#3b82f6" />
                                 </View>
                                 <Text className="text-white text-center text-lg mb-6">
                                     Success! Your email is now verified. You'll be redirected in a moment.

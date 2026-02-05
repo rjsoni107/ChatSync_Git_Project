@@ -71,6 +71,7 @@ const Signup = () => {
                             <AuthHeader
                                 title="Create Account"
                                 subtitle="Join ChatterApp and start messaging with friends"
+                                logo={require('../../assets/chatterApp.webp')}
                             />
 
                             <View className="space-y-4">
@@ -122,7 +123,7 @@ const Signup = () => {
                             <View className="flex-row justify-center mt-6">
                                 <Text className="text-gray-400">Already have an account? </Text>
                                 <TouchableWithoutFeedback onPress={() => router.push('/(auth)/login')}>
-                                    <Text className="text-[#00a884] font-bold">Log In</Text>
+                                    <Text className="text-secondary font-bold">Log In</Text>
                                 </TouchableWithoutFeedback>
                             </View>
                         </View>

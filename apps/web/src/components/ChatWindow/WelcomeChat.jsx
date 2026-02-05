@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { IoChatbubblesOutline } from "react-icons/io5";
 
 export default function WelcomeChat() {
     return (
@@ -22,7 +21,7 @@ export default function WelcomeChat() {
                         className="absolute inset-0 bg-blue-500 rounded-full blur-3xl"
                     />
                     <div className="relative w-full h-full bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-blue-500/20">
-                        <IoChatbubblesOutline size={48} className="text-white" />
+                        <img src="/img/logo192.webp" alt="Logo" className="w-full h-full object-contain" />
                     </div>
                 </div>
 
@@ -39,7 +38,7 @@ export default function WelcomeChat() {
                     transition={{ delay: 0.5 }}
                     className="mt-12 flex items-center gap-2 px-4 py-2 rounded-full border border-white/5 bg-white/5 backdrop-blur-sm"
                 >
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                     <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Secure & Encrypted</span>
                 </motion.div>
             </motion.div>

@@ -53,7 +53,7 @@ export default function ChatHeader({ otherUser }) {
 
     if (!userSnapshot && !otherUser) {
         return (
-            <div className="py-2 px-4 flex items-center gap-4 bg-[#111b21]/80 backdrop-blur-xl border-b border-white/5 h-[64px]">
+            <div className="py-2 px-4 flex items-center gap-4 bg-[#0f172a]/80 backdrop-blur-xl border-b border-white/5 h-[64px]">
                 <div className="w-9 h-9 rounded-full bg-white/5 animate-pulse" />
                 <div className="space-y-2">
                     <div className="w-24 h-4 bg-white/5 rounded animate-pulse" />
@@ -69,7 +69,7 @@ export default function ChatHeader({ otherUser }) {
         <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="py-2 px-4 flex items-center justify-between bg-[#111b21]/80 backdrop-blur-xl border-b border-white/5 z-20 shadow-lg relative"
+            className="py-2 px-4 flex items-center justify-between bg-[#0f172a]/80 backdrop-blur-xl border-b border-white/5 z-20 shadow-lg relative"
         >
             <div className="flex items-center gap-4 min-w-0">
                 <button
@@ -90,7 +90,7 @@ export default function ChatHeader({ otherUser }) {
                         whileHover={{ scale: 1.05 }}
                         className="p-0.5 rounded-full shadow-lg shadow-blue-500/10"
                     >
-                        <div className="bg-[#111b21] rounded-full p-0.5">
+                        <div className="bg-[#0f172a] rounded-full p-0.5">
                             <Avatar
                                 width={35}
                                 height={35}
@@ -100,7 +100,7 @@ export default function ChatHeader({ otherUser }) {
                         </div>
                     </motion.div>
                     {online && (
-                        <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 border-[3px] border-[#111b21] rounded-full shadow-sm" />
+                        <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-blue-500 border-[3px] border-[#0f172a] rounded-full shadow-sm" />
                     )}
                 </div>
 

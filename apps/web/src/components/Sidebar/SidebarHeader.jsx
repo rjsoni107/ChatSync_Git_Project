@@ -41,8 +41,8 @@ export default function SidebarHeader({ onAddChat }) {
     ];
 
     return (
-        <div className="p-4 flex items-center justify-between bg-[#111b21] z-30">
-            <h2 className="text-xl font-bold text-white tracking-tight">Chats</h2>
+        <div className="p-4 flex items-center justify-between bg-[#0f172a] z-30">
+            <h2 className="text-xl font-bold text-white tracking-tight">ChatterApp</h2>
 
             <div className="flex items-center gap-1">
                 <motion.button
@@ -59,7 +59,7 @@ export default function SidebarHeader({ onAddChat }) {
                         whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setShowMenu(!showMenu)}
-                        className={`p-2 rounded-full transition-colors ${showMenu ? "text-green-500 bg-white/5" : "text-gray-400"}`}
+                        className={`p-2 rounded-full transition-colors ${showMenu ? "text-blue-500 bg-white/5" : "text-gray-400"}`}
                     >
                         <IoEllipsisVertical size={20} />
                     </motion.button>

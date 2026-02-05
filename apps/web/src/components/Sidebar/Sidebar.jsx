@@ -192,7 +192,7 @@ export default function Sidebar() {
     }, [chats, searchTerm, filter]);
 
     return (
-        <div className="h-full flex flex-col bg-[#111b21] relative overflow-hidden">
+        <div className="h-full flex flex-col bg-[#0f172a] relative overflow-hidden">
             <div className="flex-1 flex flex-col min-h-0">
                 {/* Header */}
                 <SidebarHeader onAddChat={() => setOpenSearchUser(true)} />

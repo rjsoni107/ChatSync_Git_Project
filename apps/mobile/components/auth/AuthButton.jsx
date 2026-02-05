@@ -9,14 +9,14 @@ const AuthButton = ({ title, onPress, loading, disabled, variant = 'primary' }) 
             onPress={onPress}
             disabled={loading || disabled}
             className={`w-full h-14 rounded-xl items-center justify-center mb-4 ${isPrimary
-                    ? (loading || disabled ? 'bg-[#00a884]/50' : 'bg-[#00a884]')
-                    : 'bg-transparent'
+                ? (loading || disabled ? 'bg-primary/50' : 'bg-primary')
+                : 'bg-transparent'
                 }`}
         >
             {loading ? (
                 <ActivityIndicator color="#ffffff" />
             ) : (
-                <Text className={`text-base font-bold ${isPrimary ? 'text-[#111b21]' : 'text-[#00a884]'}`}>
+                <Text className={`text-base font-bold ${isPrimary ? 'text-white' : 'text-secondary'}`}>
                     {title}
                 </Text>
             )}

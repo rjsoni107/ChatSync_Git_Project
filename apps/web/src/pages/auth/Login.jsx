@@ -107,9 +107,9 @@ export default function Login() {
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
-                            className="w-[10rem] h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-xl shadow-blue-500/20 rotate-3"
+                            className="w-[14rem] h-14  rounded-2xl mx-auto mb-5 flex items-center justify-center rotate-3"
                         >
-                            <span className="text-2xl font-black italic tracking-tighter text-white">ChatterApp</span>
+                            <img src="/img/chatterApp_logo_white.webp" alt="Logo" className="w-full h-full object-contain" />
                         </motion.div>
                         <motion.h1 variants={itemVariants} className="text-3xl font-black text-white mb-3 tracking-tight">Welcome back</motion.h1>
                         <motion.p variants={itemVariants} className="text-gray-300 font-medium text-sm">Continue your journey with ChatterApp</motion.p>

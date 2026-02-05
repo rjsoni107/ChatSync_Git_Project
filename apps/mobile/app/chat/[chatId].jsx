@@ -225,7 +225,7 @@ const ChatScreen = () => {
     if (loading && !messages.length) {
         return (
             <View className="flex-1 bg-[#111b21] items-center justify-center">
-                <ActivityIndicator size="large" color="#00a884" />
+                <ActivityIndicator size="large" color="#2563eb" />
             </View>
         );
     }

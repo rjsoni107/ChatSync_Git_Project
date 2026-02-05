@@ -10,6 +10,7 @@ import ChatListItem from '../../components/chat/ChatListItem';
 import SearchBar from '../../components/chat/SearchBar';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import ChatListSkeleton from '../../components/chat/ChatListSkeleton';
 
 const Chats = () => {
     const router = useRouter();
@@ -123,41 +124,38 @@ const Chats = () => {
             {/* Search Bar */}
             <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
 
-            {/* Chats List */}
-            <FlatList
-                data={filteredChats}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.$id}
-                showsVerticalScrollIndicator={false}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={() => fetchChats(true)}
-                        tintColor="#00a884"
-                    />
-                }
-                ListEmptyComponent={
-                    <View className="flex-1 items-center justify-center pt-20 px-10">
-                        {loading ? (
-                            <Text className="text-gray-400">Loading chats...</Text>
-                        ) : (
-                            <>
-                                <Ionicons name="chatbubbles-outline" size={80} color="#202c33" />
-                                <Text className="text-white text-xl font-bold mt-4 text-center">
-                                    No conversations yet
-                                </Text>
-                                <Text className="text-gray-400 text-center mt-2">
-                                    Tap on the search tab to find friends and start chatting!
-                                </Text>
-                            </>
-                        )}
-                    </View>
-                }
-            />
+            {loading ? (
+                <ChatListSkeleton />
+            ) : (
+                <FlatList
+                    data={filteredChats}
+                    renderItem={renderItem}
+                    keyExtractor={(item) => item.$id}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={() => fetchChats(true)}
+                            tintColor="#2563eb"
+                        />
+                    }
+                    ListEmptyComponent={
+                        <View className="flex-1 items-center justify-center pt-20 px-10">
+                            <Ionicons name="chatbubbles-outline" size={80} color="#202c33" />
+                            <Text className="text-white text-xl font-bold mt-4 text-center">
+                                No conversations yet
+                            </Text>
+                            <Text className="text-gray-400 text-center mt-2">
+                                Tap on the search tab to find friends and start chatting!
+                            </Text>
+                        </View>
+                    }
+                />
+            )}
 
             {/* Floating Action Button */}
             <TouchableOpacity
-                className="absolute bottom-6 right-6 w-14 h-14 bg-[#00a884] rounded-2xl items-center justify-center shadow-lg"
+                className="absolute bottom-6 right-6 w-14 h-14 bg-primary rounded-2xl items-center justify-center shadow-lg"
                 onPress={() => router.push('/(tabs)/search')}
             >
                 <Ionicons name="chatbubble-ellipses" size={24} color="#111b21" />

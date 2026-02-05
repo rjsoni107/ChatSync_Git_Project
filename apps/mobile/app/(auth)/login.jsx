@@ -58,12 +58,13 @@ const Login = () => {
                             <AuthHeader
                                 title="Welcome Back"
                                 subtitle="Enter your credentials to access your account"
+                                logo={require('../../assets/chatterApp.webp')}
                             />
 
                             <View className="space-y-4">
                                 <AuthInput
                                     label="Email Address"
-                                    placeholder="your@email.com"
+                                    placeholder="Enter your email"
                                     value={email}
                                     onChangeText={setEmail}
                                     keyboardType="email-address"
@@ -97,10 +98,10 @@ const Login = () => {
                                 </View>
                             </View>
 
-                            <View className="flex-row justify-center mt-6">
+                            <View className="flex-row justify-center mt-2">
                                 <Text className="text-gray-400">Don't have an account? </Text>
                                 <TouchableWithoutFeedback onPress={() => router.push('/(auth)/signup')}>
-                                    <Text className="text-[#00a884] font-bold">Sign Up</Text>
+                                    <Text className="text-secondary font-bold">Sign Up</Text>
                                 </TouchableWithoutFeedback>
                             </View>
                         </View>

@@ -59,7 +59,7 @@ export default function ResetPassword() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex flex-col items-center text-center p-8 bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 max-w-sm w-full"
                 >
-                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-green-500/20">
+                    <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
                         <IoCheckmarkCircle size={32} className="text-white" />
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2">Password Reset Successful!</h2>
@@ -69,7 +69,7 @@ export default function ResetPassword() {
                             initial={{ x: "-100%" }}
                             animate={{ x: "0%" }}
                             transition={{ duration: 3, ease: "linear" }}
-                            className="w-full h-full bg-green-500"
+                            className="w-full h-full bg-blue-600"
                         />
                     </div>
                 </motion.div>

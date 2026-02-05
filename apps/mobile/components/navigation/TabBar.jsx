@@ -11,7 +11,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
     };
 
     return (
-        <SafeAreaView edges={['bottom']} className="bg-[#202c33] border-t border-[#374045]">
+        <SafeAreaView edges={['bottom']} className="bg-surface border-t border-white/5">
             <View className="flex-row h-16 items-center justify-around px-4">
                 {state.routes.map((route, index) => {
                     const { options } = descriptors[route.key];
@@ -41,10 +41,10 @@ const TabBar = ({ state, descriptors, navigation }) => {
                             onPress={onPress}
                             className="items-center justify-center flex-1"
                         >
-                            <View className={`w-16 h-8 items-center justify-center rounded-full mb-1 ${isFocused ? 'bg-[#00a884]/20' : ''}`}>
-                                {icons[route.name] ? icons[route.name]({ color: isFocused ? '#00a884' : '#8696a0' }) : null}
+                            <View className={`w-14 h-8 items-center justify-center rounded-full mb-1 ${isFocused ? 'bg-[#2563eb]/30' : ''}`}>
+                                {icons[route.name] ? icons[route.name]({ color: isFocused ? '#3b82f6' : '#8696a0' }) : null}
                             </View>
-                            <Text style={{ color: isFocused ? '#00a884' : '#8696a0', fontSize: 12, fontWeight: isFocused ? '600' : '400' }}>
+                            <Text style={{ color: isFocused ? '#3b82f6' : '#8696a0', fontSize: 12, fontWeight: isFocused ? '600' : '400' }}>
                                 {label}
                             </Text>
                         </TouchableOpacity>

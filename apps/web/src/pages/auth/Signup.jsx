@@ -61,7 +61,7 @@ export default function Signup() {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-[#111b21] p-8 rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full text-center"
+                    className="bg-[#0f172a] p-8 rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full text-center"
                 >
                     <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-500 mx-auto mb-4">
                         <IoMailOutline size={32} />
@@ -125,9 +125,9 @@ export default function Signup() {
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
-                            className="w-[10rem] h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-xl shadow-blue-500/20 rotate-3"
+                            className="w-[14rem] h-14  rounded-2xl mx-auto mb-5 flex items-center justify-center rotate-3"
                         >
-                            <span className="text-2xl font-black italic tracking-tighter text-white">ChatterApp</span>
+                            <img src="/img/chatterApp_logo_white.webp" alt="Logo" className="w-full h-full object-contain" />
                         </motion.div>
                         <motion.h1 variants={itemVariants} className="text-3xl font-black text-white mb-3 tracking-tight">Create Account</motion.h1>
                         <motion.p variants={itemVariants} className="text-gray-300 font-medium text-sm">Join the next generation of real-time chatting</motion.p>

@@ -43,7 +43,7 @@ export default function VerifyEmail() {
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-[#111b21] p-8 rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full text-center"
+                className="bg-[#0f172a] p-8 rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full text-center"
             >
                 {status === "verifying" && (
                     <div className="flex flex-col items-center gap-4">
@@ -55,7 +55,7 @@ export default function VerifyEmail() {
                                 initial={{ x: "-100%" }}
                                 animate={{ x: "0%" }}
                                 transition={{ duration: 3, ease: "linear" }}
-                                className="w-full h-full bg-green-500"
+                                className="w-full h-full bg-blue-600"
                             />
                         </div>
                     </div>
@@ -63,7 +63,7 @@ export default function VerifyEmail() {
 
                 {status === "success" && (
                     <div className="flex flex-col items-center gap-4">
-                        <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center text-green-500">
+                        <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-500">
                             <IoCheckmarkCircleOutline size={32} />
                         </div>
                         <h2 className="text-xl font-bold">Email Verified!</h2>
@@ -73,7 +73,7 @@ export default function VerifyEmail() {
                                 initial={{ x: "-100%" }}
                                 animate={{ x: "0%" }}
                                 transition={{ duration: 3, ease: "linear" }}
-                                className="w-full h-full bg-green-500"
+                                className="w-full h-full bg-blue-600"
                             />
                         </div>
                     </div>

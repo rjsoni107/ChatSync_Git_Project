@@ -51,13 +51,13 @@ export default function ForgotPassword() {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-green-500/10 border border-green-500/20 rounded-2xl p-6 text-center"
+                        className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-6 text-center"
                     >
-                        <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <IoMailOutline size={24} className="text-green-500" />
+                        <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <IoMailOutline size={24} className="text-blue-500" />
                         </div>
                         <h3 className="text-white font-bold text-lg mb-2">Check your email</h3>
-                        <p className="text-green-200/80 text-sm">
+                        <p className="text-blue-200/80 text-sm">
                             We have sent a password reset link to <strong>{email}</strong>.
                         </p>
                     </motion.div>

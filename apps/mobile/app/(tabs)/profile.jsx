@@ -7,6 +7,7 @@ import { logout } from '@chatterapp/services/auth.service';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import SettingsItem from '../../components/settings/SettingsItem';
+import Skeleton from '../../components/ui/Skeleton';
 
 import { useAlertStore } from '@chatterapp/store/useAlertStore';
 
@@ -78,24 +79,32 @@ const Profile = () => {
                             )}
                         </View>
                         <TouchableOpacity
-                            className="absolute bottom-1 right-1 w-10 h-10 bg-[#00a884] rounded-full items-center justify-center border-4 border-[#111b21]"
+                            className="absolute bottom-1 right-1 w-10 h-10 bg-primary rounded-full items-center justify-center border-4 border-background"
                             onPress={() => {/* Avatar picker logic */ }}
                         >
                             <Ionicons name="camera" size={20} color="white" />
                         </TouchableOpacity>
                     </View>
 
-                    <Text className="text-white text-2xl font-bold mt-4">
-                        {user?.name || 'Loading...'}
-                    </Text>
-                    <Text className="text-[#8696a0] text-base mt-1">
-                        @{profile?.username || 'username'}
-                    </Text>
+                    {loading ? (
+                        <Skeleton width={180} height={28} borderRadius={14} className="mt-4" />
+                    ) : (
+                        <Text className="text-white text-2xl font-bold mt-4">
+                            {user?.name || 'Unknown User'}
+                        </Text>
+                    )}
+                    {loading ? (
+                        <Skeleton width={120} height={18} borderRadius={9} className="mt-2" />
+                    ) : (
+                        <Text className="text-[#8696a0] text-base mt-1">
+                            @{profile?.username || 'username'}
+                        </Text>
+                    )}
                 </View>
 
                 {/* Account Section */}
                 <View className="mt-2">
-                    <Text className="text-[#00a884] px-4 py-2 font-bold uppercase text-xs tracking-widest">
+                    <Text className="text-secondary px-4 py-2 font-bold uppercase text-xs tracking-widest">
                         Account
                     </Text>
                     <View className="bg-[#111b21]">
@@ -120,7 +129,7 @@ const Profile = () => {
 
                 {/* App Settings Section */}
                 <View className="mt-4">
-                    <Text className="text-[#00a884] px-4 py-2 font-bold uppercase text-xs tracking-widest">
+                    <Text className="text-secondary px-4 py-2 font-bold uppercase text-xs tracking-widest">
                         App Settings
                     </Text>
                     <View className="bg-[#111b21]">

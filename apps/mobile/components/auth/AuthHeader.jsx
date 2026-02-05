@@ -1,18 +1,15 @@
 import { View, Text, Image } from 'react-native';
 import React from 'react';
 
-const AuthHeader = ({ title, subtitle }) => {
+const AuthHeader = ({ title, subtitle, logo }) => {
     return (
         <View className="items-center mb-10 pt-10">
-            <View className="w-20 h-20 bg-[#00a884] rounded-3xl items-center justify-center mb-6 shadow-lg">
-                <Text className="text-white text-4xl font-black">CA</Text>
+            <View className="w-60 h-20  rounded-3xl items-center justify-center mb-6 shadow-lg">
+                <Image source={logo} className="w-full h-full" resizeMode="contain" />
             </View>
             <Text className="text-white text-3xl font-bold mb-1">{title}</Text>
-            <Text className="text-[#00a884] text-xs font-semibold mb-3 uppercase tracking-widest">
-                ChatterApp – Real-time Chat Application
-            </Text>
             {subtitle && (
-                <Text className="text-[#8696a0] text-center px-6 leading-5">
+                <Text className="text-[#8696a0] text-center px-5 leading-5">
                     {subtitle}
                 </Text>
             )}

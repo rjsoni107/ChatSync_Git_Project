@@ -61,7 +61,7 @@ const ChatItem = forwardRef(({ chat, isActive, isOnline, onClick }, ref) => {
                         {isMe && (
                             <IoCheckmarkDone
                                 size={16}
-                                className={chat.lastMessageSeen ? "text-green-400" : "text-gray-500"}
+                                className={chat.lastMessageSeen ? "text-blue-400" : "text-gray-500"}
                             />
                         )}
                         <p className={`text-xs truncate leading-relaxed ${hasUnread ? "text-gray-100 font-semibold" : "text-gray-400 font-medium"}`}>

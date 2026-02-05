@@ -79,7 +79,7 @@ export default function ChatMessages({ messages, user, bottomRef }) {
                                         {isMe && (
                                             <div className="flex items-center">
                                                 {msg.isSeen ? (
-                                                    <IoCheckmarkDone size={16} className="text-green-400" title="Read" />
+                                                    <IoCheckmarkDone size={16} className="text-blue-400" title="Read" />
                                                 ) : msg.isDelivered ? (
                                                     <IoCheckmarkDone size={16} className="text-gray-500" title="Delivered" />
                                                 ) : (

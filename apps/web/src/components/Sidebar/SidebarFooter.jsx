@@ -4,7 +4,7 @@ import { IoLogOutOutline } from "react-icons/io5";
 
 export default function SidebarFooter({ user, onEditProfile, onLogout }) {
     return (
-        <div className="p-5 border-t border-white/5 bg-[#111b21] flex items-center justify-between">
+        <div className="p-5 border-t border-white/5 bg-[#0f172a] flex items-center justify-between">
             <div className="flex items-center gap-3 overflow-hidden group">
                 <motion.button
                     whileHover={{ scale: 1.05 }}

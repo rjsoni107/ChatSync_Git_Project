@@ -185,13 +185,13 @@ export default function EditUserProfile({ onClose, user }) {
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ""))}
-                                    className={`w-full bg-white/5 border rounded-xl pl-9 pr-4 py-2 text-white outline-none transition-all duration-300 text-sm ${usernameStatus.message ? (usernameStatus.available ? "border-green-500/30 focus:border-green-500/50" : "border-red-500/30 focus:border-red-500/50") : "border-white/5 focus:border-blue-500/50"
+                                    className={`w-full bg-white/5 border rounded-xl pl-9 pr-4 py-2 text-white outline-none transition-all duration-300 text-sm ${usernameStatus.message ? (usernameStatus.available ? "border-blue-500/30 focus:border-blue-500/50" : "border-red-500/30 focus:border-red-500/50") : "border-white/5 focus:border-blue-500/50"
                                         }`}
                                     placeholder="username"
                                 />
                             </div>
                             {usernameStatus.message && (
-                                <p className={`text-[8px] mt-1 px-1 font-bold uppercase tracking-wider ${usernameStatus.available ? "text-green-500" : "text-red-500"}`}>
+                                <p className={`text-[8px] mt-1 px-1 font-bold uppercase tracking-wider ${usernameStatus.available ? "text-blue-500" : "text-red-500"}`}>
                                     {usernameStatus.message}
                                 </p>
                             )}

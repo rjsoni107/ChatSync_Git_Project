@@ -35,7 +35,7 @@ const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
                     )}
                 </View>
                 {onlineStatus === 'online' && (
-                    <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-[#00a884] border-2 border-[#111b21]" />
+                    <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-secondary border-2 border-background" />
                 )}
             </View>
 
@@ -45,7 +45,7 @@ const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
                     <Text className="text-white text-lg font-bold flex-1" numberOfLines={1}>
                         {chat.name || 'Unknown'}
                     </Text>
-                    <Text className={`text-xs ${unreadCount > 0 ? 'text-[#00a884]' : 'text-gray-400'}`}>
+                    <Text className={`text-xs ${unreadCount > 0 ? 'text-secondary' : 'text-gray-400'}`}>
                         {lastMessage ? getTime(lastMessage.$createdAt) : ''}
                     </Text>
                 </View>
@@ -68,7 +68,7 @@ const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
                         </Text>
                     </View>
                     {unreadCount > 0 && (
-                        <View className="bg-[#00a884] rounded-full min-w-[20px] h-5 items-center justify-center px-1">
+                        <View className="bg-primary rounded-full min-w-[20px] h-5 items-center justify-center px-1">
                             <Text className="text-[#111b21] text-xs font-bold">
                                 {unreadCount}
                             </Text>

@@ -101,12 +101,12 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
                 className="flex-row items-center p-2 bg-[#111b21] z-20"
             // style={{ marginBottom: showEmojis ? 320 : 0 }}
             >
-                <View className="flex-row flex-1 items-center bg-[#202c33] rounded-3xl px-3 h-12">
+                <View className="flex-row flex-1 items-center bg-surface rounded-3xl px-3 h-12">
                     <TouchableOpacity onPress={toggleEmojis} className="mr-2">
                         <Ionicons
                             name={showEmojis ? 'keypad-outline' : 'happy-outline'}
                             size={24}
-                            color={showEmojis ? '#00a884' : '#8696a0'}
+                            color={showEmojis ? '#3b82f6' : '#8696a0'}
                         />
                     </TouchableOpacity>
 
@@ -140,7 +140,7 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
 
                     {uploading && (
                         <View className="ml-3">
-                            <ActivityIndicator size="small" color="#00a884" />
+                            <ActivityIndicator size="small" color="#3b82f6" />
                         </View>
                     )}
                 </View>
@@ -148,8 +148,7 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
                 <TouchableOpacity
                     onPress={handleSend}
                     disabled={uploading}
-                    className={`ml-2 w-12 h-12 rounded-full items-center justify-center ${uploading ? 'bg-gray-600' : 'bg-[#00a884]'
-                        }`}
+                    className={`ml-2 w-12 h-12 rounded-full items-center justify-center ${uploading ? 'bg-gray-600' : 'bg-primary'}`}
                 >
                     <Ionicons
                         name={message.trim() ? 'send' : 'mic'}
@@ -170,15 +169,15 @@ const MessageInput = ({ onSendMessage, onTyping }) => {
                         enableSearchBar={false}
                         categoryPosition="bottom"
                         theme={{
-                            container: '#111b21',
-                            backdrop: '#111b21',
-                            knob: '#00a884',
+                            container: '#0f172a',
+                            backdrop: '#0f172a',
+                            knob: '#3b82f6',
                             skinTonesContainer: '#202c33',
                             category: {
                                 icon: '#8696a0',
-                                iconActive: '#00a884',
-                                container: '#111b21',
-                                containerActive: '#202c33',
+                                iconActive: '#3b82f6',
+                                container: '#0f172a',
+                                containerActive: '#1e293b',
                             },
                         }}
                     />
