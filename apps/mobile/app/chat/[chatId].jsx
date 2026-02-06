@@ -246,7 +246,10 @@ const ChatScreen = () => {
                         renderItem={renderMessage}
                         keyExtractor={keyExtractor}
                         showsVerticalScrollIndicator={false}
-
+                        initialNumToRender={15}
+                        maxToRenderPerBatch={10}
+                        windowSize={10}
+                        removeClippedSubviews={Platform.OS === 'android'}
                         contentContainerStyle={{
                             paddingTop: 10,
                             paddingBottom: 12,

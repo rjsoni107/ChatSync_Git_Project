@@ -5,9 +5,25 @@ import { Ionicons } from '@expo/vector-icons';
 import Skeleton from '../ui/Skeleton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatLastSeen } from '@chatterapp/utils/date';
+import bgColor from '../ui/bgColor';
 
 const ChatHeader = ({ user, typing }) => {
     const router = useRouter();
+
+    let avatarName = ""
+
+    if (user?.name) {
+        const splitName = user?.name?.split(" ")
+
+        if (splitName.length > 1) {
+            avatarName = splitName[0][0] + splitName[1][0]
+        } else {
+            avatarName = splitName[0][0]
+        }
+    }
+
+    const nameHash = user?.name ? user?.name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
+    const colorIndex = nameHash % (bgColor.length || 1);
 
     return (
         <SafeAreaView edges={['top']} className="bg-surface shadow-md">
@@ -17,12 +33,12 @@ const ChatHeader = ({ user, typing }) => {
                     className="flex-row items-center p-1"
                 >
                     <Ionicons name="arrow-back" size={24} color="#3b82f6" />
-                    <View className="w-10 h-10 rounded-full bg-[#374045] items-center justify-center overflow-hidden ml-1">
+                    <View className={`w-12 h-12 rounded-full items-center justify-center overflow-hidden ml-1 ${bgColor[colorIndex]}`}>
                         {user?.avatar ? (
                             <Image source={{ uri: user.avatar }} className="w-full h-full" />
                         ) : (
-                            <Text className="text-white font-bold">
-                                {user?.name?.charAt(0).toUpperCase() || '?'}
+                            <Text className="text-white text-lg font-bold">
+                                {avatarName}
                             </Text>
                         )}
                     </View>
@@ -37,7 +53,7 @@ const ChatHeader = ({ user, typing }) => {
                             {user.name}
                         </Text>
                     ) : (
-                        <Skeleton width={120} height={18} borderRadius={9} />
+                        <Skeleton width={120} height={18} borderRadius={9} backgroundColor="#374045" />
                     )}
                     <Text className="text-[#8696a0] text-xs">
                         {typing ? 'typing...' : (user?.isOnline ? 'online' : formatLastSeen(user?.lastSeen))}
@@ -46,13 +62,13 @@ const ChatHeader = ({ user, typing }) => {
 
                 <View className="flex-row">
                     <TouchableOpacity className="p-2">
-                        <Ionicons name="videocam-outline" size={24} color="#60a5fa" />
+                        <Ionicons name="videocam-outline" size={25} color="#60a5fa" />
                     </TouchableOpacity>
                     <TouchableOpacity className="p-2">
-                        <Ionicons name="call-outline" size={24} color="#60a5fa" />
+                        <Ionicons name="call-outline" size={25} color="#60a5fa" />
                     </TouchableOpacity>
                     <TouchableOpacity className="p-2">
-                        <Ionicons name="ellipsis-vertical" size={22} color="#60a5fa" />
+                        <Ionicons name="ellipsis-vertical" size={23} color="#60a5fa" />
                     </TouchableOpacity>
                 </View>
             </View>
