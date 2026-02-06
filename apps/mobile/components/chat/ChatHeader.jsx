@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatLastSeen } from '@chatterapp/utils/date';
 import bgColor from '../ui/bgColor';
 
-const ChatHeader = ({ user, typing }) => {
+const ChatHeader = ({ user, typing, chatId }) => {
     const router = useRouter();
 
     let avatarName = ""
@@ -33,31 +33,44 @@ const ChatHeader = ({ user, typing }) => {
                     className="flex-row items-center p-1"
                 >
                     <Ionicons name="arrow-back" size={24} color="#3b82f6" />
-                    <View className={`w-12 h-12 rounded-full items-center justify-center overflow-hidden ml-1 ${bgColor[colorIndex]}`}>
-                        {user?.avatar ? (
-                            <Image source={{ uri: user.avatar }} className="w-full h-full" />
-                        ) : (
-                            <Text className="text-white text-lg font-bold">
-                                {avatarName}
-                            </Text>
-                        )}
-                    </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    className="flex-1 ml-2"
-                    onPress={() => {/* Profile details? */ }}
+                    className="flex-1 flex-row items-center"
+                    onPress={() => router.push({
+                        pathname: `/user/${user?.$id}`,
+                        params: { chatId: chatId }
+                    })}
                 >
                     {user?.name ? (
-                        <Text className="text-white text-base font-bold" numberOfLines={1}>
-                            {user.name}
-                        </Text>
+                        <>
+                            <View className={`w-12 h-12 rounded-full items-center justify-center overflow-hidden ml-1 ${bgColor[colorIndex]}`}>
+                                {user?.avatar ? (
+                                    <Image source={{ uri: user.avatar }} className="w-full h-full" />
+                                ) : (
+                                    <Text className="text-[#111b21] text-lg font-bold">
+                                        {avatarName}
+                                    </Text>
+                                )}
+                            </View>
+                            <View className="ml-2 w-64">
+                                <Text className="text-white text-base font-bold" numberOfLines={1}>
+                                    {user.name}
+                                </Text>
+                                <Text className="text-[#8696a0] text-xs" numberOfLines={1}>
+                                    {typing ? 'typing...' : (user?.isOnline ? 'online' : formatLastSeen(user?.lastSeen))}
+                                </Text>
+                            </View>
+                        </>
                     ) : (
-                        <Skeleton width={120} height={18} borderRadius={9} backgroundColor="#374045" />
+                        <>
+                            <Skeleton width={48} height={48} borderRadius={24} backgroundColor="#374045" className="ml-1" />
+                            <View className="ml-2">
+                                <Skeleton width={120} height={16} borderRadius={8} backgroundColor="#374045" className="mb-2" />
+                                <Skeleton width={80} height={12} borderRadius={6} backgroundColor="#374045" />
+                            </View>
+                        </>
                     )}
-                    <Text className="text-[#8696a0] text-xs">
-                        {typing ? 'typing...' : (user?.isOnline ? 'online' : formatLastSeen(user?.lastSeen))}
-                    </Text>
                 </TouchableOpacity>
 
                 <View className="flex-row">

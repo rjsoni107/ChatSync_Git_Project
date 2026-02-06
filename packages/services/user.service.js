@@ -143,4 +143,55 @@ export const updateUserProfile = async (userId, updates) => {
 export const logout = async () => {
     return await account.deleteSession("current");
 };
+const BLOCKS_ID = appwriteConfig.blocksCollectionId;
 
+export const blockUser = async (userId, blockedUserId) => {
+    if (!userId || !blockedUserId) return;
+    try {
+        return await databases.createDocument(
+            DB_ID,
+            BLOCKS_ID,
+            ID.unique(),
+            {
+                userId,
+                blockedUserId,
+                createdAt: new Date().toISOString(),
+            }
+        );
+    } catch (error) {
+        console.error("Error blocking user:", error);
+        throw error;
+    }
+};
+
+export const unblockUser = async (userId, blockedUserId) => {
+    if (!userId || !blockedUserId) return;
+    try {
+        const res = await databases.listDocuments(DB_ID, BLOCKS_ID, [
+            Query.equal("userId", userId),
+            Query.equal("blockedUserId", blockedUserId),
+        ]);
+
+        if (res.total > 0) {
+            await databases.deleteDocument(DB_ID, BLOCKS_ID, res.documents[0].$id);
+        }
+        return true;
+    } catch (error) {
+        console.error("Error unblocking user:", error);
+        throw error;
+    }
+};
+
+export const isUserBlocked = async (userId, blockedUserId) => {
+    if (!userId || !blockedUserId) return false;
+    try {
+        const res = await databases.listDocuments(DB_ID, BLOCKS_ID, [
+            Query.equal("userId", userId),
+            Query.equal("blockedUserId", blockedUserId),
+        ]);
+        return res.total > 0;
+    } catch (error) {
+        console.error("Error checking block status:", error);
+        return false;
+    }
+};

@@ -9,4 +9,6 @@ export const appwriteConfig = {
     bucketId: '6942d79f0008cdbf4fb2',
     typingStatusCollectionId: 'typing_status',
     userPresenceCollectionId: 'user_presence',
+    chatRequestCollectionId: 'chat_requests',
+    blocksCollectionId: 'blocks',
 };

@@ -232,7 +232,7 @@ const ChatScreen = () => {
 
     return (
         <View className="flex-1 bg-[#0b141a]">
-            <ChatHeader user={otherUser} typing={isOtherUserTyping} />
+            <ChatHeader user={otherUser} typing={isOtherUserTyping} chatId={chatId} />
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

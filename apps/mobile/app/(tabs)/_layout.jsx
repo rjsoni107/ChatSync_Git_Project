@@ -24,6 +24,12 @@ export default function TabsLayout() {
                 }}
             />
             <Tabs.Screen
+                name="requests"
+                options={{
+                    title: 'Requests',
+                }}
+            />
+            <Tabs.Screen
                 name="profile"
                 options={{
                     title: 'Profile',

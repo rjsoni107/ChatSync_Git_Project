@@ -199,4 +199,30 @@ export const deleteMessageForUser = async (messageId, userId) => {
         throw error;
     }
 };
+export const clearChatMessages = async (chatId) => {
+    if (!chatId) return;
+    try {
+        // 1. Get all messages for this chat
+        const res = await databases.listDocuments(DB_ID, MESSAGES_ID, [
+            Query.equal("chatId", chatId),
+            Query.limit(100), // Appwrite limit, might need recursion for many messages
+        ]);
 
+        // 2. Delete each message
+        const deletePromises = res.documents.map(msg =>
+            databases.deleteDocument(DB_ID, MESSAGES_ID, msg.$id)
+        );
+        await Promise.all(deletePromises);
+
+        // 3. Update chat metadata
+        await databases.updateDocument(DB_ID, CHATS_ID, chatId, {
+            lastMessage: "Chat cleared",
+            lastMessageAt: new Date().toISOString(),
+        });
+
+        return true;
+    } catch (error) {
+        console.error("Error clearing chat messages:", error);
+        throw error;
+    }
+};

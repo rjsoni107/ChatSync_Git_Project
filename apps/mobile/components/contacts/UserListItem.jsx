@@ -2,7 +2,35 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
-const UserListItem = ({ user, onPress, loading }) => {
+const UserListItem = ({ user, onPress, loading, status }) => {
+    // status: 'none' | 'sent' | 'friend'
+    
+    const renderButton = () => {
+        if (status === 'friend') {
+            return (
+                <View className="bg-[#3b82f6]/20 px-4 py-1.5 rounded-full border border-[#3b82f6]/30">
+                    <Text className="text-[#3b82f6] font-bold text-xs">Chat</Text>
+                </View>
+            );
+        }
+
+        if (status === 'sent') {
+            return (
+                <View className="bg-[#374045] px-4 py-1.5 rounded-full border border-white/5">
+                    <Text className="text-white font-bold text-xs">Cancel</Text>
+                </View>
+            );
+        }
+
+        // Default 'none' case
+        return (
+            <View className="bg-[#FFFC00] px-4 py-1.5 rounded-full flex-row items-center border border-black/5">
+                <Ionicons name="person-add" size={14} color="black" />
+                <Text className="text-black font-bold text-xs ml-1">Add</Text>
+            </View>
+        );
+    };
+
     return (
         <TouchableOpacity
             onPress={onPress}
@@ -13,7 +41,7 @@ const UserListItem = ({ user, onPress, loading }) => {
                 {user.profile_pic ? (
                     <Image source={{ uri: user.profile_pic }} className="w-full h-full" />
                 ) : (
-                    <Text className="text-white text-lg font-bold">
+                    <Text className="text-white text-base font-bold">
                         {user.name?.charAt(0).toUpperCase() || '?'}
                     </Text>
                 )}
@@ -29,7 +57,7 @@ const UserListItem = ({ user, onPress, loading }) => {
             </View>
 
             <View className="ml-2">
-                <Ionicons name="chevron-forward" size={20} color="#374045" />
+                {renderButton()}
             </View>
         </TouchableOpacity>
     );

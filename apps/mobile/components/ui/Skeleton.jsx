@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated } from 'react-native';
+import { styled } from 'nativewind';
 
-const Skeleton = ({ width, height, borderRadius = 4, className = "", backgroundColor = "#202c33" }) => {
+const SkeletonComponent = ({ width, height, borderRadius = 4, style, backgroundColor = "#202c33" }) => {
     const opacity = useRef(new Animated.Value(0.3)).current;
 
     useEffect(() => {
@@ -25,11 +26,11 @@ const Skeleton = ({ width, height, borderRadius = 4, className = "", backgroundC
         <Animated.View
             style={[
                 { width, height, borderRadius, backgroundColor: backgroundColor },
+                style,
                 { opacity }
             ]}
-            className={className}
         />
     );
 };
 
-export default Skeleton;
+export default styled(SkeletonComponent);

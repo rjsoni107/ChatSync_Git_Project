@@ -7,6 +7,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
     const icons = {
         chats: (props) => <Ionicons name="chatbubbles-outline" size={24} {...props} />,
         search: (props) => <Ionicons name="search-outline" size={24} {...props} />,
+        requests: (props) => <Ionicons name="mail-unread-outline" size={24} {...props} />,
         profile: (props) => <Ionicons name="person-outline" size={24} {...props} />,
     };
 
