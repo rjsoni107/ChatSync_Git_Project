@@ -18,12 +18,11 @@ const AuthInput = ({
 
     return (
         <View className="mb-4 w-full">
-            {label && (
-                <Text className="text-gray-400 mb-2 font-medium">{label}</Text>
-            )}
+            {label && <Text className="text-gray-300 mb-2 font-medium">{label}</Text>}
             <View className={`flex-row items-center border ${error ? 'border-red-500' : 'border-transparent'} rounded-xl px-4 ${containerClassName || 'bg-surface h-14'}`}>
                 <TextInput
                     className="flex-1 text-white text-base"
+                    style={secureTextEntry && !showPassword && value ? { letterSpacing: 5, fontSize: 24, paddingBottom: 5 } : {}}
                     value={value}
                     onChangeText={onChangeText}
                     placeholder={placeholder}
@@ -46,9 +45,7 @@ const AuthInput = ({
                     </TouchableOpacity>
                 )}
             </View>
-            {error && (
-                <Text className="text-red-500 text-sm mt-1">{error}</Text>
-            )}
+            {error && <Text className="text-red-500 text-sm mt-1">{error}</Text>}
         </View>
     );
 };

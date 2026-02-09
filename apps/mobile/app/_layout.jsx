@@ -10,6 +10,7 @@ import { View, ActivityIndicator } from 'react-native';
 import CustomAlert from '../components/ui/CustomAlert';
 import ImagePreviewModal from '../components/ui/ImagePreviewModal';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { registerForPushNotificationsAsync, setupNotificationListeners } from '../utils/notification.util';
 
 export default function RootLayout() {
     const setUser = useAuthStore((s) => s.setUser);
@@ -38,18 +39,31 @@ export default function RootLayout() {
         checkSession();
     }, []);
 
+    // Registration for Push Notifications
+    // useEffect(() => {
+    //     if (user?.$id) {
+    //         registerForPushNotificationsAsync(user.$id);
+    //         const unsubscribe = setupNotificationListeners();
+    //         return () => unsubscribe();
+    //     }
+    // }, [user?.$id]);
+
     useEffect(() => {
         if (!isReady) return;
 
         const inAuthGroup = segments[0] === '(auth)';
 
-        if (!user && !inAuthGroup) {
-            // Redirect to login if user is not authenticated and not in auth group
-            router.replace('/(auth)/login');
-        } else if (user && inAuthGroup) {
-            // Redirect to tabs if user is authenticated and trying to access auth screens
-            router.replace('/(tabs)/chats');
-        }
+        // Use a small timeout to ensure navigation happens in the next tick
+        // This prevents many "navigation during render" or "unprotected path" loops
+        const timeout = setTimeout(() => {
+            if (!user && !inAuthGroup) {
+                router.replace('/(auth)/login');
+            } else if (user && inAuthGroup) {
+                router.replace('/(tabs)/chats');
+            }
+        }, 10);
+
+        return () => clearTimeout(timeout);
     }, [user, segments, isReady]);
 
     if (!isReady) {

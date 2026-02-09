@@ -15,6 +15,19 @@ export const checkUsernameAvailability = async (username) => {
     }
 };
 
+export const getUserByUsername = async (username) => {
+    try {
+        const res = await databases.listDocuments(DB_ID, USERS_ID, [
+            Query.equal("username", username.toLowerCase())
+        ]);
+        if (res.total > 0) return res.documents[0];
+        return null;
+    } catch (err) {
+        console.error("Error finding user by username:", err);
+        return null;
+    }
+};
+
 export const generateUniqueUsername = async (name) => {
     const base = name.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 10);
     let username = `${base}${Math.floor(Math.random() * 900) + 100}`;

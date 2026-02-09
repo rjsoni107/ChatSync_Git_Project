@@ -7,6 +7,7 @@ import AuthInput from '../../components/auth/AuthInput';
 import AuthButton from '../../components/auth/AuthButton';
 import AuthHeader from '../../components/auth/AuthHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PasswordRequirements from '../../components/auth/PasswordRequirements';
 
 const Signup = () => {
     const router = useRouter();
@@ -30,8 +31,16 @@ const Signup = () => {
             return;
         }
 
-        if (password.length < 8) {
-            setError('Password must be at least 8 characters');
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters');
+            return;
+        }
+
+        const hasNumber = /\d/.test(password);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+        if (!hasNumber || !hasSpecialChar) {
+            setError('Password must include at least one number and one special character');
             return;
         }
 
@@ -74,7 +83,7 @@ const Signup = () => {
                                 logo={require('../../assets/chatterApp.webp')}
                             />
 
-                            <View className="space-y-4">
+                            <View>
                                 <AuthInput
                                     label="Full Name"
                                     placeholder="Enter your full name"
@@ -93,11 +102,13 @@ const Signup = () => {
 
                                 <AuthInput
                                     label="Password"
-                                    placeholder="At least 8 characters"
+                                    placeholder="Enter strong password"
                                     value={password}
                                     onChangeText={setPassword}
                                     secureTextEntry
                                 />
+
+                                <PasswordRequirements password={password} />
 
                                 <AuthInput
                                     label="Confirm Password"

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { login } from '@chatterapp/services/auth.service';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
+import { getUserByUsername } from '@chatterapp/services/user.service';
 import AuthInput from '../../components/auth/AuthInput';
 import AuthButton from '../../components/auth/AuthButton';
 import AuthHeader from '../../components/auth/AuthHeader';
@@ -23,11 +24,29 @@ const Login = () => {
             return;
         }
 
+        if (password.length < 6) {
+            setError('Password must be at least 6 characters');
+            return;
+        }
+
         setError('');
         setLoading(true);
 
         try {
-            const session = await login(email, password);
+            let loginEmail = email;
+
+            // If it's not an email (no @), look up by username
+            if (!email.includes('@')) {
+                const profile = await getUserByUsername(email);
+                if (!profile) {
+                    setError('Username not found');
+                    setLoading(false);
+                    return;
+                }
+                loginEmail = profile.email;
+            }
+
+            const session = await login(loginEmail, password);
             if (session) {
                 // Fetch user data after successful login
                 const { getCurrentUser } = await import('@chatterapp/services/auth.service');
@@ -61,10 +80,10 @@ const Login = () => {
                                 logo={require('../../assets/chatterApp.webp')}
                             />
 
-                            <View className="space-y-4">
+                            <View>
                                 <AuthInput
-                                    label="Email Address"
-                                    placeholder="Enter your email"
+                                    label="Username or Email"
+                                    placeholder="Enter username or email"
                                     value={email}
                                     onChangeText={setEmail}
                                     keyboardType="email-address"
