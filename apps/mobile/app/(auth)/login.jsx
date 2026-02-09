@@ -118,9 +118,9 @@ const Login = () => {
                             </View>
 
                             <View className="flex-row justify-center mt-2">
-                                <Text className="text-gray-400">Don't have an account? </Text>
+                                <Text className="text-gray-400 text-base">Don't have an account? </Text>
                                 <TouchableWithoutFeedback onPress={() => router.push('/(auth)/signup')}>
-                                    <Text className="text-secondary font-bold">Sign Up</Text>
+                                    <Text className="text-secondary font-bold text-base">Sign Up</Text>
                                 </TouchableWithoutFeedback>
                             </View>
                         </View>

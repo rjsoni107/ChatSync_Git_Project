@@ -56,9 +56,17 @@ export default function RootLayout() {
         // Use a small timeout to ensure navigation happens in the next tick
         // This prevents many "navigation during render" or "unprotected path" loops
         const timeout = setTimeout(() => {
+            const inAuthGroup = segments[0] === '(auth)';
+            const isVerifyScreen = segments[1] === 'verify-email';
+
             if (!user && !inAuthGroup) {
+                // Redirect to login if user is not authenticated and not in auth group
                 router.replace('/(auth)/login');
-            } else if (user && inAuthGroup) {
+            } else if (user && !user.emailVerification && !isVerifyScreen) {
+                // Redirect to verification if user is logged in but not verified
+                router.replace('/(auth)/verify-email');
+            } else if (user && user.emailVerification && inAuthGroup) {
+                // Redirect to tabs if user is authenticated and verified, but trying to access auth screens
                 router.replace('/(tabs)/chats');
             }
         }, 10);

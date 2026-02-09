@@ -43,7 +43,8 @@
     "react-native-svg": "15.12.1",
     "react-native-web": "^0.21.0",
     "rn-emoji-keyboard": "^1.7.0",
-    "semver": "^7.6.0"
+    "semver": "^7.6.0",
+    "use-debounce": "^10.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

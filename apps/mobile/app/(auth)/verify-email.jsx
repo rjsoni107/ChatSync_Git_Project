@@ -7,6 +7,8 @@ import AuthButton from '../../components/auth/AuthButton';
 import AuthHeader from '../../components/auth/AuthHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useAlertStore } from '@chatterapp/store/useAlertStore';
+import { logout } from '@chatterapp/services/user.service';
 
 const VerifyEmail = () => {
     const router = useRouter();
@@ -14,6 +16,7 @@ const VerifyEmail = () => {
     const { userId, secret } = params;
     const setUser = useAuthStore((s) => s.setUser);
     const user = useAuthStore((s) => s.user);
+    const showAlert = useAlertStore(s => s.showAlert);
 
     const [loading, setLoading] = useState(false);
     const [verifying, setVerifying] = useState(false);
@@ -25,6 +28,18 @@ const VerifyEmail = () => {
             handleVerify();
         }
     }, [userId, secret]);
+
+    const [cooldown, setCooldown] = useState(0);
+
+    useEffect(() => {
+        let timer;
+        if (cooldown > 0) {
+            timer = setInterval(() => {
+                setCooldown((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [cooldown]);
 
     const handleVerify = async () => {
         setVerifying(true);
@@ -49,18 +64,34 @@ const VerifyEmail = () => {
     };
 
     const handleResend = async () => {
+        if (cooldown > 0) return;
         setLoading(true);
         setError('');
         try {
-            // In a real app, this URL would be a deep link to the app
             const verificationUrl = 'https://chatterapp.app/verify-email';
             await sendVerificationEmail(verificationUrl);
-            alert('Verification email sent! Please check your inbox.');
+            showAlert('Verification email sent! Please check your inbox.');
+            setCooldown(600); // 10 minutes
         } catch (err) {
             console.error('Resend error:', err);
-            setError(err.message || 'Failed to resend verification email.');
+            if (err.message?.includes('Invalid URI')) {
+                setError('Appwrite Configuration Error: Please register "chatterapp.app" as a Web platform in your project dashboard.');
+            } else {
+                setError(err.message || 'Failed to resend verification email.');
+            }
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleBackToLogin = async () => {
+        try {
+            await logout();
+            setUser(null);
+            router.replace('/(auth)/login');
+        } catch (err) {
+            console.error('Logout error:', err);
+            router.replace('/(auth)/login');
         }
     };
 
@@ -111,15 +142,16 @@ const VerifyEmail = () => {
                                 ) : null}
 
                                 <AuthButton
-                                    title="Resend Verification Email"
+                                    title={cooldown > 0 ? `Resend Email (${Math.floor(cooldown / 60)}:${(cooldown % 60).toString().padStart(2, '0')})` : "Resend Verification Email"}
                                     onPress={handleResend}
                                     loading={loading}
+                                    disabled={cooldown > 0}
                                 />
 
                                 <AuthButton
                                     title="Back to Login"
                                     variant="secondary"
-                                    onPress={() => router.replace('/(auth)/login')}
+                                    onPress={handleBackToLogin}
                                 />
                             </>
                         )}

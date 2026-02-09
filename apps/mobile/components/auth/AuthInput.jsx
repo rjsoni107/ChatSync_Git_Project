@@ -22,7 +22,7 @@ const AuthInput = ({
             <View className={`flex-row items-center border ${error ? 'border-red-500' : 'border-transparent'} rounded-xl px-4 ${containerClassName || 'bg-surface h-14'}`}>
                 <TextInput
                     className="flex-1 text-white text-base"
-                    style={secureTextEntry && !showPassword && value ? { letterSpacing: 5, fontSize: 24, paddingBottom: 5 } : {}}
+                    style={secureTextEntry && !showPassword && value ? { letterSpacing: 5, fontSize: 20, paddingBottom: 5 } : {}}
                     value={value}
                     onChangeText={onChangeText}
                     placeholder={placeholder}

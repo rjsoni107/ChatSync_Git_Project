@@ -2,7 +2,9 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { updateUserProfile } from '@chatterapp/services/user.service';
+import { useAlertStore } from '@chatterapp/store/useAlertStore';
 
+const showAlert = useAlertStore(s => s.showAlert);
 // Configure how notifications are handled when the app is in the foreground
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -29,7 +31,7 @@ export const registerForPushNotificationsAsync = async (userId) => {
     }
 
     if (finalStatus !== 'granted') {
-        alert('Failed to get push token for push notification!');
+        showAlert('Failed to get push token for push notification!');
         return;
     }
 

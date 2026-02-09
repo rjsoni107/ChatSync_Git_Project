@@ -32,7 +32,7 @@ export const generateUniqueUsername = async (name) => {
     const base = name.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 10);
     let username = `${base}${Math.floor(Math.random() * 900) + 100}`;
 
-    // Check if exists, if so try again (max 3 tries for simplicity in generation)
+    // Check if exists, if so try again
     let isAvailable = await checkUsernameAvailability(username);
     if (!isAvailable) {
         username = `${base}${Math.floor(Math.random() * 9000) + 1000}`;
@@ -40,7 +40,23 @@ export const generateUniqueUsername = async (name) => {
     return username;
 };
 
-export const createUserProfile = async (user) => {
+export const getUsernameSuggestions = async (username) => {
+    const base = username.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 10);
+    const suggestions = new Set();
+
+    while (suggestions.size < 3) {
+        const variant = Math.random() > 0.5
+            ? `${base}_${Math.floor(Math.random() * 99) + 1}`
+            : `${base}.${Math.floor(Math.random() * 99) + 1}`;
+
+        const isAvailable = await checkUsernameAvailability(variant);
+        if (isAvailable) suggestions.add(variant);
+    }
+
+    return Array.from(suggestions);
+};
+
+export const createUserProfile = async (user, customUsername) => {
     const now = new Date().toISOString();
     const userId = user.$id;
 
@@ -68,8 +84,8 @@ export const createUserProfile = async (user) => {
         if (err.code !== 404) throw err;
 
         try {
-            // 2️⃣ Generate a unique username for the first time
-            const username = await generateUniqueUsername(user.name);
+            // 2️⃣ Use custom username or generate a unique one
+            const finalUsername = customUsername || await generateUniqueUsername(user.name);
 
             // 3️⃣ Create new profile
             return await databases.createDocument(
@@ -80,7 +96,7 @@ export const createUserProfile = async (user) => {
                     userId,
                     name: user.name,
                     email: user.email,
-                    username: username, // ✨ NEW
+                    username: finalUsername, // ✨ NEW
                     profile_pic: "",
                     about: "",
                     isOnline: true,
