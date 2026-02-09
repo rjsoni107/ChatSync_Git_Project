@@ -2,6 +2,7 @@ import { View, Text, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, K
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { signup, login, sendVerificationEmail } from '@chatterapp/services/auth.service';
+import * as Linking from 'expo-linking';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import { checkUsernameAvailability, getUsernameSuggestions, createUserProfile } from '@chatterapp/services/user.service';
 import AuthInput from '../../components/auth/AuthInput';
@@ -87,8 +88,9 @@ const Signup = () => {
                 await createUserProfile(user, username);
 
                 // 📧 Send Verification Email
+                // Using dynamic Expo linking for development
                 try {
-                    const verificationUrl = 'https://chatterapp.app/verify-email';
+                    const verificationUrl = 'https://rjsoni.com/verify-email';
                     await sendVerificationEmail(verificationUrl);
                 } catch (verifyErr) {
                     console.error('Verification email failed:', verifyErr);

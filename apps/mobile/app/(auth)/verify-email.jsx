@@ -1,14 +1,14 @@
 import { View, Text, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { verifyEmail, sendVerificationEmail, getCurrentUser } from '@chatterapp/services/auth.service';
+import { verifyEmail, sendVerificationEmail, getCurrentUser, logout } from '@chatterapp/services/auth.service';
+import * as Linking from 'expo-linking';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import AuthButton from '../../components/auth/AuthButton';
 import AuthHeader from '../../components/auth/AuthHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAlertStore } from '@chatterapp/store/useAlertStore';
-import { logout } from '@chatterapp/services/user.service';
 
 const VerifyEmail = () => {
     const router = useRouter();
@@ -68,14 +68,14 @@ const VerifyEmail = () => {
         setLoading(true);
         setError('');
         try {
-            const verificationUrl = 'https://chatterapp.app/verify-email';
+            const verificationUrl = 'https://rjsoni.com/verify-email';
             await sendVerificationEmail(verificationUrl);
             showAlert('Verification email sent! Please check your inbox.');
             setCooldown(600); // 10 minutes
         } catch (err) {
             console.error('Resend error:', err);
             if (err.message?.includes('Invalid URI')) {
-                setError('Appwrite Configuration Error: Please register "chatterapp.app" as a Web platform in your project dashboard.');
+                setError('Appwrite Configuration Error: Please register your current dev URL or local IP as a Web platform in Appwrite Console.');
             } else {
                 setError(err.message || 'Failed to resend verification email.');
             }
