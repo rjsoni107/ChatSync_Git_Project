@@ -10,7 +10,9 @@ const AuthInput = ({
     secureTextEntry,
     keyboardType,
     autoCapitalize = 'none',
-    error
+    error,
+    containerClassName,
+    ...props
 }) => {
     const [showPassword, setShowPassword] = useState(false);
 
@@ -19,7 +21,7 @@ const AuthInput = ({
             {label && (
                 <Text className="text-gray-400 mb-2 font-medium">{label}</Text>
             )}
-            <View className={`flex-row items-center bg-surface border ${error ? 'border-red-500' : 'border-transparent'} rounded-xl px-4 h-14`}>
+            <View className={`flex-row items-center border ${error ? 'border-red-500' : 'border-transparent'} rounded-xl px-4 ${containerClassName || 'bg-surface h-14'}`}>
                 <TextInput
                     className="flex-1 text-white text-base"
                     value={value}
@@ -29,6 +31,7 @@ const AuthInput = ({
                     secureTextEntry={secureTextEntry && !showPassword}
                     keyboardType={keyboardType}
                     autoCapitalize={autoCapitalize}
+                    {...props}
                 />
                 {secureTextEntry && (
                     <TouchableOpacity

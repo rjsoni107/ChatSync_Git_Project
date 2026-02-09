@@ -1,4 +1,4 @@
-import { View, Text, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, Image } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
@@ -109,13 +109,19 @@ const Chats = () => {
     return (
         <SafeAreaView className="flex-1 bg-[#111b21]">
             {/* Header */}
-            <View className="flex-row items-center justify-between px-4 py-3">
-                <Text className="text-white text-2xl font-bold">ChatterApp</Text>
+            <View className="flex-row items-center justify-between px-4 pt-2">
+                <Image
+                    source={require('../../assets/chatterApp_name.webp')}
+                    className="w-40 h-10"
+                    resizeMode="contain"
+                />
                 <View className="flex-row items-center">
                     <TouchableOpacity className="p-2" onPress={() => router.push('/(tabs)/search')}>
-                        <Ionicons name="camera-outline" size={24} color="#8696a0" />
+                        <View className="bg-secondary px-2 py-2 rounded-full flex-row items-center border border-black/5">
+                            <Ionicons name="person-add-outline" size={20} color="white" />
+                        </View>
                     </TouchableOpacity>
-                    <TouchableOpacity className="p-2 ml-2" onPress={() => router.push('/(tabs)/profile')}>
+                    <TouchableOpacity className="p-2" onPress={() => router.push('/(tabs)/profile')}>
                         <Ionicons name="ellipsis-vertical" size={24} color="#8696a0" />
                     </TouchableOpacity>
                 </View>
@@ -154,12 +160,12 @@ const Chats = () => {
             )}
 
             {/* Floating Action Button */}
-            <TouchableOpacity
-                className="absolute bottom-6 right-6 w-14 h-14 bg-primary rounded-2xl items-center justify-center shadow-lg"
+            {/* <TouchableOpacity
+                className="absolute bottom-6 right-6 w-14 h-14 bg-secondary rounded-2xl items-center justify-center shadow-lg"
                 onPress={() => router.push('/(tabs)/search')}
             >
-                <Ionicons name="chatbubble-ellipses" size={24} color="#111b21" />
-            </TouchableOpacity>
+                <Ionicons name="chatbubble-ellipses" size={24} color="#fff" />
+            </TouchableOpacity> */}
         </SafeAreaView>
     );
 };

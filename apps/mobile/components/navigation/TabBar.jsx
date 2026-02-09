@@ -42,10 +42,10 @@ const TabBar = ({ state, descriptors, navigation }) => {
                             onPress={onPress}
                             className="items-center justify-center flex-1"
                         >
-                            <View className={`w-14 h-8 items-center justify-center rounded-full mb-1 ${isFocused ? 'bg-[#2563eb]/30' : ''}`}>
-                                {icons[route.name] ? icons[route.name]({ color: isFocused ? '#3b82f6' : '#8696a0' }) : null}
+                            <View className={`w-14 h-8 items-center justify-center rounded-full overflow-hidden mb-1 ${isFocused ? 'bg-[#2563eb]/50' : ''}`}>
+                                {icons[route.name] ? icons[route.name]({ color: isFocused ? '#ffff' : '#8696a0' }) : null}
                             </View>
-                            <Text style={{ color: isFocused ? '#3b82f6' : '#8696a0', fontSize: 12, fontWeight: isFocused ? '600' : '400' }}>
+                            <Text style={{ color: isFocused ? '#ffff' : '#8696a0', fontSize: 12, fontWeight: isFocused ? '600' : '400' }}>
                                 {label}
                             </Text>
                         </TouchableOpacity>

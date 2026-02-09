@@ -9,6 +9,7 @@ export default function TabsLayout() {
             screenOptions={{
                 headerShown: false,
                 tabBarShowLabel: true,
+                sceneContainerStyle: { backgroundColor: '#0b141a' },
             }}
         >
             <Tabs.Screen
