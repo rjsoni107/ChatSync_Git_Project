@@ -66,7 +66,7 @@ const ResetPassword = () => {
                             <AuthHeader
                                 title="Set New Password"
                                 subtitle="Choose a strong password to protect your account"
-                                logo={require('../../assets/chatterApp.webp')}
+                                logo={require('../../assets/chatterApp.png')}
                             />
 
                             {success ? (

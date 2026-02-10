@@ -109,7 +109,7 @@ export default function Login() {
                             transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
                             className="w-[14rem] h-14  rounded-2xl mx-auto mb-5 flex items-center justify-center rotate-3"
                         >
-                            <img src="/img/chatterApp_logo_white.webp" alt="Logo" className="w-full h-full object-contain" />
+                            <img src="/img/chatterApp_logo_white.png" alt="Logo" className="w-full h-full object-contain" />
                         </motion.div>
                         <motion.h1 variants={itemVariants} className="text-3xl font-black text-white mb-3 tracking-tight">Welcome back</motion.h1>
                         <motion.p variants={itemVariants} className="text-gray-300 font-medium text-sm">Continue your journey with ChatterApp</motion.p>

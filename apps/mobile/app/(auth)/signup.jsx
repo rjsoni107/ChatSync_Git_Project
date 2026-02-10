@@ -129,7 +129,7 @@ const Signup = () => {
                             <AuthHeader
                                 title="Create Account"
                                 subtitle="Join ChatterApp and start messaging with friends"
-                                logo={require('../../assets/chatterApp.webp')}
+                                logo={require('../../assets/chatterApp.png')}
                             />
 
                             <View>

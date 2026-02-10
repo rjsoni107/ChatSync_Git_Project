@@ -116,7 +116,7 @@ const Chats = () => {
             {/* Header */}
             <View className="flex-row items-center justify-between px-4 pt-2">
                 <Image
-                    source={require('../../assets/chatterApp_name.webp')}
+                    source={require('../../assets/chatterApp_name.png')}
                     className="w-40 h-10"
                     resizeMode="contain"
                 />

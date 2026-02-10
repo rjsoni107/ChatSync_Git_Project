@@ -21,7 +21,7 @@ export default function WelcomeChat() {
                         className="absolute inset-0 bg-blue-500 rounded-full blur-3xl"
                     />
                     <div className="relative w-full h-full bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-blue-500/20">
-                        <img src="/img/logo192.webp" alt="Logo" className="w-full h-full object-contain" />
+                        <img src="/img/logo192.png" alt="Logo" className="w-full h-full object-contain" />
                     </div>
                 </div>
 

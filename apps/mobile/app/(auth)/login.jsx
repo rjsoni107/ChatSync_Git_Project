@@ -78,7 +78,7 @@ const Login = () => {
                             <AuthHeader
                                 title="Welcome Back"
                                 subtitle="Enter your credentials to access your account"
-                                logo={require('../../assets/chatterApp.webp')}
+                                logo={require('../../assets/chatterApp.png')}
                             />
 
                             <View>
