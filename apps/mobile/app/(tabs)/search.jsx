@@ -69,6 +69,7 @@ const Search = () => {
 
                 const rel = await checkExistingRelationship(user.$id, u.userId);
                 if (rel?.type === 'request_sent') return { ...u, relationshipStatus: 'sent', requestId: rel.id };
+                if (rel?.type === 'request_received') return { ...u, relationshipStatus: 'received', requestId: rel.id };
 
                 return { ...u, relationshipStatus: 'none' };
             }));
@@ -91,6 +92,11 @@ const Search = () => {
                 if (chatId) {
                     router.push(`/chat/${chatId}`);
                 }
+                return;
+            }
+
+            if (targetUser.relationshipStatus === 'received') {
+                router.push('/(tabs)/requests');
                 return;
             }
 

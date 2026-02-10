@@ -22,6 +22,14 @@ const UserListItem = ({ user, onPress, loading, status }) => {
             );
         }
 
+        if (status === 'received') {
+            return (
+                <View className="bg-secondary px-4 py-1.5 rounded-full border border-white/5">
+                    <Text className="text-white font-bold text-sm">Respond</Text>
+                </View>
+            );
+        }
+
         // Default 'none' case
         return (
             <View className="bg-secondary px-4 py-1.5 rounded-full flex-row items-center border border-black/5">
