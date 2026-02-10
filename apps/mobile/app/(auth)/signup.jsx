@@ -116,7 +116,8 @@ const Signup = () => {
     return (
         <SafeAreaView className="flex-1 bg-[#111b21]">
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
                 className="flex-1"
             >
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
