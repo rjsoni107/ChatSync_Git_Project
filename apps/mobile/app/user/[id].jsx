@@ -5,8 +5,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getUserProfile, blockUser, unblockUser, isUserBlocked } from '@chatterapp/services/user.service';
 import { clearChatMessages } from '@chatterapp/services/message.service';
-import { deletePrivateChat } from '@chatterapp/services/chat.service';
-import { deleteAllRequests } from '@chatterapp/services/request.service';
+import { deletePrivateChat, findPrivateChat } from '@chatterapp/services/chat.service';
+import { deleteAllRequests, checkExistingRelationship, sendChatRequest, cancelChatRequest, updateRequestStatus } from '@chatterapp/services/request.service';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import Skeleton from '../../components/ui/Skeleton';
 import { formatLastSeen } from '@chatterapp/utils/date';
@@ -14,24 +14,36 @@ import bgColor from '../../components/ui/bgColor';
 import { useAlertStore } from '@chatterapp/store/useAlertStore';
 
 const UserProfile = () => {
-    const { id, chatId } = useLocalSearchParams();
+    const { id, chatId: initialChatId } = useLocalSearchParams();
     const router = useRouter();
     const currentUser = useAuthStore(s => s.user);
     const showAlert = useAlertStore(s => s.showAlert);
+
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isBlocked, setIsBlocked] = useState(false);
     const [processing, setProcessing] = useState(false);
+    const [chatId, setChatId] = useState(initialChatId);
+    const [relationship, setRelationship] = useState(null);
+    const isSelf = currentUser?.$id === id;
 
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const [profileData, blockedStatus] = await Promise.all([
+                const [profileData, blockedStatus, relStatus] = await Promise.all([
                     getUserProfile(id),
-                    isUserBlocked(currentUser.$id, id)
+                    isUserBlocked(currentUser.$id, id),
+                    checkExistingRelationship(currentUser.$id, id)
                 ]);
                 setProfile(profileData);
                 setIsBlocked(blockedStatus);
+                setRelationship(relStatus);
+
+                // If no chatId, check if they are already friends
+                if (!chatId) {
+                    const existingChatId = await findPrivateChat(currentUser.$id, id);
+                    if (existingChatId) setChatId(existingChatId);
+                }
             } catch (err) {
                 console.error('Error fetching user profile data:', err);
             } finally {
@@ -41,7 +53,7 @@ const UserProfile = () => {
         if (currentUser?.$id && id) {
             fetchInitialData();
         }
-    }, [id, currentUser?.$id]);
+    }, [id, currentUser?.$id, chatId]);
 
     const handleRemoveFriend = () => {
         showAlert(
@@ -139,6 +151,52 @@ const UserProfile = () => {
         );
     };
 
+    const handleSendRequest = async () => {
+        setProcessing(true);
+        try {
+            await sendChatRequest(currentUser.$id, id);
+            showAlert("Success", "Chat request sent!");
+            // Refresh relation status
+            const relStatus = await checkExistingRelationship(currentUser.$id, id);
+            setRelationship(relStatus);
+        } catch (error) {
+            showAlert("Error", error.message || "Failed to send request.");
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const handleCancelRequest = async () => {
+        if (!relationship?.id) return;
+        setProcessing(true);
+        try {
+            await cancelChatRequest(relationship.id);
+            showAlert("Success", "Request cancelled.");
+            setRelationship(null);
+        } catch (error) {
+            showAlert("Error", "Failed to cancel request.");
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const handleAcceptRequest = async () => {
+        if (!relationship?.id) return;
+        setProcessing(true);
+        try {
+            await updateRequestStatus(relationship.id, "accepted");
+            showAlert("Success", "Request accepted!");
+            // Refresh everything
+            setRelationship(null);
+            const exChatId = await findPrivateChat(currentUser.$id, id);
+            setChatId(exChatId);
+        } catch (error) {
+            showAlert("Error", "Failed to accept request.");
+        } finally {
+            setProcessing(false);
+        }
+    };
+
     const avatarName = profile?.name
         ? profile.name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()
         : "?";
@@ -206,10 +264,56 @@ const UserProfile = () => {
                         )}
 
                         {/* Quick Actions */}
-                        <View className="flex-row mt-8 w-full justify-around px-10">
-                            <ActionButton icon="call" label="Audio" color={isBlocked ? "#374045" : "#60a5fa"} disabled={isBlocked} />
-                            <ActionButton icon="videocam" label="Video" color={isBlocked ? "#374045" : "#60a5fa"} disabled={isBlocked} />
-                            <ActionButton icon="search" label="Search" color="#60a5fa" />
+                        <View className="flex-row mt-8 w-full justify-around px-8">
+                            {!isSelf && !chatId && !relationship && (
+                                <ActionBtn
+                                    icon="person-add"
+                                    label="Add Friend"
+                                    onPress={handleSendRequest}
+                                    color="#60a5fa"
+                                />
+                            )}
+
+                            {!isSelf && relationship?.type === 'request_sent' && (
+                                <ActionBtn
+                                    icon="close-circle"
+                                    label="Cancel Req"
+                                    onPress={handleCancelRequest}
+                                    color="#ef4444"
+                                />
+                            )}
+
+                            {!isSelf && relationship?.type === 'request_received' && (
+                                <ActionBtn
+                                    icon="checkmark-circle"
+                                    label="Accept Req"
+                                    onPress={handleAcceptRequest}
+                                    color="#22c55e"
+                                />
+                            )}
+
+                            {chatId && (
+                                <>
+                                    <ActionBtn icon="call" label="Audio" color={isBlocked ? "#374045" : "#60a5fa"} disabled={isBlocked} />
+                                    <ActionBtn icon="videocam" label="Video" color={isBlocked ? "#374045" : "#60a5fa"} disabled={isBlocked} />
+                                    <ActionBtn
+                                        icon="chatbubble"
+                                        label="Message"
+                                        onPress={() => router.push(`/chat/${chatId}`)}
+                                        color="#60a5fa"
+                                        disabled={isBlocked}
+                                    />
+                                </>
+                            )}
+                            <ActionBtn icon="search" label="Search" color="#60a5fa" />
+                            {isSelf && (
+                                <ActionBtn
+                                    icon="create-outline"
+                                    label="Edit"
+                                    onPress={() => router.push('/profile/edit')}
+                                    color="#60a5fa"
+                                />
+                            )}
                         </View>
                     </View>
 
@@ -224,30 +328,36 @@ const UserProfile = () => {
                             </Text>
                         </InfoSection>
 
-                        <InfoSection title="Media, links and docs">
-                            <View className="flex-row items-center justify-between">
-                                <Text className="text-[#8696a0] text-sm italic">No media shared yet</Text>
-                                <Ionicons name="chevron-forward" size={20} color="#374045" />
-                            </View>
-                        </InfoSection>
+                        {chatId && (
+                            <InfoSection title="Media, links and docs">
+                                <View className="flex-row items-center justify-between">
+                                    <Text className="text-[#8696a0] text-sm italic">No media shared yet</Text>
+                                    <Ionicons name="chevron-forward" size={20} color="#374045" />
+                                </View>
+                            </InfoSection>
+                        )}
 
                         {/* Management Actions */}
                         <View className="mt-6 mb-8">
-                            <TouchableOpacity
-                                onPress={handleClearChat}
-                                className="flex-row items-center py-4 border-b border-[#202c33]"
-                            >
-                                <Ionicons name="refresh-outline" size={24} color="#ef4444" />
-                                <Text className="text-[#ef4444] text-base font-bold ml-4">Clear Chat</Text>
-                            </TouchableOpacity>
+                            {chatId && (
+                                <>
+                                    <TouchableOpacity
+                                        onPress={handleClearChat}
+                                        className="flex-row items-center py-4 border-b border-[#202c33]"
+                                    >
+                                        <Ionicons name="refresh-outline" size={24} color="#ef4444" />
+                                        <Text className="text-[#ef4444] text-base font-bold ml-4">Clear Chat</Text>
+                                    </TouchableOpacity>
 
-                            <TouchableOpacity
-                                onPress={handleRemoveFriend}
-                                className="flex-row items-center py-4 border-b border-[#202c33]"
-                            >
-                                <Ionicons name="person-remove-outline" size={24} color="#ef4444" />
-                                <Text className="text-[#ef4444] text-base font-bold ml-4">Remove Friend</Text>
-                            </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={handleRemoveFriend}
+                                        className="flex-row items-center py-4 border-b border-[#202c33]"
+                                    >
+                                        <Ionicons name="person-remove-outline" size={24} color="#ef4444" />
+                                        <Text className="text-[#ef4444] text-base font-bold ml-4">Remove Friend</Text>
+                                    </TouchableOpacity>
+                                </>
+                            )}
 
                             <TouchableOpacity
                                 onPress={handleBlockToggle}
@@ -268,8 +378,8 @@ const UserProfile = () => {
     );
 };
 
-const ActionButton = ({ icon, label, color, disabled }) => (
-    <TouchableOpacity className="items-center" disabled={disabled}>
+const ActionBtn = ({ icon, label, color, disabled, onPress }) => (
+    <TouchableOpacity className="items-center" disabled={disabled} onPress={onPress}>
         <View className="w-12 h-12 rounded-full bg-[#202c33] items-center justify-center mb-1">
             <Ionicons name={icon} size={22} color={color} />
         </View>
