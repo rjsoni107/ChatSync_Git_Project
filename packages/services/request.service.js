@@ -120,3 +120,23 @@ export const checkExistingRelationship = async (senderId, receiverId) => {
 export const cancelChatRequest = async (requestId) => {
     return await databases.deleteDocument(DB_ID, REQUESTS_ID, requestId);
 };
+/**
+ * Delete all requests between two users (sent or received)
+ */
+export const deleteAllRequests = async (userA, userB) => {
+    try {
+        const res = await databases.listDocuments(DB_ID, REQUESTS_ID, [
+            Query.or([
+                Query.and([Query.equal("senderId", userA), Query.equal("receiverId", userB)]),
+                Query.and([Query.equal("senderId", userB), Query.equal("receiverId", userA)])
+            ])
+        ]);
+
+        const deletions = res.documents.map(doc => databases.deleteDocument(DB_ID, REQUESTS_ID, doc.$id));
+        await Promise.all(deletions);
+        return true;
+    } catch (error) {
+        console.error("Error deleting chat requests:", error);
+        return false;
+    }
+};

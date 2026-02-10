@@ -5,6 +5,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getUserProfile, blockUser, unblockUser, isUserBlocked } from '@chatterapp/services/user.service';
 import { clearChatMessages } from '@chatterapp/services/message.service';
+import { deletePrivateChat } from '@chatterapp/services/chat.service';
+import { deleteAllRequests } from '@chatterapp/services/request.service';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import Skeleton from '../../components/ui/Skeleton';
 import { formatLastSeen } from '@chatterapp/utils/date';
@@ -40,6 +42,41 @@ const UserProfile = () => {
             fetchInitialData();
         }
     }, [id, currentUser?.$id]);
+
+    const handleRemoveFriend = () => {
+        showAlert(
+            "Remove Friend",
+            `Are you sure you want to remove ${profile?.name} from your friends? This will delete your chat history and requests.`,
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Remove",
+                    style: "destructive",
+                    onPress: async () => {
+                        setProcessing(true);
+                        try {
+                            // 1. Delete the chat (and messages/members)
+                            if (chatId) {
+                                await deletePrivateChat(chatId);
+                            }
+
+                            // 2. Delete any chat requests
+                            await deleteAllRequests(currentUser.$id, id);
+
+                            showAlert("Success", "Friend removed successfully.");
+                            // Go back to previous screen
+                            router.replace('/(tabs)/chats');
+                        } catch (error) {
+                            console.error("Error removing friend:", error);
+                            showAlert("Error", "Failed to remove friend.");
+                        } finally {
+                            setProcessing(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     const handleClearChat = () => {
         if (!chatId) return;
@@ -200,8 +237,16 @@ const UserProfile = () => {
                                 onPress={handleClearChat}
                                 className="flex-row items-center py-4 border-b border-[#202c33]"
                             >
-                                <Ionicons name="trash-outline" size={24} color="#ef4444" />
+                                <Ionicons name="refresh-outline" size={24} color="#ef4444" />
                                 <Text className="text-[#ef4444] text-base font-bold ml-4">Clear Chat</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={handleRemoveFriend}
+                                className="flex-row items-center py-4 border-b border-[#202c33]"
+                            >
+                                <Ionicons name="person-remove-outline" size={24} color="#ef4444" />
+                                <Text className="text-[#ef4444] text-base font-bold ml-4">Remove Friend</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity

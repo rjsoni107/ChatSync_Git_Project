@@ -176,3 +176,38 @@ export const getOtherUserFromChat = async (chatId, currentUserId) => {
 
     return otherUser;
 };
+// 🗑️ delete chat and all related data
+export const deletePrivateChat = async (chatId) => {
+    if (!chatId) return;
+
+    try {
+        // 1. Get all members of this chat
+        const membersRes = await databases.listDocuments(DB_ID, MEMBERS_ID, [
+            Query.equal("chatId", chatId),
+        ]);
+
+        // 2. Delete all members
+        const memberDeletions = membersRes.documents.map(m =>
+            databases.deleteDocument(DB_ID, MEMBERS_ID, m.$id)
+        );
+
+        // 3. Delete messages (handled individually to avoid large batch issues, but Promise.all is fine for 100)
+        const messagesRes = await databases.listDocuments(DB_ID, appwriteConfig.messageCollectionId, [
+            Query.equal("chatId", chatId),
+            Query.limit(100),
+        ]);
+
+        const messageDeletions = messagesRes.documents.map(msg =>
+            databases.deleteDocument(DB_ID, appwriteConfig.messageCollectionId, msg.$id)
+        );
+
+        // 4. Delete the chat document itself
+        const chatDeletion = databases.deleteDocument(DB_ID, CHATS_ID, chatId);
+
+        await Promise.all([...memberDeletions, ...messageDeletions, chatDeletion]);
+        return true;
+    } catch (error) {
+        console.error("Error deleting private chat:", error);
+        throw error;
+    }
+};

@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const UserListItem = ({ user, onPress, loading, status }) => {
     // status: 'none' | 'sent' | 'friend'
-    
+
     const renderButton = () => {
         if (status === 'friend') {
             return (
@@ -17,16 +17,16 @@ const UserListItem = ({ user, onPress, loading, status }) => {
         if (status === 'sent') {
             return (
                 <View className="bg-[#374045] px-4 py-1.5 rounded-full border border-white/5">
-                    <Text className="text-white font-bold text-xs">Cancel</Text>
+                    <Text className="text-white font-bold text-sm">Cancel</Text>
                 </View>
             );
         }
 
         // Default 'none' case
         return (
-            <View className="bg-[#FFFC00] px-4 py-1.5 rounded-full flex-row items-center border border-black/5">
-                <Ionicons name="person-add" size={14} color="black" />
-                <Text className="text-black font-bold text-xs ml-1">Add</Text>
+            <View className="bg-secondary px-4 py-1.5 rounded-full flex-row items-center border border-black/5">
+                <Ionicons name="person-add" size={17} color="white" />
+                <Text className="text-white font-bold text-sm ml-1">Add</Text>
             </View>
         );
     };
