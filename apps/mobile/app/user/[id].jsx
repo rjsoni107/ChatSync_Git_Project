@@ -265,54 +265,73 @@ const UserProfile = () => {
 
                         {/* Quick Actions */}
                         <View className="flex-row mt-8 w-full justify-around px-8">
-                            {!isSelf && !chatId && !relationship && (
-                                <ActionBtn
-                                    icon="person-add"
-                                    label="Add Friend"
-                                    onPress={handleSendRequest}
-                                    color="#60a5fa"
-                                />
-                            )}
-
-                            {!isSelf && relationship?.type === 'request_sent' && (
-                                <ActionBtn
-                                    icon="close-circle"
-                                    label="Cancel Req"
-                                    onPress={handleCancelRequest}
-                                    color="#ef4444"
-                                />
-                            )}
-
-                            {!isSelf && relationship?.type === 'request_received' && (
-                                <ActionBtn
-                                    icon="checkmark-circle"
-                                    label="Accept Req"
-                                    onPress={handleAcceptRequest}
-                                    color="#22c55e"
-                                />
-                            )}
-
-                            {chatId && (
+                            {loading ? (
                                 <>
-                                    <ActionBtn icon="call" label="Audio" color={isBlocked ? "#374045" : "#60a5fa"} disabled={isBlocked} />
-                                    <ActionBtn icon="videocam" label="Video" color={isBlocked ? "#374045" : "#60a5fa"} disabled={isBlocked} />
-                                    <ActionBtn
-                                        icon="chatbubble"
-                                        label="Message"
-                                        onPress={() => router.push(`/chat/${chatId}`)}
-                                        color="#60a5fa"
-                                        disabled={isBlocked}
-                                    />
+                                    <View className="items-center">
+                                        <Skeleton width={48} height={48} borderRadius={24} backgroundColor="#202c33" />
+                                        <Skeleton width={40} height={12} borderRadius={6} backgroundColor="#202c33" className="mt-2" />
+                                    </View>
+                                    <View className="items-center">
+                                        <Skeleton width={48} height={48} borderRadius={24} backgroundColor="#202c33" />
+                                        <Skeleton width={40} height={12} borderRadius={6} backgroundColor="#202c33" className="mt-2" />
+                                    </View>
+                                    <View className="items-center">
+                                        <Skeleton width={48} height={48} borderRadius={24} backgroundColor="#202c33" />
+                                        <Skeleton width={40} height={12} borderRadius={6} backgroundColor="#202c33" className="mt-2" />
+                                    </View>
                                 </>
-                            )}
-                            <ActionBtn icon="search" label="Search" color="#60a5fa" />
-                            {isSelf && (
-                                <ActionBtn
-                                    icon="create-outline"
-                                    label="Edit"
-                                    onPress={() => router.push('/profile/edit')}
-                                    color="#60a5fa"
-                                />
+                            ) : (
+                                <>
+                                    {!isSelf && !chatId && !relationship && (
+                                        <ActionBtn
+                                            icon="person-add"
+                                            label="Add Friend"
+                                            onPress={handleSendRequest}
+                                            color="#60a5fa"
+                                        />
+                                    )}
+
+                                    {!isSelf && relationship?.type === 'request_sent' && (
+                                        <ActionBtn
+                                            icon="close-circle"
+                                            label="Cancel Req"
+                                            onPress={handleCancelRequest}
+                                            color="#ef4444"
+                                        />
+                                    )}
+
+                                    {!isSelf && relationship?.type === 'request_received' && (
+                                        <ActionBtn
+                                            icon="checkmark-circle"
+                                            label="Accept Req"
+                                            onPress={handleAcceptRequest}
+                                            color="#22c55e"
+                                        />
+                                    )}
+
+                                    {chatId && (
+                                        <>
+                                            <ActionBtn icon="call" label="Audio" color={isBlocked ? "#374045" : "#60a5fa"} disabled={isBlocked} />
+                                            <ActionBtn icon="videocam" label="Video" color={isBlocked ? "#374045" : "#60a5fa"} disabled={isBlocked} />
+                                            <ActionBtn
+                                                icon="chatbubble"
+                                                label="Message"
+                                                onPress={() => router.push(`/chat/${chatId}`)}
+                                                color="#60a5fa"
+                                                disabled={isBlocked}
+                                            />
+                                        </>
+                                    )}
+                                    <ActionBtn icon="search" label="Search" color="#60a5fa" />
+                                    {isSelf && (
+                                        <ActionBtn
+                                            icon="create-outline"
+                                            label="Edit"
+                                            onPress={() => router.push('/profile/edit')}
+                                            color="#60a5fa"
+                                        />
+                                    )}
+                                </>
                             )}
                         </View>
                     </View>
@@ -320,54 +339,88 @@ const UserProfile = () => {
                     {/* Info Sections */}
                     <View className="mt-4 px-4">
                         <InfoSection title="About and phone number">
-                            <Text className="text-white text-base">
-                                {profile?.bio || "Hey there! I am using ChatterApp."}
-                            </Text>
-                            <Text className="text-[#8696a0] text-xs mt-2">
-                                Updated {profile?.$updatedAt ? new Date(profile.$updatedAt).toLocaleDateString() : 'recently'}
-                            </Text>
+                            {loading ? (
+                                <View>
+                                    <Skeleton width="100%" height={20} borderRadius={10} backgroundColor="#202c33" className="mb-2" />
+                                    <Skeleton width="60%" height={14} borderRadius={7} backgroundColor="#202c33" />
+                                </View>
+                            ) : (
+                                <>
+                                    <Text className="text-white text-base">
+                                        {profile?.bio || "Hey there! I am using ChatterApp."}
+                                    </Text>
+                                    <Text className="text-[#8696a0] text-xs mt-2">
+                                        Updated {profile?.$updatedAt ? new Date(profile.$updatedAt).toLocaleDateString() : 'recently'}
+                                    </Text>
+                                </>
+                            )}
                         </InfoSection>
 
-                        {chatId && (
-                            <InfoSection title="Media, links and docs">
+                        {loading ? (
+                            <View className="py-4 border-b border-[#202c33]">
+                                <Skeleton width={150} height={16} borderRadius={8} backgroundColor="#202c33" className="mb-3" />
                                 <View className="flex-row items-center justify-between">
-                                    <Text className="text-[#8696a0] text-sm italic">No media shared yet</Text>
-                                    <Ionicons name="chevron-forward" size={20} color="#374045" />
+                                    <Skeleton width={100} height={14} borderRadius={7} backgroundColor="#202c33" />
+                                    <Skeleton width={20} height={20} borderRadius={10} backgroundColor="#202c33" />
                                 </View>
-                            </InfoSection>
+                            </View>
+                        ) : (
+                            chatId && (
+                                <InfoSection title="Media, links and docs">
+                                    <View className="flex-row items-center justify-between">
+                                        <Text className="text-[#8696a0] text-sm italic">No media shared yet</Text>
+                                        <Ionicons name="chevron-forward" size={20} color="#374045" />
+                                    </View>
+                                </InfoSection>
+                            )
                         )}
 
                         {/* Management Actions */}
                         <View className="mt-6 mb-8">
-                            {chatId && (
+                            {loading ? (
                                 <>
-                                    <TouchableOpacity
-                                        onPress={handleClearChat}
-                                        className="flex-row items-center py-4 border-b border-[#202c33]"
-                                    >
-                                        <Ionicons name="refresh-outline" size={24} color="#ef4444" />
-                                        <Text className="text-[#ef4444] text-base font-bold ml-4">Clear Chat</Text>
-                                    </TouchableOpacity>
+                                    <View className="flex-row items-center py-4 border-b border-[#202c33]">
+                                        <Skeleton width={24} height={24} borderRadius={12} backgroundColor="#202c33" />
+                                        <Skeleton width={120} height={16} borderRadius={8} backgroundColor="#202c33" className="ml-4" />
+                                    </View>
+                                    <View className="flex-row items-center py-4 border-b border-[#202c33]">
+                                        <Skeleton width={24} height={24} borderRadius={12} backgroundColor="#202c33" />
+                                        <Skeleton width={120} height={16} borderRadius={8} backgroundColor="#202c33" className="ml-4" />
+                                    </View>
+                                </>
+                            ) : (
+                                <>
+                                    {chatId && (
+                                        <>
+                                            <TouchableOpacity
+                                                onPress={handleClearChat}
+                                                className="flex-row items-center py-4 border-b border-[#202c33]"
+                                            >
+                                                <Ionicons name="refresh-outline" size={24} color="#ef4444" />
+                                                <Text className="text-[#ef4444] text-base font-bold ml-4">Clear Chat</Text>
+                                            </TouchableOpacity>
+
+                                            <TouchableOpacity
+                                                onPress={handleRemoveFriend}
+                                                className="flex-row items-center py-4 border-b border-[#202c33]"
+                                            >
+                                                <Ionicons name="person-remove-outline" size={24} color="#ef4444" />
+                                                <Text className="text-[#ef4444] text-base font-bold ml-4">Remove Friend</Text>
+                                            </TouchableOpacity>
+                                        </>
+                                    )}
 
                                     <TouchableOpacity
-                                        onPress={handleRemoveFriend}
+                                        onPress={handleBlockToggle}
                                         className="flex-row items-center py-4 border-b border-[#202c33]"
                                     >
-                                        <Ionicons name="person-remove-outline" size={24} color="#ef4444" />
-                                        <Text className="text-[#ef4444] text-base font-bold ml-4">Remove Friend</Text>
+                                        <Ionicons name={isBlocked ? "lock-open-outline" : "ban-outline"} size={24} color="#ef4444" />
+                                        <Text className="text-[#ef4444] text-base font-bold ml-4">
+                                            {isBlocked ? `Unblock ${profile?.name}` : `Block ${profile?.name}`}
+                                        </Text>
                                     </TouchableOpacity>
                                 </>
                             )}
-
-                            <TouchableOpacity
-                                onPress={handleBlockToggle}
-                                className="flex-row items-center py-4 border-b border-[#202c33]"
-                            >
-                                <Ionicons name={isBlocked ? "lock-open-outline" : "ban-outline"} size={24} color="#ef4444" />
-                                <Text className="text-[#ef4444] text-base font-bold ml-4">
-                                    {isBlocked ? `Unblock ${profile?.name}` : `Block ${profile?.name}`}
-                                </Text>
-                            </TouchableOpacity>
                         </View>
                     </View>
 
