@@ -32,9 +32,9 @@ export const sendChatRequest = async (senderId, receiverId) => {
         },
         [
             Permission.read(Role.user(senderId)),
-            Permission.read(Role.user(receiverId)),
+            Permission.read(Role.users()),
             Permission.update(Role.user(senderId)),
-            Permission.update(Role.user(receiverId)),
+            Permission.update(Role.users()),
         ]
     );
 };

@@ -6,9 +6,11 @@ import { getReceivedRequests, updateRequestStatus } from '@chatterapp/services/r
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import bgColor from '../../components/ui/bgColor';
+import { useAlertStore } from '@chatterapp/store/useAlertStore';
 
 const Requests = () => {
     const user = useAuthStore((s) => s.user);
+    const showAlert = useAlertStore((s) => s.showAlert);
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -38,10 +40,10 @@ const Requests = () => {
         setProcessingId(requestId);
         try {
             await updateRequestStatus(requestId, status);
-            Alert.alert("Success", `Request ${status === 'accepted' ? 'accepted' : 'ignored'}.`);
+            showAlert("Success", `Request ${status === 'accepted' ? 'accepted' : 'ignored'}.`);
             fetchRequests();
         } catch (error) {
-            Alert.alert("Error", "Failed to update request.");
+            showAlert("Error", "Failed to update request.");
         } finally {
             setProcessingId(null);
         }
@@ -59,7 +61,7 @@ const Requests = () => {
                     {sender?.avatar ? (
                         <Image source={{ uri: sender.avatar }} className="w-full h-full" />
                     ) : (
-                        <Text className="text-white text-lg font-bold">
+                        <Text className="text-black text-lg font-bold">
                             {sender?.name?.charAt(0).toUpperCase()}
                         </Text>
                     )}
@@ -76,14 +78,14 @@ const Requests = () => {
                     <TouchableOpacity
                         onPress={() => handleAction(item.$id, 'accepted')}
                         disabled={!!processingId}
-                        className="bg-primary px-3 py-1.5 rounded-lg mr-2 flex-row items-center"
+                        className="bg-secondary px-3 py-1.5 rounded-lg mr-2 flex-row items-center"
                     >
                         {processingId === item.$id ? (
-                            <ActivityIndicator size="small" color="#111b21" />
+                            <ActivityIndicator size="small" color="#f3f3f3" />
                         ) : (
                             <>
-                                <Ionicons name="checkmark" size={18} color="#111b21" />
-                                <Text className="text-[#111b21] font-bold ml-1">Accept</Text>
+                                <Ionicons name="checkmark" size={18} color="#f3f3f3" />
+                                <Text className="text-[#f3f3f3] font-bold ml-1">Accept</Text>
                             </>
                         )}
                     </TouchableOpacity>
@@ -94,7 +96,7 @@ const Requests = () => {
                         className="bg-surface border border-red-500/50 px-3 py-1.5 rounded-lg flex-row items-center"
                     >
                         <Ionicons name="close" size={18} color="#ef4444" />
-                        <Text className="text-red-500 font-bold ml-1">Ignore</Text>
+                        {/* <Text className="text-red-500 font-bold ml-1">Ignore</Text> */}
                     </TouchableOpacity>
                 </View>
             </View>

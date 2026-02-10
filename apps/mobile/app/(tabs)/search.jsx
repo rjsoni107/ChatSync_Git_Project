@@ -9,11 +9,12 @@ import SearchBar from '../../components/chat/SearchBar';
 import UserListItem from '../../components/contacts/UserListItem';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Alert } from 'react-native';
+import { useAlertStore } from '@chatterapp/store/useAlertStore';
 
 const Search = () => {
     const router = useRouter();
     const user = useAuthStore((s) => s.user);
+    const showAlert = useAlertStore(s => s.showAlert);
 
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
@@ -96,17 +97,17 @@ const Search = () => {
             if (targetUser.relationshipStatus === 'sent') {
                 // Cancel request
                 await cancelChatRequest(targetUser.requestId);
-                Alert.alert("Success", "Request cancelled.");
+                showAlert("Success", "Request cancelled.");
             } else {
                 // Send new chat request
                 await sendChatRequest(user.$id, targetUser.userId);
-                Alert.alert("Success", "Chat request sent!");
+                showAlert("Success", "Chat request sent!");
             }
             // Refresh results to show new status
             handleSearch();
         } catch (error) {
             console.error('Error handling chat request:', error);
-            Alert.alert('Error', error.message || 'Action failed.');
+            showAlert('Error', error.message || 'Action failed.');
         } finally {
             setStartingChat(false);
         }
