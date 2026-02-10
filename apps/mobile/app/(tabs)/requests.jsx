@@ -2,6 +2,7 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert, Refre
 import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
+import { useNotificationStore } from '@chatterapp/store/useNotificationStore';
 import { getReceivedRequests, updateRequestStatus } from '@chatterapp/services/request.service';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -24,6 +25,7 @@ const Requests = () => {
         try {
             const data = await getReceivedRequests(user.$id);
             setRequests(data);
+            useNotificationStore.getState().setPendingRequestsCount(data.length);
         } catch (error) {
             console.error('Error fetching requests:', error);
         } finally {

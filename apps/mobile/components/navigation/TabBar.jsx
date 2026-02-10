@@ -2,8 +2,12 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNotificationStore } from '@chatterapp/store/useNotificationStore';
 
 const TabBar = ({ state, descriptors, navigation }) => {
+    const unreadMessagesCount = useNotificationStore(s => s.unreadMessagesCount);
+    const pendingRequestsCount = useNotificationStore(s => s.pendingRequestsCount);
+
     const icons = {
         chats: (props) => <Ionicons name="chatbubbles-outline" size={24} {...props} />,
         search: (props) => <Ionicons name="search-outline" size={24} {...props} />,
@@ -44,6 +48,31 @@ const TabBar = ({ state, descriptors, navigation }) => {
                         >
                             <View className={`w-14 h-8 items-center justify-center rounded-full overflow-hidden mb-1 ${isFocused ? 'bg-[#2563eb]/50' : ''}`}>
                                 {icons[route.name] ? icons[route.name]({ color: isFocused ? '#ffff' : '#8696a0' }) : null}
+
+                                {/* Badge */}
+                                {((route.name === 'chats' && unreadMessagesCount > 0) ||
+                                    (route.name === 'requests' && pendingRequestsCount > 0)) && (
+                                        <View
+                                            style={{
+                                                position: 'absolute',
+                                                top: -2,
+                                                right: 8,
+                                                backgroundColor: '#ef4444',
+                                                borderRadius: 10,
+                                                minWidth: 18,
+                                                height: 18,
+                                                paddingHorizontal: 4,
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                borderWidth: 1.5,
+                                                borderColor: '#1c2932'
+                                            }}
+                                        >
+                                            <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
+                                                {route.name === 'chats' ? unreadMessagesCount : pendingRequestsCount}
+                                            </Text>
+                                        </View>
+                                    )}
                             </View>
                             <Text style={{ color: isFocused ? '#ffff' : '#8696a0', fontSize: 12, fontWeight: isFocused ? '600' : '400' }}>
                                 {label}

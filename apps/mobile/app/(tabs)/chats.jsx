@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import { useChatStore } from '@chatterapp/store/useChatStore';
+import { useNotificationStore } from '@chatterapp/store/useNotificationStore';
 import { getUserChats } from '@chatterapp/services/chat.service';
 import { subscribeChatsRealtime, subscribeUserPresence } from '@chatterapp/services/realtime.service';
 import { subscribeMessages } from '@chatterapp/services/message.service';
@@ -32,6 +33,10 @@ const Chats = () => {
         try {
             const fetchedChats = await getUserChats(user.$id);
             setChats(fetchedChats);
+
+            // Update unread messages count for tab badge
+            const totalUnread = fetchedChats.reduce((acc, chat) => acc + (chat.unreadCount || 0), 0);
+            useNotificationStore.getState().setUnreadMessagesCount(totalUnread);
 
             // Initialize presence map from fetched data
             const initialMap = {};

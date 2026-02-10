@@ -59,3 +59,12 @@ export const subscribeChatTyping = (chatId, otherUserId, callback) => {
     });
 };
 
+export const subscribeRequests = (callback) => {
+    if (!DB_ID || !appwriteConfig.chatRequestCollectionId) {
+        console.warn('Realtime: Missing DB_ID or chatRequestCollectionId');
+        return () => { };
+    }
+    const channel = `databases.${DB_ID}.collections.${appwriteConfig.chatRequestCollectionId}.documents`;
+    console.log(`Subscribing to requests: ${channel}`);
+    return client.subscribe(channel, (event) => callback(event));
+};
