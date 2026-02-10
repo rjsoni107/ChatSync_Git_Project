@@ -20,6 +20,7 @@
       "bundleIdentifier": "com.chatterapp.app"
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.webp",
         "backgroundColor": "#0f172a"
