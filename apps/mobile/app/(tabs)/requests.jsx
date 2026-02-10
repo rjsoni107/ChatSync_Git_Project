@@ -69,7 +69,9 @@ const Requests = () => {
             <View className="flex-row items-center px-4 py-3 border-b border-white/5 bg-surface/30">
                 {/* Avatar */}
                 <View className={`w-12 h-12 rounded-full items-center justify-center overflow-hidden ${bgColor[colorIndex]}`}>
-                    {sender?.avatar ? (
+                    {sender?.profile_pic ? (
+                        <Image source={{ uri: sender.profile_pic }} className="w-full h-full" />
+                    ) : sender?.avatar ? (
                         <Image source={{ uri: sender.avatar }} className="w-full h-full" />
                     ) : (
                         <Text className="text-black text-lg font-bold">

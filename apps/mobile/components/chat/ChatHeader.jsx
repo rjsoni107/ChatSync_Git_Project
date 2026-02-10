@@ -45,7 +45,9 @@ const ChatHeader = ({ user, typing, chatId }) => {
                     {user?.name ? (
                         <>
                             <View className={`w-12 h-12 rounded-full items-center justify-center overflow-hidden ml-1 ${bgColor[colorIndex]}`}>
-                                {user?.avatar ? (
+                                {user?.profile_pic ? (
+                                    <Image source={{ uri: user.profile_pic }} className="w-full h-full" />
+                                ) : user?.avatar ? (
                                     <Image source={{ uri: user.avatar }} className="w-full h-full" />
                                 ) : (
                                     <Text className="text-[#111b21] text-lg font-bold">

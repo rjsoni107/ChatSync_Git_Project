@@ -1,5 +1,5 @@
-//auth.service.js
 import { account, ID } from "@chatterapp/api/appwrite";
+import { getUserProfile } from "./user.service";
 
 export const signup = async (email, password, name) => {
     return await account.create("unique()", email, password, name);
@@ -17,7 +17,20 @@ export const login = async (email, password) => {
 };
 
 export const getCurrentUser = async () => {
-    return await account.get();
+    try {
+        const accountData = await account.get();
+        if (!accountData) return null;
+
+        try {
+            const profile = await getUserProfile(accountData.$id);
+            return { ...accountData, ...profile };
+        } catch (profileError) {
+            // Profile might not exist yet for new users or if sync failed
+            return accountData;
+        }
+    } catch (error) {
+        return null;
+    }
 };
 
 export const logout = async () => {

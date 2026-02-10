@@ -60,6 +60,8 @@ const UserListItem = ({ user, onPress, loading, status }) => {
                 <View className="w-12 h-12 rounded-full bg-[#374045] items-center justify-center overflow-hidden">
                     {user.profile_pic ? (
                         <Image source={{ uri: user.profile_pic }} className="w-full h-full" />
+                    ) : user.avatar ? (
+                        <Image source={{ uri: user.avatar }} className="w-full h-full" />
                     ) : (
                         <Text className="text-white text-base font-bold">
                             {user.name?.charAt(0).toUpperCase() || '?'}

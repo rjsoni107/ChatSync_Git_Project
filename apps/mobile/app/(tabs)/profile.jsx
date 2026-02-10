@@ -125,6 +125,9 @@ const Profile = () => {
                     profile_pic: photoUrl
                 });
 
+                // Update store so tab bar and other components sync
+                useAuthStore.getState().setUser({ ...user, profile_pic: photoUrl });
+
                 setProfile(prev => ({ ...prev, profile_pic: photoUrl }));
                 showAlert('Success', 'Profile photo updated');
             }
@@ -151,6 +154,9 @@ const Profile = () => {
                             await updateUserProfile(user.$id, {
                                 profile_pic: ""
                             });
+                            // Update store
+                            useAuthStore.getState().setUser({ ...user, profile_pic: "" });
+
                             setProfile(prev => ({ ...prev, profile_pic: "" }));
                             showAlert('Success', 'Profile photo removed');
                         } catch (err) {
@@ -311,7 +317,7 @@ const Profile = () => {
                     </TouchableOpacity>
 
                     <View className="items-center mt-6">
-                        <Text className="text-gray-600 text-xs">ChatterApp v1.0.0</Text>
+                        <Text className="text-gray-600 text-xs">ChatterApp v1.0.1</Text>
                         <Text className="text-gray-600 text-[10px] mt-1">from JaRa Tech Solutions Pvt. Ltd.</Text>
                     </View>
                 </View>

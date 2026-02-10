@@ -110,7 +110,7 @@ const Chats = () => {
             chat={{
                 ...item,
                 name: item.name || item.otherUser?.name,
-                avatar: item.otherUser?.avatar
+                avatar: item.otherUser?.profile_pic || item.otherUser?.avatar
             }}
             lastMessage={item.lastMessage ? {
                 content: item.lastMessage,

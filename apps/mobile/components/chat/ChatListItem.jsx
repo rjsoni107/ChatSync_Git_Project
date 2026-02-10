@@ -26,7 +26,9 @@ const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
             {/* Avatar */}
             <View className="relative">
                 <View className="w-14 h-14 rounded-full bg-[#202c33] items-center justify-center overflow-hidden">
-                    {chat.avatar ? (
+                    {chat.profile_pic ? (
+                        <Image source={{ uri: chat.profile_pic }} className="w-full h-full" />
+                    ) : chat.avatar ? (
                         <Image source={{ uri: chat.avatar }} className="w-full h-full" />
                     ) : (
                         <Text className="text-white text-xl font-bold">
