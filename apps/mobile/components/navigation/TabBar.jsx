@@ -26,7 +26,7 @@ const TabBar = ({ state, descriptors, navigation }) => {
     const icons = {
         chats: (props) => <Ionicons name="chatbubbles-outline" size={28} {...props} />,
         search: (props) => <Ionicons name="search-outline" size={28} {...props} />,
-        requests: (props) => <Ionicons name="mail-unread-outline" size={28} {...props} />,
+        requests: (props) => <Ionicons name="people-outline" size={30} {...props} />,
         profile: (props) => {
             const isFocused = props.color === '#ffff';
             if (user?.profile_pic) {
