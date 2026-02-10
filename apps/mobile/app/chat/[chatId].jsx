@@ -54,12 +54,21 @@ const ChatScreen = () => {
         }
     }, [chatId, user?.$id, setMessages]);
 
+    // 1. Load initial chat data
     useEffect(() => {
         if (!user?.$id || !chatId) return;
 
-        loadChatData();
+        // Clear previous chat data to prevent stale display
+        setMessages([]);
+        didInitialScrollRef.current = false;
 
-        // Subscribe to messages
+        loadChatData();
+    }, [chatId, user?.$id]); // Re-run only on chat change
+
+    // 2. Subscribe to messages (Persistent during chat session)
+    useEffect(() => {
+        if (!user?.$id || !chatId) return;
+
         const unsubscribeMessages = subscribeMessages((res) => {
             if (res.events.includes('databases.*.collections.*.documents.*.create')) {
                 const newMessage = res.payload;
@@ -72,45 +81,44 @@ const ChatScreen = () => {
                     }
                 }
             } else if (res.events.includes('databases.*.collections.*.documents.*.update')) {
-                // Update message (e.g. isSeen updated or deletedForUsers updated)
                 const updatedMessage = res.payload;
                 if (updatedMessage.chatId === chatId) {
                     setMessages(prev => prev.map(m => m.$id === updatedMessage.$id ? updatedMessage : m));
                 }
             } else if (res.events.includes('databases.*.collections.*.documents.*.delete')) {
-                // Delete message (Unsend)
                 const deletedMessage = res.payload;
-                // res.payload for delete event in Appwrite usually contains the deleted document
                 setMessages(prev => prev.filter(m => m.$id !== deletedMessage.$id));
             }
         });
 
-        // Listen for typing from the OTHER user specifically
-        let unsubscribeTyping = () => { };
-        if (otherUser?.$id) {
-            unsubscribeTyping = subscribeChatTyping(chatId, otherUser.$id, (payload) => {
-                setIsOtherUserTyping(payload.isTyping);
-            });
-        }
+        return () => unsubscribeMessages();
+    }, [chatId, user?.$id, addMessage, setMessages]); // Independent of otherUser state
+
+    // 3. Subscribe to Other User's typing status
+    useEffect(() => {
+        if (!chatId || !otherUser?.$id) return;
+
+        const unsubscribeTyping = subscribeChatTyping(chatId, otherUser.$id, (payload) => {
+            setIsOtherUserTyping(payload.isTyping);
+        });
 
         return () => {
-            unsubscribeMessages();
             unsubscribeTyping();
             if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         };
-    }, [loadChatData, addMessage, chatId, user?.$id, setMessages, otherUser?.$id]);
+    }, [chatId, otherUser?.$id]);
 
-    // Handle other user's presence updates in real-time
+    // 4. Subscribe to Other User's presence updates
     useEffect(() => {
         if (!otherUser?.$id) return;
 
         console.log("Subscribing to other user presence:", otherUser.$id);
-        const unsubscribe = subscribeSingleUserPresence(otherUser.$id, (payload) => {
+        const unsubscribePresence = subscribeSingleUserPresence(otherUser.$id, (payload) => {
             console.log("Other user presence update:", payload.isOnline);
             setOtherUser(payload);
         });
 
-        return () => unsubscribe();
+        return () => unsubscribePresence();
     }, [otherUser?.$id]);
 
     useEffect(() => {
@@ -235,9 +243,9 @@ const ChatScreen = () => {
             <ChatHeader user={otherUser} typing={isOtherUserTyping} chatId={chatId} />
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
                 className="flex-1"
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 60}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
                 <View className="flex-1">
                     <FlatList

@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import { useNotificationStore } from '@chatterapp/store/useNotificationStore';
 import { getReceivedRequests, updateRequestStatus } from '@chatterapp/services/request.service';
+import { subscribeRequests } from '@chatterapp/services/realtime.service';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import bgColor from '../../components/ui/bgColor';
@@ -17,10 +18,10 @@ const Requests = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [processingId, setProcessingId] = useState(null);
 
-    const fetchRequests = useCallback(async (isRefresh = false) => {
+    const fetchRequests = useCallback(async (isRefresh = false, isSilent = false) => {
         if (!user?.$id) return;
         if (isRefresh) setRefreshing(true);
-        else setLoading(true);
+        else if (!isSilent) setLoading(true);
 
         try {
             const data = await getReceivedRequests(user.$id);
@@ -35,8 +36,16 @@ const Requests = () => {
     }, [user?.$id]);
 
     useEffect(() => {
+        if (!user?.$id) return;
         fetchRequests();
-    }, [fetchRequests]);
+
+        // Subscribe to real-time request updates
+        const unsubscribe = subscribeRequests(() => {
+            fetchRequests(false, true); // Silent refresh
+        });
+
+        return () => unsubscribe();
+    }, [fetchRequests, user?.$id]);
 
     const handleAction = async (requestId, status) => {
         setProcessingId(requestId);

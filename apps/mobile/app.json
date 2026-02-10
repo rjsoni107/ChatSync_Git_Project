@@ -49,10 +49,10 @@
         "origin": false
       },
       "eas": {
-        "projectId": "1ad0c94e-6989-4bad-bceb-5e742fc973ec"
+        "projectId": "2f28cfc0-b2c8-4a81-8319-11ff613d2d74"
       }
     },
     "jsEngine": "hermes",
-    "owner": "rjsoni107"
+    "owner": "chatterapp"
   }
 }

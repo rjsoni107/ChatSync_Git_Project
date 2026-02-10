@@ -68,8 +68,8 @@ const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
                         </Text>
                     </View>
                     {unreadCount > 0 && (
-                        <View className="bg-primary rounded-full min-w-[20px] h-5 items-center justify-center px-1">
-                            <Text className="text-[#111b21] text-xs font-bold">
+                        <View className="bg-secondary rounded-full min-w-[20px] h-5 items-center justify-center px-1">
+                            <Text className="text-white text-xs font-bold">
                                 {unreadCount}
                             </Text>
                         </View>

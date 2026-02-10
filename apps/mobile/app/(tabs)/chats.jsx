@@ -24,11 +24,11 @@ const Chats = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [presenceMap, setPresenceMap] = useState({});
 
-    const fetchChats = useCallback(async (isRefresh = false) => {
+    const fetchChats = useCallback(async (isRefresh = false, isSilent = false) => {
         if (!user?.$id) return;
 
         if (isRefresh) setRefreshing(true);
-        else setLoading(true);
+        else if (!isSilent) setLoading(true);
 
         try {
             const fetchedChats = await getUserChats(user.$id);
@@ -54,24 +54,42 @@ const Chats = () => {
         }
     }, [user?.$id, setChats]);
 
+    // 1. Initial Load
     useEffect(() => {
         if (!user?.$id) return;
-
         fetchChats();
+    }, [user?.$id, fetchChats]);
 
-        // Subscribe to real-time chat updates
-        const unsubscribeChats = subscribeChatsRealtime((event) => {
-            fetchChats();
+    // 2. Subscribe to Chat Meta Updates
+    useEffect(() => {
+        if (!user?.$id) return;
+        const unsubscribe = subscribeChatsRealtime(() => {
+            fetchChats(false, true);
         });
+        return () => unsubscribe();
+    }, [user?.$id, fetchChats]);
 
-        // Subscribe to message updates to refresh unread counts
-        const unsubscribeMessages = subscribeMessages((event) => {
-            // Re-fetch chats when any message is added or updated (e.g. isSeen changes)
-            fetchChats();
+    // 3. Subscribe to Message Updates (for unread counts and delivery)
+    useEffect(() => {
+        if (!user?.$id) return;
+        const unsubscribe = subscribeMessages((event) => {
+            fetchChats(false, true);
+
+            if (event.events.includes('databases.*.collections.*.documents.*.create')) {
+                const newMessage = event.payload;
+                if (newMessage.senderId !== user.$id) {
+                    const { markMessagesAsDelivered } = require('@chatterapp/services/message.service');
+                    markMessagesAsDelivered(newMessage.chatId, user.$id);
+                }
+            }
         });
+        return () => unsubscribe();
+    }, [user?.$id, fetchChats]);
 
-        // Subscribe to presence updates
-        const unsubscribePresence = subscribeUserPresence((event) => {
+    // 4. Subscribe to Presence Updates
+    useEffect(() => {
+        if (!user?.$id) return;
+        const unsubscribe = subscribeUserPresence((event) => {
             if (event.payload) {
                 setPresenceMap(prev => ({
                     ...prev,
@@ -79,13 +97,8 @@ const Chats = () => {
                 }));
             }
         });
-
-        return () => {
-            unsubscribeChats();
-            unsubscribeMessages();
-            unsubscribePresence();
-        };
-    }, [fetchChats, user?.$id]);
+        return () => unsubscribe();
+    }, [user?.$id]);
 
     const filteredChats = chats.filter(chat => {
         const name = chat.name || chat.otherUser?.name || '';
