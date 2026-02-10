@@ -40,13 +40,13 @@ export default function RootLayout() {
     }, []);
 
     // Registration for Push Notifications
-    // useEffect(() => {
-    //     if (user?.$id) {
-    //         registerForPushNotificationsAsync(user.$id);
-    //         const unsubscribe = setupNotificationListeners();
-    //         return () => unsubscribe();
-    //     }
-    // }, [user?.$id]);
+    useEffect(() => {
+        if (user?.$id) {
+            registerForPushNotificationsAsync(user.$id);
+            const unsubscribe = setupNotificationListeners();
+            return () => unsubscribe();
+        }
+    }, [user?.$id]);
 
     useEffect(() => {
         if (!isReady) return;

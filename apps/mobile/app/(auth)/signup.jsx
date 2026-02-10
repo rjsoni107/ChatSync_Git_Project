@@ -1,7 +1,7 @@
 import { View, Text, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { signup, login, sendVerificationEmail } from '@chatterapp/services/auth.service';
+import { signup, login } from '@chatterapp/services/auth.service';
 import * as Linking from 'expo-linking';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import { checkUsernameAvailability, getUsernameSuggestions, createUserProfile } from '@chatterapp/services/user.service';
@@ -81,28 +81,25 @@ const Signup = () => {
             await signup(email, password, name);
             const session = await login(email, password);
             if (session) {
-                const { getCurrentUser } = await import('@chatterapp/services/auth.service');
+                const { getCurrentUser, sendVerificationOTP } = await import('@chatterapp/services/auth.service');
                 const user = await getCurrentUser();
 
                 // ℹ️ Create User Profile with custom username
                 await createUserProfile(user, username);
 
-                // 📧 Send Verification Email
-                // Using dynamic Expo linking for development
+                // 📧 Send Verification OTP
                 try {
-                    const verificationUrl = 'https://rjsoni.com/verify-email';
-                    await sendVerificationEmail(verificationUrl);
+                    await sendVerificationOTP(user.$id, email);
                 } catch (verifyErr) {
-                    console.error('Verification email failed:', verifyErr);
-                    // If it's the URI error, we still proceed but show a warning
-                    if (verifyErr.message?.includes('Invalid URI')) {
-                        console.warn('URI not registered in Appwrite Console');
-                    }
+                    console.error('Verification OTP failed:', verifyErr);
                 }
 
                 setUser(user);
                 // Redirect to verify email screen instead of chats
-                router.replace('/(auth)/verify-email');
+                router.replace({
+                    pathname: '/(auth)/verify-email',
+                    params: { userId: user.$id, email: email }
+                });
             }
         } catch (err) {
             console.error('Signup error:', err);

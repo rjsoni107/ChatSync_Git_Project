@@ -4,7 +4,6 @@ import { Platform } from 'react-native';
 import { updateUserProfile } from '@chatterapp/services/user.service';
 import { useAlertStore } from '@chatterapp/store/useAlertStore';
 
-const showAlert = useAlertStore(s => s.showAlert);
 // Configure how notifications are handled when the app is in the foreground
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -31,7 +30,7 @@ export const registerForPushNotificationsAsync = async (userId) => {
     }
 
     if (finalStatus !== 'granted') {
-        showAlert('Failed to get push token for push notification!');
+        useAlertStore.getState().showAlert('Failed to get push token for push notification!');
         return;
     }
 
@@ -78,7 +77,7 @@ export const setupNotificationListeners = () => {
     });
 
     return () => {
-        Notifications.removeNotificationSubscription(notificationListener);
-        Notifications.removeNotificationSubscription(responseListener);
+        notificationListener.remove();
+        responseListener.remove();
     };
 };

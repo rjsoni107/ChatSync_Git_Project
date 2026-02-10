@@ -1,5 +1,5 @@
 //auth.service.js
-import { account } from "@chatterapp/api/appwrite";
+import { account, ID } from "@chatterapp/api/appwrite";
 
 export const signup = async (email, password, name) => {
     return await account.create("unique()", email, password, name);
@@ -28,8 +28,16 @@ export const sendVerificationEmail = async (url) => {
     return await account.createVerification(url);
 };
 
+export const sendVerificationOTP = async (userId, email) => {
+    return await account.createEmailToken(userId, email);
+};
+
 export const verifyEmail = async (userId, secret) => {
     return await account.updateVerification(userId, secret);
+};
+
+export const verifyOTP = async (userId, otp) => {
+    return await account.createSession(userId, otp);
 };
 
 export const sendPasswordRecoveryEmail = async (email, url) => {
