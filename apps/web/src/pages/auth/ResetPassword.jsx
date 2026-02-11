@@ -11,6 +11,8 @@ export default function ResetPassword() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [status, setStatus] = useState("idle"); // idle, loading, success, error
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const userId = searchParams.get("userId");
     const secret = searchParams.get("secret");
@@ -43,7 +45,7 @@ export default function ResetPassword() {
             setStatus("success");
             setTimeout(() => {
                 navigate("/login");
-            }, 3000);
+            }, 10000);
         } catch (err) {
             console.error(err);
             let userFriendlyMessage = err.message || "Failed to reset password.";
@@ -75,7 +77,7 @@ export default function ResetPassword() {
                         <motion.div
                             initial={{ x: "-100%" }}
                             animate={{ x: "0%" }}
-                            transition={{ duration: 3, ease: "linear" }}
+                            transition={{ duration: 10, ease: "linear" }}
                             className="w-full h-full bg-blue-600"
                         />
                     </div>
@@ -147,13 +149,20 @@ export default function ResetPassword() {
                             <div className="relative group">
                                 <IoLockClosedOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     required
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-gray-500 outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all font-medium"
                                     placeholder="Min. 8 characters"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white transition-colors focus:outline-none"
+                                >
+                                    {showPassword ? <IoEyeOffOutline size={20} /> : <IoEyeOutline size={20} />}
+                                </button>
                             </div>
                         </div>
 
@@ -162,13 +171,20 @@ export default function ResetPassword() {
                             <div className="relative group">
                                 <IoLockClosedOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
                                 <input
-                                    type="password"
+                                    type={showConfirmPassword ? "text" : "password"}
                                     required
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-gray-500 outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all font-medium"
                                     placeholder="Re-enter password"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-white transition-colors focus:outline-none"
+                                >
+                                    {showConfirmPassword ? <IoEyeOffOutline size={20} /> : <IoEyeOutline size={20} />}
+                                </button>
                             </div>
                         </div>
                     </div>
