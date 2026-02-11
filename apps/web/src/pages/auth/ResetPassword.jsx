@@ -18,7 +18,7 @@ export default function ResetPassword() {
     useEffect(() => {
         if (!userId || !secret) {
             setStatus("error");
-            setError("Invalid password reset link.");
+            setError("Invalid password reset link. Please request a new one.");
         }
     }, [userId, secret]);
 
@@ -46,7 +46,14 @@ export default function ResetPassword() {
             }, 3000);
         } catch (err) {
             console.error(err);
-            setError(err.message || "Failed to reset password.");
+            let userFriendlyMessage = err.message || "Failed to reset password.";
+
+            // Map common Appwrite error codes/messages to user-friendly ones
+            if (err.message?.toLowerCase().includes("invalid token") || err.code === 401) {
+                userFriendlyMessage = "This reset link is invalid or has expired. Please request a new one.";
+            }
+
+            setError(userFriendlyMessage);
             setStatus("error");
         }
     };
@@ -64,13 +71,32 @@ export default function ResetPassword() {
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2">Password Reset Successful!</h2>
                     <p className="text-gray-400 mb-6">You will be redirected to login shortly...</p>
-                    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mb-8">
                         <motion.div
                             initial={{ x: "-100%" }}
                             animate={{ x: "0%" }}
                             transition={{ duration: 3, ease: "linear" }}
                             className="w-full h-full bg-blue-600"
                         />
+                    </div>
+
+                    <div className="space-y-3 w-full">
+                        <motion.a
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            href="chatterapp://login"
+                            className="flex items-center justify-center w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/25 transition-all"
+                        >
+                            Open ChatterApp
+                        </motion.a>
+
+                        <AuthButton
+                            variant="secondary"
+                            onClick={() => navigate("/login")}
+                            className="w-full"
+                        >
+                            Continue on Web
+                        </AuthButton>
                     </div>
                 </motion.div>
             </div>
@@ -96,8 +122,21 @@ export default function ResetPassword() {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {error && (
-                        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
-                            {error}
+                        <div className="space-y-4">
+                            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+                                {error}
+                            </div>
+                            {status === "error" && (
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    type="button"
+                                    onClick={() => navigate("/forgot-password")}
+                                    className="w-full bg-white/5 hover:bg-white/10 text-white font-medium py-2 rounded-xl border border-white/10 transition-all text-sm"
+                                >
+                                    Go to Forgot Password
+                                </motion.button>
+                            )}
                         </div>
                     )}
 

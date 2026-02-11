@@ -45,7 +45,14 @@ const ResetPassword = () => {
             setSuccess(true);
         } catch (err) {
             console.error('Reset password error:', err);
-            setError(err.message || 'Failed to reset password. Please try again.');
+            let userFriendlyMessage = err.message || 'Failed to reset password. Please try again.';
+
+            // Map common Appwrite error codes/messages to user-friendly ones
+            if (err.message?.toLowerCase().includes('invalid token') || err.code === 401) {
+                userFriendlyMessage = 'This reset link is invalid or has expired. Please request a new one.';
+            }
+
+            setError(userFriendlyMessage);
         } finally {
             setLoading(false);
         }
@@ -102,7 +109,14 @@ const ResetPassword = () => {
                                     />
 
                                     {error ? (
-                                        <Text className="text-red-500 text-center mb-4">{error}</Text>
+                                        <View className="space-y-4 mb-4">
+                                            <Text className="text-red-500 text-center">{error}</Text>
+                                            <AuthButton
+                                                title="Request New Link"
+                                                variant="secondary"
+                                                onPress={() => router.replace('/(auth)/forgot')}
+                                            />
+                                        </View>
                                     ) : null}
 
                                     <View className="mt-4">
