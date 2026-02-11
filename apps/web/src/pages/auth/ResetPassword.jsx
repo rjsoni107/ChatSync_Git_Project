@@ -90,13 +90,14 @@ export default function ResetPassword() {
                             Open ChatterApp
                         </motion.a>
 
-                        <AuthButton
-                            variant="secondary"
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                             onClick={() => navigate("/login")}
-                            className="w-full"
+                            className="w-full bg-white/5 hover:bg-white/10 text-white font-medium py-4 rounded-xl border border-white/10 transition-all"
                         >
                             Continue on Web
-                        </AuthButton>
+                        </motion.button>
                     </div>
                 </motion.div>
             </div>
