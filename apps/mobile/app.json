@@ -42,7 +42,9 @@
           "photosPermission": "Allow ChatterApp to access your photos to share images in chats.",
           "cameraPermission": "Allow ChatterApp to access your camera to take photos."
         }
-      ]
+      ],
+      "expo-video",
+      "expo-audio"
     ],
     "extra": {
       "router": {

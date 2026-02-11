@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import { createStatus, getRecentStatuses, markStatusSeen } from '@chatterapp/services/status.service';
 import { findPrivateChat, createChat, addChatMember } from '@chatterapp/services/chat.service';
@@ -44,8 +44,8 @@ export default function Status() {
     // Animation for progress bar
     const progress = useRef(new Animated.Value(0)).current;
 
-    // Video Ref
-    const videoRef = useRef(null);
+    // Video Player
+    const player = useVideoPlayer(null);
 
     const fetchStatuses = async () => {
         try {
@@ -89,7 +89,8 @@ export default function Status() {
     useEffect(() => {
         if (viewingStatus && !isPaused) {
             const currentItem = viewingStatus.items[currentItemIndex];
-            const duration = currentItem.type === 'video' ? 15000 : STORY_DURATION; // Default 15s for video if metadata missing
+            // Get video duration if available, else default
+            const duration = currentItem.type === 'video' ? 15000 : STORY_DURATION;
 
             progress.setValue(0);
             Animated.timing(progress, {
@@ -105,6 +106,15 @@ export default function Status() {
             progress.stopAnimation();
         }
     }, [viewingStatus, currentItemIndex, isPaused]);
+
+    // Video Lifecycle
+    useEffect(() => {
+        if (viewingStatus?.items[currentItemIndex]?.type === 'video') {
+            player.replace(viewingStatus.items[currentItemIndex].mediaUrl);
+            if (!isPaused) player.play();
+            else player.pause();
+        }
+    }, [viewingStatus, currentItemIndex, isPaused, player]);
 
     // Mark as seen
     useEffect(() => {
@@ -220,6 +230,11 @@ export default function Status() {
     const myStatus = statuses.find(s => s.userId === user?.$id);
     const othersStatuses = statuses.filter(s => s.userId !== user?.$id);
 
+    const isGroupSeen = (group) => {
+        if (!user?.$id || !group.items) return false;
+        return group.items.every(item => item.viewers?.includes(user.$id));
+    };
+
     const openViewer = (group) => {
         setViewingStatus(group);
         setCurrentItemIndex(0);
@@ -245,6 +260,15 @@ export default function Status() {
     const prevItem = () => {
         if (currentItemIndex > 0) {
             setCurrentItemIndex(currentItemIndex - 1);
+        }
+    };
+
+    const handlePress = (e) => {
+        const x = e.nativeEvent.locationX;
+        if (x < width / 3) {
+            prevItem();
+        } else {
+            nextItem();
         }
     };
 
@@ -282,7 +306,7 @@ export default function Status() {
                             onPress={myStatus ? () => openViewer(myStatus) : () => handlePickMedia('images')}
                             className="relative"
                         >
-                            <View className={`w-14 h-14 rounded-full p-[2px] border-2 ${myStatus ? 'border-green-500' : 'border-gray-600'} items-center justify-center`}>
+                            <View className={`w-14 h-14 rounded-full p-[2px] border-2 ${myStatus ? (isGroupSeen(myStatus) ? 'border-gray-500' : 'border-green-500') : 'border-gray-600'} items-center justify-center`}>
                                 {user?.profile_pic ? (
                                     <Image source={{ uri: user.profile_pic }} className="w-full h-full rounded-full" />
                                 ) : (
@@ -330,7 +354,7 @@ export default function Status() {
                     ) : othersStatuses.length > 0 ? (
                         othersStatuses.map((group) => (
                             <TouchableOpacity key={group.userId} className="flex-row items-center mb-4" onPress={() => openViewer(group)}>
-                                <View className="w-14 h-14 rounded-full p-[2px] border-2 border-blue-500 items-center justify-center">
+                                <View className={`w-14 h-14 rounded-full p-[2px] border-2 ${isGroupSeen(group) ? 'border-gray-600' : 'border-green-500'} items-center justify-center`}>
                                     {group.userProfilePic ? <Image source={{ uri: group.userProfilePic }} className="w-full h-full rounded-full" /> : <View className="w-full h-full rounded-full bg-[#374045] items-center justify-center"><Text className="text-white font-bold">{group.userName[0]}</Text></View>}
                                 </View>
                                 <View className="ml-4 flex-1">
@@ -420,13 +444,12 @@ export default function Status() {
                                         <Text className="text-white text-4xl text-center font-bold">{viewingStatus.items[currentItemIndex].caption}</Text>
                                     </View>
                                 ) : viewingStatus?.items[currentItemIndex].type === 'video' ? (
-                                    <Video
-                                        ref={videoRef}
-                                        source={{ uri: viewingStatus.items[currentItemIndex].mediaUrl }}
+                                    <VideoView
+                                        player={player}
                                         className="w-full h-full"
-                                        resizeMode={ResizeMode.CONTAIN}
-                                        shouldPlay={!isPaused}
-                                        isMuted={false}
+                                        contentScale="contain"
+                                        allowsFullscreen
+                                        allowsPictureInPicture
                                     />
                                 ) : (
                                     <Image
@@ -438,8 +461,13 @@ export default function Status() {
 
                                 {/* Touch Controls Layer */}
                                 <View className="absolute inset-0 flex-row">
-                                    <TouchableOpacity activeOpacity={1} className="flex-1" onPress={prevItem} onLongPress={() => setIsPaused(true)} onPressOut={() => setIsPaused(false)} />
-                                    <TouchableOpacity activeOpacity={1} className="flex-1" onPress={nextItem} onLongPress={() => setIsPaused(true)} onPressOut={() => setIsPaused(false)} />
+                                    <TouchableOpacity
+                                        activeOpacity={1}
+                                        className="flex-1"
+                                        onPress={handlePress}
+                                        onLongPress={() => setIsPaused(true)}
+                                        onPressOut={() => setIsPaused(false)}
+                                    />
                                 </View>
                             </View>
 
