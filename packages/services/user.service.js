@@ -153,6 +153,20 @@ export const getUserProfile = async (userId) => {
     return await databases.getDocument(DB_ID, USERS_ID, userId);
 };
 
+export const getUsersByIds = async (userIds) => {
+    if (!userIds || userIds.length === 0) return [];
+    try {
+        const res = await databases.listDocuments(DB_ID, USERS_ID, [
+            Query.equal("userId", userIds),
+            Query.limit(userIds.length)
+        ]);
+        return res.documents;
+    } catch (err) {
+        console.error("Error fetching users by ids:", err);
+        return [];
+    }
+};
+
 export const deleteUserProfile = async (userId) => {
     return await databases.deleteDocument(DB_ID, USERS_ID, userId);
 };

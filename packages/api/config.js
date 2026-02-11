@@ -11,6 +11,7 @@ export const appwriteConfig = {
     userPresenceCollectionId: 'user_presence',
     chatRequestCollectionId: 'chat_requests',
     blocksCollectionId: 'blocks',
+    statusCollectionId: 'statuses',
     webUrl: 'https://chatterapp-web.vercel.app',
     appDeepLink: 'chatterapp://reset-password',
 };

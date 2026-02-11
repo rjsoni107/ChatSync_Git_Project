@@ -64,6 +64,12 @@ export default function TabsLayout() {
                 }}
             />
             <Tabs.Screen
+                name="status"
+                options={{
+                    title: 'Status',
+                }}
+            />
+            <Tabs.Screen
                 name="search"
                 options={{
                     title: 'Search',
