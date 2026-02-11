@@ -61,6 +61,7 @@ export default function RootLayout() {
         const timeout = setTimeout(() => {
             const inAuthGroup = segments[0] === '(auth)';
             const isVerifyScreen = segments[1] === 'verify-email';
+            const isResetScreen = segments[1] === 'reset-password';
 
             if (!user && !inAuthGroup) {
                 // Redirect to login if user is not authenticated and not in auth group
@@ -68,8 +69,9 @@ export default function RootLayout() {
             } else if (user && !user.emailVerification && !isVerifyScreen) {
                 // Redirect to verification if user is logged in but not verified
                 router.replace('/(auth)/verify-email');
-            } else if (user && user.emailVerification && inAuthGroup) {
+            } else if (user && user.emailVerification && inAuthGroup && !isResetScreen) {
                 // Redirect to tabs if user is authenticated and verified, but trying to access auth screens
+                // EXCEPT if it's the reset-password screen (accessed via deep link)
                 router.replace('/(tabs)/chats');
             }
         }, 10);

@@ -324,6 +324,7 @@ const Profile = () => {
                             icon="shield-checkmark-outline"
                             title="Security"
                             subtitle="Two-step verification, change password"
+                            onPress={() => router.push('/profile/change-password')}
                         />
                     </View>
                 </View>

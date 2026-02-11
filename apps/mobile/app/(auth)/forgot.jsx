@@ -6,6 +6,8 @@ import AuthInput from '../../components/auth/AuthInput';
 import AuthButton from '../../components/auth/AuthButton';
 import AuthHeader from '../../components/auth/AuthHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Linking from 'expo-linking';
+import { appwriteConfig } from '@chatterapp/api/config';
 
 const ForgotPassword = () => {
     const router = useRouter();
@@ -24,10 +26,11 @@ const ForgotPassword = () => {
         setLoading(true);
 
         try {
-            // In a real app, the URL would be a deep link to the app or a web reset page
-            // We use the Web URL for password reset because the Web platform is already registered in Appwrite.
-            // This avoids the 3-platform limit and eliminates "Invalid URI" errors.
-            const resetUrl = 'https://chatsync-web.vercel.app/reset-password';
+            // Appwrite requires an HTTP/HTTPS URL for password recovery.
+            // Custom URI schemes like chatterapp:// are not supported.
+            const resetUrl = `${appwriteConfig.webUrl}/reset-password`;
+            console.log('Sending recovery email with URL:', resetUrl);
+
             await sendPasswordRecoveryEmail(email, resetUrl);
             setSuccess(true);
         } catch (err) {

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { IoMailOutline, IoArrowBack } from "react-icons/io5";
 import { sendPasswordRecoveryEmail } from "@chatterapp/services/auth.service";
+import { appwriteConfig } from "@chatterapp/api/config";
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState("");
@@ -15,7 +16,8 @@ export default function ForgotPassword() {
         setError("");
 
         try {
-            await sendPasswordRecoveryEmail(email, `${window.location.origin}/reset-password`);
+            const resetUrl = `${appwriteConfig.webUrl || window.location.origin}/reset-password`;
+            await sendPasswordRecoveryEmail(email, resetUrl);
             setStatus("success");
         } catch (err) {
             console.error(err);

@@ -10,7 +10,8 @@ const projectId = appwriteConfig.projectId;
 client
     .setEndpoint(endpoint)
     .setProject(projectId)
-    .setPlatform('host.exp.exponent');
+    // .setPlatform('host.exp.exponent');
+    .setPlatform('com.chatterapp.app');
 
 // Try to use AsyncStorage for mobile persistence
 let storageSet = false;

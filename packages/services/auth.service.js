@@ -60,3 +60,7 @@ export const sendPasswordRecoveryEmail = async (email, url) => {
 export const resetPassword = async (userId, secret, password) => {
     return await account.updateRecovery(userId, secret, password, password);
 };
+
+export const updatePassword = async (newPassword, oldPassword) => {
+    return await account.updatePassword(newPassword, oldPassword);
+};
