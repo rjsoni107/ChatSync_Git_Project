@@ -12,6 +12,7 @@ const AuthInput = ({
     autoCapitalize = 'none',
     error,
     containerClassName,
+    icon,
     ...props
 }) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -20,9 +21,10 @@ const AuthInput = ({
         <View className="mb-4 w-full">
             {label && <Text className="text-gray-300 mb-2 font-medium">{label}</Text>}
             <View className={`flex-row items-center border ${error ? 'border-red-500' : 'border-transparent'} rounded-xl px-4 ${containerClassName || 'bg-surface h-14'}`}>
+                {icon && <View className="mr-1">{icon}</View>}
                 <TextInput
                     className="flex-1 text-white text-base"
-                    style={secureTextEntry && !showPassword && value ? { letterSpacing: 5, fontSize: 20, paddingBottom: 5 } : {}}
+                    style={secureTextEntry && !showPassword && value ? { letterSpacing: 5, fontSize: 20, paddingBottom: 8 } : {}}
                     value={value}
                     onChangeText={onChangeText}
                     placeholder={placeholder}

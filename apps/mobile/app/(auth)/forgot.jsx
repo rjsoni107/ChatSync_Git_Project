@@ -8,6 +8,7 @@ import AuthHeader from '../../components/auth/AuthHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Linking from 'expo-linking';
 import { appwriteConfig } from '@chatterapp/api/config';
+import { Ionicons } from '@expo/vector-icons';
 
 const ForgotPassword = () => {
     const router = useRouter();
@@ -70,7 +71,7 @@ const ForgotPassword = () => {
                                     />
                                 </View>
                             ) : (
-                                <View className="space-y-4">
+                                <View>
                                     <AuthInput
                                         label="Email Address"
                                         placeholder="your@email.com"
@@ -78,6 +79,7 @@ const ForgotPassword = () => {
                                         onChangeText={setEmail}
                                         keyboardType="email-address"
                                         autoCapitalize="none"
+                                        icon={<Ionicons name="mail-outline" size={20} color="#8696a0" style={{ marginTop: 5 }} />}
                                     />
 
                                     {error ? (

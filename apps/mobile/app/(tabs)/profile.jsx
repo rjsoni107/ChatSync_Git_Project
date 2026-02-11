@@ -375,7 +375,7 @@ const Profile = () => {
                     </TouchableOpacity>
 
                     <View className="items-center mt-6">
-                        <Text className="text-gray-600 text-xs">ChatterApp v1.0.1</Text>
+                        <Text className="text-gray-600 text-xs">ChatterApp v1.0.2</Text>
                         <Text className="text-gray-600 text-[10px] mt-1">from JaRa Tech Solutions Pvt. Ltd.</Text>
                     </View>
                 </View>

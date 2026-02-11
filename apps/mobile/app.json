@@ -3,12 +3,12 @@
     "name": "ChatterApp",
     "slug": "chatterapp",
     "scheme": "chatterapp",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/chatterApp.png",
       "resizeMode": "contain",
       "backgroundColor": "#0f172a"
     },

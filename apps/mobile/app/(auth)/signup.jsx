@@ -138,6 +138,7 @@ const Signup = () => {
                                     placeholder="Enter your full name"
                                     value={name}
                                     onChangeText={setName}
+                                    icon={<Ionicons name="person-outline" size={20} color="#9ca3af" />}
                                 />
 
                                 <AuthInput
@@ -147,6 +148,7 @@ const Signup = () => {
                                     onChangeText={setEmail}
                                     keyboardType="email-address"
                                     autoCapitalize="none"
+                                    icon={<Ionicons name="mail-outline" size={20} color="#9ca3af" />}
                                 />
 
                                 <View>
@@ -157,6 +159,7 @@ const Signup = () => {
                                         onChangeText={(v) => setUsername(v.toLowerCase().replace(/[^a-z0-9._]/g, ""))}
                                         autoCapitalize="none"
                                         error={usernameAvailable === false ? `The username ${username} is not available.` : ''}
+                                        icon={<Ionicons name="at-outline" size={20} color="#9ca3af" />}
                                     />
                                     {usernameLoading && (
                                         <View className="absolute right-4 top-[48px]">
@@ -189,6 +192,7 @@ const Signup = () => {
                                     value={password}
                                     onChangeText={setPassword}
                                     secureTextEntry
+                                    icon={<Ionicons name="lock-closed-outline" size={20} color="#9ca3af" />}
                                 />
 
                                 <PasswordRequirements password={password} />

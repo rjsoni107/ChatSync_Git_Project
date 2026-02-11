@@ -43,9 +43,9 @@ export default function ResetPassword() {
         try {
             await resetPassword(userId, secret, newPassword);
             setStatus("success");
-            setTimeout(() => {
-                navigate("/login");
-            }, 10000);
+            // setTimeout(() => {
+            //     navigate("/login");
+            // }, 20000);
         } catch (err) {
             console.error(err);
             let userFriendlyMessage = err.message || "Failed to reset password.";
@@ -73,14 +73,14 @@ export default function ResetPassword() {
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2">Password Reset Successful!</h2>
                     <p className="text-gray-400 mb-6">You will be redirected to login shortly...</p>
-                    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mb-8">
+                    {/* <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mb-8">
                         <motion.div
                             initial={{ x: "-100%" }}
                             animate={{ x: "0%" }}
                             transition={{ duration: 10, ease: "linear" }}
                             className="w-full h-full bg-blue-600"
                         />
-                    </div>
+                    </div> */}
 
                     <div className="space-y-3 w-full">
                         <motion.a

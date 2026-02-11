@@ -8,6 +8,7 @@ import AuthInput from '../../components/auth/AuthInput';
 import AuthButton from '../../components/auth/AuthButton';
 import AuthHeader from '../../components/auth/AuthHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 const Login = () => {
     const router = useRouter();
@@ -89,6 +90,7 @@ const Login = () => {
                                     onChangeText={setEmail}
                                     keyboardType="email-address"
                                     autoCapitalize="none"
+                                    icon={<Ionicons name="person-outline" size={20} color="#9ca3af" />}
                                 />
 
                                 <AuthInput
@@ -97,6 +99,7 @@ const Login = () => {
                                     value={password}
                                     onChangeText={setPassword}
                                     secureTextEntry
+                                    icon={<Ionicons name="lock-closed-outline" size={20} color="#9ca3af" />}
                                 />
 
                                 {error ? (
