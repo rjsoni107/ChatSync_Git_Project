@@ -7,6 +7,7 @@ import { getUserProfile, blockUser, unblockUser, isUserBlocked } from '@chattera
 import { clearChatMessages } from '@chatterapp/services/message.service';
 import { deletePrivateChat, findPrivateChat } from '@chatterapp/services/chat.service';
 import { deleteAllRequests, checkExistingRelationship, sendChatRequest, cancelChatRequest, updateRequestStatus } from '@chatterapp/services/request.service';
+import { subscribeRequests, subscribeSingleUserPresence } from '@chatterapp/services/realtime.service';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import Skeleton from '../../components/ui/Skeleton';
 import { formatLastSeen } from '@chatterapp/utils/date';
@@ -53,7 +54,52 @@ const UserProfile = () => {
         if (currentUser?.$id && id) {
             fetchInitialData();
         }
-    }, [id, currentUser?.$id, chatId]);
+    }, [id, currentUser?.$id]); // Removed chatId from dependencies to prevent infinite loop
+
+    // Real-time Relationship and Presence Updates
+    useEffect(() => {
+        if (!id || !currentUser?.$id) return;
+
+        // 1. Listen for requests (Accept/Cancel/Delete)
+        const unsubscribeRequests = subscribeRequests(async (event) => {
+            const payload = event.payload;
+            // Check if this request involves the current profile being viewed
+            const isRelevant =
+                (payload.senderId === currentUser.$id && payload.receiverId === id) ||
+                (payload.senderId === id && payload.receiverId === currentUser.$id);
+
+            if (!isRelevant) return;
+
+            console.log('Real-time request event:', event.events[0]);
+
+            // Handling Accept: Request status changes to 'accepted'
+            if (payload.status === 'accepted') {
+                setRelationship(null);
+                const exChatId = await findPrivateChat(currentUser.$id, id);
+                if (exChatId) setChatId(exChatId);
+            }
+            // Handling Delete/Cancel
+            else if (event.events[0].includes('.delete')) {
+                setRelationship(null);
+            }
+            // Handling New/Update
+            else {
+                const relStatus = await checkExistingRelationship(currentUser.$id, id);
+                setRelationship(relStatus);
+            }
+        });
+
+        // 2. Listen for User Presence (Online/Offline)
+        const unsubscribePresence = subscribeSingleUserPresence(id, (payload) => {
+            console.log('Real-time presence update:', payload.isOnline);
+            setProfile(prev => prev ? { ...prev, ...payload } : payload);
+        });
+
+        return () => {
+            unsubscribeRequests();
+            unsubscribePresence();
+        };
+    }, [id, currentUser?.$id]);
 
     const handleRemoveFriend = () => {
         showAlert(

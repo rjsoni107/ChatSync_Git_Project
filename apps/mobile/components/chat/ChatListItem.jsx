@@ -37,7 +37,7 @@ const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
                     )}
                 </View>
                 {onlineStatus === 'online' && (
-                    <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-secondary border-2 border-background" />
+                    <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-600 border-2 border-background" />
                 )}
             </View>
 

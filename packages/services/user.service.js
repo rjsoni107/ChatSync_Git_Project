@@ -153,6 +153,10 @@ export const getUserProfile = async (userId) => {
     return await databases.getDocument(DB_ID, USERS_ID, userId);
 };
 
+export const deleteUserProfile = async (userId) => {
+    return await databases.deleteDocument(DB_ID, USERS_ID, userId);
+};
+
 export const updateUserProfile = async (userId, updates) => {
     // 1️⃣ Update database profile
     const profile = await databases.updateDocument(DB_ID, USERS_ID, userId, updates);

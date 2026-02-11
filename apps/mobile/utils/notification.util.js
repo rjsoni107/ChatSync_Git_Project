@@ -65,7 +65,7 @@ export const registerForPushNotificationsAsync = async (userId) => {
     return token;
 };
 
-export const setupNotificationListeners = () => {
+export const setupNotificationListeners = (onNotificationTap) => {
     // This is called when a notification is received while the app is in the foreground
     const notificationListener = Notifications.addNotificationReceivedListener(notification => {
         console.log('Notification Received:', notification);
@@ -74,6 +74,10 @@ export const setupNotificationListeners = () => {
     // This is called when a user taps on or interacts with a notification
     const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
         console.log('Notification Response:', response);
+        const chatId = response.notification.request.content.data?.chatId;
+        if (chatId && onNotificationTap) {
+            onNotificationTap(chatId);
+        }
     });
 
     return () => {

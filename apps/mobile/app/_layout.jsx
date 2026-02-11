@@ -43,7 +43,10 @@ export default function RootLayout() {
     useEffect(() => {
         if (user?.$id) {
             registerForPushNotificationsAsync(user.$id);
-            const unsubscribe = setupNotificationListeners();
+            const unsubscribe = setupNotificationListeners((chatId) => {
+                // Navigate to chat
+                router.push(`/chat/${chatId}`);
+            });
             return () => unsubscribe();
         }
     }, [user?.$id]);

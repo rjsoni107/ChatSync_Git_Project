@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const PasswordRequirements = ({ password }) => {
     const requirements = [
-        { label: 'At least 6 characters', test: (p) => p.length >= 6 },
+        { label: 'At least 8 characters', test: (p) => p.length >= 8 },
         { label: 'At least one number', test: (p) => /\d/.test(p) },
         { label: 'At least one special character', test: (p) => /[!@#$%^&*(),.?":{}|<>]/.test(p) },
     ];

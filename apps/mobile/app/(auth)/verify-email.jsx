@@ -42,6 +42,13 @@ const VerifyEmail = () => {
         return () => clearInterval(timer);
     }, [cooldown]);
 
+    // Auto-verify when 6 digits are entered
+    useEffect(() => {
+        if (otp.length === 6 && !verifying && !success) {
+            handleVerify();
+        }
+    }, [otp, verifying, success]);
+
     const handleVerify = async () => {
         if (otp.length !== 6) {
             setError('Please enter a valid 6-digit code.');

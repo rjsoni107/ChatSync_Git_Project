@@ -2,7 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, Image, Platform, ActivityIndi
 import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
-import { getUserProfile, updateUserProfile } from '@chatterapp/services/user.service';
+import { getUserProfile, updateUserProfile, deleteUserProfile } from '@chatterapp/services/user.service';
 import { uploadFile, deleteFile, getMobileFilePreview } from '@chatterapp/services/storage.service';
 import { logout } from '@chatterapp/services/auth.service';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -137,6 +137,54 @@ const Profile = () => {
         } finally {
             setUploading(false);
         }
+    };
+
+    const handleDeleteAccount = () => {
+        showAlert(
+            'Delete Account',
+            'This will permanently delete your profile, photo, and all data. This action cannot be undone. Are you sure?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete Everything',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            setUploading(true);
+
+                            // 1. Delete Profile Picture if exists
+                            if (profile?.profile_pic) {
+                                try {
+                                    // Extract fileId from URL: .../files/{fileId}/view?...
+                                    const fileIdMatch = profile.profile_pic.match(/\/files\/([^\/]+)\/view/);
+                                    if (fileIdMatch && fileIdMatch[1]) {
+                                        await deleteFile(fileIdMatch[1]);
+                                    }
+                                } catch (err) {
+                                    console.warn('Failed to delete profile picture file:', err);
+                                }
+                            }
+
+                            // 2. Delete Database Profile
+                            await deleteUserProfile(user.$id);
+
+                            // 3. Logout
+                            await logout();
+
+                            // 4. Clear Store
+                            clearUser();
+
+                            showAlert('Account Deleted', 'Your profile has been successfully removed.');
+                        } catch (err) {
+                            console.error('Account deletion failed:', err);
+                            showAlert('Error', 'Failed to delete account. Please try again.');
+                        } finally {
+                            setUploading(false);
+                        }
+                    }
+                },
+            ]
+        );
     };
 
     const handleDeletePhoto = async () => {
@@ -307,13 +355,22 @@ const Profile = () => {
                 {/* Logout Button */}
                 <View className="mt-8 mb-10">
                     <TouchableOpacity
+                        onPress={handleDeleteAccount}
+                        className="flex-row items-center px-4 py-2 bg-[#202c33]/30"
+                    >
+                        <View className="w-10 h-10 items-center justify-center">
+                            <Ionicons name="trash-outline" size={24} color="#ff4b4b" />
+                        </View>
+                        <Text className="text-[#ff4b4b] text-base font-bold">Delete Account</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
                         onPress={handleLogout}
-                        className="flex-row items-center px-4 py-4 bg-[#202c33]/30"
+                        className="flex-row items-center px-4 py-2 bg-[#202c33]/30"
                     >
                         <View className="w-10 h-10 items-center justify-center">
                             <Ionicons name="log-out-outline" size={24} color="#ff4b4b" />
                         </View>
-                        <Text className="text-[#ff4b4b] text-base font-bold ml-4">Log Out</Text>
+                        <Text className="text-[#ff4b4b] text-base font-bold">Log Out</Text>
                     </TouchableOpacity>
 
                     <View className="items-center mt-6">
