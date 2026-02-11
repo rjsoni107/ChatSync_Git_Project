@@ -22,7 +22,7 @@ export default function AppRouter() {
                 <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
                 <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-                <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
                 <Route
                     path="/"
