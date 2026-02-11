@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import { searchUsers } from '@chatterapp/services/user.service';
 import { findPrivateChat, getUserChats } from '@chatterapp/services/chat.service';
-import { sendChatRequest, checkExistingRelationship, cancelChatRequest, getReceivedRequests } from '@chatterapp/services/request.service';
+import { sendChatRequest, checkExistingRelationship, cancelChatRequest, getReceivedRequests, getSentRequests } from '@chatterapp/services/request.service';
+import { subscribeRequests } from '@chatterapp/services/realtime.service';
 import SearchBar from '../../components/chat/SearchBar';
 import UserListItem from '../../components/contacts/UserListItem';
 import { useRouter } from 'expo-router';
@@ -21,7 +22,8 @@ const Search = () => {
     const [loading, setLoading] = useState(false);
     const [startingChat, setStartingChat] = useState(false);
     const [friends, setFriends] = useState(new Set());
-    const [pendingRequests, setPendingRequests] = useState(new Map()); // userId -> requestId
+    const [sentRequests, setSentRequests] = useState(new Map()); // userId -> requestId
+    const [receivedRequests, setReceivedRequests] = useState(new Map()); // userId -> requestId
 
     const fetchRelationships = async () => {
         if (!user?.$id) return;
@@ -31,10 +33,20 @@ const Search = () => {
             const friendIds = new Set(chats.map(chat => chat.otherUser?.$id).filter(Boolean));
             setFriends(friendIds);
 
-            // 2. Get SENT pending requests
-            // We need a way to get sent requests specifically. 
-            // For now, let's use checkExistingRelationship or a new helper if needed.
-            // Since we don't have a 'getSentRequests', let's fix that in service later or use listDocuments here.
+            // 2. Get SENT and RECEIVED pending requests
+            const [sent, received] = await Promise.all([
+                getSentRequests(user.$id),
+                getReceivedRequests(user.$id)
+            ]);
+
+            const sentMap = new Map();
+            sent.forEach(r => sentMap.set(r.receiverId, r.$id));
+            setSentRequests(sentMap);
+
+            const receivedMap = new Map();
+            received.forEach(r => receivedMap.set(r.senderId, r.$id));
+            setReceivedRequests(receivedMap);
+
         } catch (error) {
             console.error('Error fetching relationships:', error);
         }
@@ -43,6 +55,27 @@ const Search = () => {
     useEffect(() => {
         fetchRelationships();
     }, [user?.$id]);
+
+    // Real-time Relationship Updates
+    useEffect(() => {
+        if (!user?.$id) return;
+
+        const unsubscribe = subscribeRequests(async (event) => {
+            const payload = event.payload;
+            // Check if this request involves the current user
+            const isRelevant = payload.senderId === user.$id || payload.receiverId === user.$id;
+
+            if (isRelevant) {
+                // Refresh friend set and search results to update statuses
+                await fetchRelationships();
+                if (query.trim().length >= 2) {
+                    handleSearch();
+                }
+            }
+        });
+
+        return () => unsubscribe();
+    }, [user?.$id, query]);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
@@ -62,17 +95,22 @@ const Search = () => {
         try {
             const users = await searchUsers(query, user.$id);
 
-            // To be efficient, we'll check relationship for each result
-            const resultsWithStatus = await Promise.all(users.map(async (u) => {
-                const isFriend = friends.has(u.userId);
-                if (isFriend) return { ...u, relationshipStatus: 'friend' };
+            // Map users to their relationship status using local state snapshots
+            const resultsWithStatus = users.map((u) => {
+                if (friends.has(u.userId)) {
+                    return { ...u, relationshipStatus: 'friend' };
+                }
 
-                const rel = await checkExistingRelationship(user.$id, u.userId);
-                if (rel?.type === 'request_sent') return { ...u, relationshipStatus: 'sent', requestId: rel.id };
-                if (rel?.type === 'request_received') return { ...u, relationshipStatus: 'received', requestId: rel.id };
+                if (sentRequests.has(u.userId)) {
+                    return { ...u, relationshipStatus: 'sent', requestId: sentRequests.get(u.userId) };
+                }
+
+                if (receivedRequests.has(u.userId)) {
+                    return { ...u, relationshipStatus: 'received', requestId: receivedRequests.get(u.userId) };
+                }
 
                 return { ...u, relationshipStatus: 'none' };
-            }));
+            });
 
             setResults(resultsWithStatus);
         } catch (error) {

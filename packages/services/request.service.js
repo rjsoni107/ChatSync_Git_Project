@@ -66,6 +66,18 @@ export const getReceivedRequests = async (userId) => {
 };
 
 /**
+ * Get all pending requests sent BY a user
+ */
+export const getSentRequests = async (userId) => {
+    const res = await databases.listDocuments(DB_ID, REQUESTS_ID, [
+        Query.equal("senderId", userId),
+        Query.equal("status", "pending")
+    ]);
+
+    return res.documents;
+};
+
+/**
  * Accept or Reject a chat request
  */
 export const updateRequestStatus = async (requestId, status) => {

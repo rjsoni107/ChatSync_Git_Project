@@ -35,22 +35,24 @@ export const registerForPushNotificationsAsync = async (userId) => {
     }
 
     try {
+        console.log('Requesting Expo Push Token...');
         token = (await Notifications.getExpoPushTokenAsync({
-            // projectId: 'your-project-id', // Optional: Add if using EAS
+            projectId: '2f28cfc0-b2c8-4a81-8319-11ff613d2d74',
         })).data;
 
-        console.log('Push Token:', token);
+        console.log('✅ Push Token Generated:', token);
 
         if (userId) {
             try {
                 await updateUserProfile(userId, { pushToken: token });
-                console.log('Push token successfully saved to Appwrite profile');
+                console.log('✅ Push token successfully saved to Appwrite profile for user:', userId);
             } catch (err) {
-                console.error('Failed to save push token to Appwrite profile. Please ensure the "pushToken" attribute exists in your Users collection:', err.message);
+                console.error('❌ Failed to save push token to Appwrite profile:', err.message);
+                console.log('HINT: Please ensure the "pushToken" attribute exists in your Users collection in Appwrite.');
             }
         }
     } catch (error) {
-        console.error('Error getting push token:', error);
+        console.error('❌ Error getting push token:', error);
     }
 
     if (Platform.OS === 'android') {
