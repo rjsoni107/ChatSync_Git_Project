@@ -200,11 +200,10 @@ const UserProfile = () => {
     const handleSendRequest = async () => {
         setProcessing(true);
         try {
-            await sendChatRequest(currentUser.$id, id);
+            const res = await sendChatRequest(currentUser.$id, id);
             showAlert("Success", "Chat request sent!");
-            // Refresh relation status
-            const relStatus = await checkExistingRelationship(currentUser.$id, id);
-            setRelationship(relStatus);
+            // Manually update state for instant button toggle
+            setRelationship({ type: 'request_sent', id: res.$id });
         } catch (error) {
             showAlert("Error", error.message || "Failed to send request.");
         } finally {
@@ -232,7 +231,7 @@ const UserProfile = () => {
         try {
             await updateRequestStatus(relationship.id, "accepted");
             showAlert("Success", "Request accepted!");
-            // Refresh everything
+            // Refresh everything manually for instant feedback
             setRelationship(null);
             const exChatId = await findPrivateChat(currentUser.$id, id);
             setChatId(exChatId);

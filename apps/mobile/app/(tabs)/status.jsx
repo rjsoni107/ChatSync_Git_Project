@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Image, Modal, ActivityIndicator, StyleSheet, Dimensions, Animated, PanResponder, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Pressable, Image, Modal, ActivityIndicator, StyleSheet, Dimensions, Animated, PanResponder, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -87,6 +87,8 @@ export default function Status() {
 
     // Progress Bar Animation Logic
     useEffect(() => {
+        if (!viewingStatus) return;
+
         if (viewingStatus && !isPaused) {
             const currentItem = viewingStatus.items[currentItemIndex];
             // Get video duration if available, else default
@@ -109,12 +111,24 @@ export default function Status() {
 
     // Video Lifecycle
     useEffect(() => {
-        if (viewingStatus?.items[currentItemIndex]?.type === 'video') {
-            player.replace(viewingStatus.items[currentItemIndex].mediaUrl);
-            if (!isPaused) player.play();
-            else player.pause();
+        const currentItem = viewingStatus?.items[currentItemIndex];
+        if (currentItem?.type === 'video') {
+            player.replace(currentItem.mediaUrl);
+            player.play();
+        } else {
+            player.pause();
         }
-    }, [viewingStatus, currentItemIndex, isPaused, player]);
+    }, [viewingStatus, currentItemIndex]);
+
+    useEffect(() => {
+        if (viewingStatus?.items[currentItemIndex]?.type === 'video') {
+            if (isPaused) {
+                player.pause();
+            } else {
+                player.play();
+            }
+        }
+    }, [isPaused]);
 
     // Mark as seen
     useEffect(() => {
@@ -250,27 +264,23 @@ export default function Status() {
     };
 
     const nextItem = () => {
-        if (currentItemIndex < viewingStatus.items.length - 1) {
-            setCurrentItemIndex(currentItemIndex + 1);
-        } else {
-            closeViewer();
-        }
+        setCurrentItemIndex(prev => {
+            if (!viewingStatus) return prev;
+
+            if (prev < viewingStatus.items.length - 1) {
+                return prev + 1;
+            } else {
+                closeViewer();
+                return prev;
+            }
+        });
     };
 
     const prevItem = () => {
-        if (currentItemIndex > 0) {
-            setCurrentItemIndex(currentItemIndex - 1);
-        }
+        setCurrentItemIndex(prev => (prev > 0 ? prev - 1 : prev));
     };
 
-    const handlePress = (e) => {
-        const x = e.nativeEvent.locationX;
-        if (x < width / 3) {
-            prevItem();
-        } else {
-            nextItem();
-        }
-    };
+
 
     // Swipe to Close PanResponder
     const panY = useRef(new Animated.Value(0)).current;
@@ -448,8 +458,7 @@ export default function Status() {
                                         player={player}
                                         className="w-full h-full"
                                         contentScale="contain"
-                                        allowsFullscreen
-                                        allowsPictureInPicture
+                                        useNativeControls={false}
                                     />
                                 ) : (
                                     <Image
@@ -460,13 +469,27 @@ export default function Status() {
                                 )}
 
                                 {/* Touch Controls Layer */}
-                                <View className="absolute inset-0 flex-row">
-                                    <TouchableOpacity
-                                        activeOpacity={1}
+                                <View style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    flexDirection: 'row'
+                                }}>
+                                    <Pressable
                                         className="flex-1"
-                                        onPress={handlePress}
+                                        onPress={prevItem}
                                         onLongPress={() => setIsPaused(true)}
                                         onPressOut={() => setIsPaused(false)}
+                                        delayLongPress={200}
+                                    />
+                                    <Pressable
+                                        className="flex-1"
+                                        onPress={nextItem}
+                                        onLongPress={() => setIsPaused(true)}
+                                        onPressOut={() => setIsPaused(false)}
+                                        delayLongPress={200}
                                     />
                                 </View>
                             </View>

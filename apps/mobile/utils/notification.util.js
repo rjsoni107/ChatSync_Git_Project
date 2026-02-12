@@ -3,6 +3,10 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { updateUserProfile } from '@chatterapp/services/user.service';
 import { useAlertStore } from '@chatterapp/store/useAlertStore';
+import * as TaskManager from 'expo-task-manager';
+import * as BackgroundFetch from 'expo-background-fetch';
+import { markMessagesAsDelivered } from '@chatterapp/services/message.service';
+import { getUserChats } from '@chatterapp/services/chat.service';
 
 // Configure how notifications are handled when the app is in the foreground
 Notifications.setNotificationHandler({
@@ -87,3 +91,37 @@ export const setupNotificationListeners = (onNotificationTap) => {
         responseListener.remove();
     };
 };
+
+// 🏆 Define Background Task for Delivery Status
+export const BACKGROUND_DELIVERY_TASK = 'BACKGROUND_DELIVERY_TASK';
+
+TaskManager.defineTask(BACKGROUND_DELIVERY_TASK, async () => {
+    try {
+        console.log('Running background delivery sync...');
+
+        // This task will be triggered by background-fetch or silent notifications
+        // We'll use a simple background fetch to periodically mark messages as delivered
+        // if the app is alive in the background.
+
+        // 1. Get current user from SecureStore or similar if needed, 
+        // but here we rely on the service being able to run.
+        // For background tasks, we may need to fetch the session again.
+        const { getCurrentUser } = require('@chatterapp/services/auth.service');
+        const user = await getCurrentUser();
+
+        if (user?.$id) {
+            const chats = await getUserChats(user.$id);
+            const deliveryPromises = chats
+                .filter(chat => chat.unreadCount > 0)
+                .map(chat => markMessagesAsDelivered(chat.$id, user.$id));
+
+            await Promise.all(deliveryPromises);
+            console.log('✅ Background delivery sync complete.');
+        }
+
+        return BackgroundFetch.BackgroundFetchResult.NewData;
+    } catch (error) {
+        console.error('❌ Background delivery task failed:', error);
+        return BackgroundFetch.BackgroundFetchResult.Failed;
+    }
+});

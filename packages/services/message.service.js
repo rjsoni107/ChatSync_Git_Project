@@ -106,6 +106,18 @@ export const markMessagesAsSeen = async (chatId, userId) => {
             isDelivered: true,
         });
     }
+
+    // 🏆 CRITICAL: Update the chat document itself to trigger a realtime refresh 
+    // for all listeners (like the Chat List unread count and tab badges).
+    if (res.total > 0) {
+        try {
+            await databases.updateDocument(DB_ID, CHATS_ID, chatId, {
+                lastActionAt: new Date().toISOString() // Dynamic field to force update
+            });
+        } catch (err) {
+            console.warn("Failed to trigger chat refresh signal:", err.message);
+        }
+    }
 };
 
 export const markMessagesAsDelivered = async (chatId, userId) => {

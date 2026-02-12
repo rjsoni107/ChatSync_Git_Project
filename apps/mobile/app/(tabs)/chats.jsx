@@ -12,6 +12,7 @@ import SearchBar from '../../components/chat/SearchBar';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import ChatListSkeleton from '../../components/chat/ChatListSkeleton';
+import { useDebounce } from 'use-debounce';
 
 const Chats = () => {
     const router = useRouter();
@@ -46,6 +47,17 @@ const Chats = () => {
                 }
             });
             setPresenceMap(initialMap);
+
+            // 🏆 Deliver pending messages for all chats where unreadCount > 0
+            const { markMessagesAsDelivered } = require('@chatterapp/services/message.service');
+            const deliveryPromises = fetchedChats
+                .filter(chat => chat.unreadCount > 0)
+                .map(chat => markMessagesAsDelivered(chat.$id, user.$id));
+
+            if (deliveryPromises.length > 0) {
+                // Run in background, don't block UI
+                Promise.all(deliveryPromises).catch(err => console.warn("Background delivery sync failed:", err));
+            }
         } catch (error) {
             console.error('Error fetching chats:', error);
         } finally {
@@ -53,6 +65,8 @@ const Chats = () => {
             setRefreshing(false);
         }
     }, [user?.$id, setChats]);
+
+    const [debouncedFetch] = useDebounce(() => fetchChats(false, true), 500);
 
     // 1. Initial Load
     useEffect(() => {
@@ -72,8 +86,9 @@ const Chats = () => {
     // 3. Subscribe to Message Updates (for unread counts and delivery)
     useEffect(() => {
         if (!user?.$id) return;
-        const unsubscribe = subscribeMessages((event) => {
-            fetchChats(false, true);
+        const unsubscribe = subscribeMessages(async (event) => {
+            // Use debounce for general message updates to avoid refresh spam
+            debouncedFetch();
 
             if (event.events.includes('databases.*.collections.*.documents.*.create')) {
                 const newMessage = event.payload;
@@ -84,7 +99,7 @@ const Chats = () => {
             }
         });
         return () => unsubscribe();
-    }, [user?.$id, fetchChats]);
+    }, [user?.$id, debouncedFetch]);
 
     // 4. Subscribe to Presence Updates
     useEffect(() => {

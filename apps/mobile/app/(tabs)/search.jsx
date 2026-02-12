@@ -94,25 +94,7 @@ const Search = () => {
         setLoading(true);
         try {
             const users = await searchUsers(query, user.$id);
-
-            // Map users to their relationship status using local state snapshots
-            const resultsWithStatus = users.map((u) => {
-                if (friends.has(u.userId)) {
-                    return { ...u, relationshipStatus: 'friend' };
-                }
-
-                if (sentRequests.has(u.userId)) {
-                    return { ...u, relationshipStatus: 'sent', requestId: sentRequests.get(u.userId) };
-                }
-
-                if (receivedRequests.has(u.userId)) {
-                    return { ...u, relationshipStatus: 'received', requestId: receivedRequests.get(u.userId) };
-                }
-
-                return { ...u, relationshipStatus: 'none' };
-            });
-
-            setResults(resultsWithStatus);
+            setResults(users);
         } catch (error) {
             console.error('Search error:', error);
         } finally {
@@ -142,19 +124,33 @@ const Search = () => {
                 // Cancel request
                 await cancelChatRequest(targetUser.requestId);
                 showAlert("Success", "Request cancelled.");
+                // Manually update state
+                setSentRequests(prev => {
+                    const newState = new Map(prev);
+                    newState.delete(targetUser.userId);
+                    return newState;
+                });
             } else {
                 // Send new chat request
-                await sendChatRequest(user.$id, targetUser.userId);
+                const res = await sendChatRequest(user.$id, targetUser.userId);
                 showAlert("Success", "Chat request sent!");
+                // Manually update state for instant button toggle
+                setSentRequests(prev => new Map(prev).set(targetUser.userId, res.$id));
             }
-            // Refresh results to show new status
-            handleSearch();
+            // No need to fetchRelationships() if state is manually updated
         } catch (error) {
             console.error('Error handling chat request:', error);
             showAlert('Error', error.message || 'Action failed.');
         } finally {
             setStartingChat(false);
         }
+    };
+
+    const getRelationshipInfo = (userId) => {
+        if (friends.has(userId)) return { status: 'friend' };
+        if (sentRequests.has(userId)) return { status: 'sent', requestId: sentRequests.get(userId) };
+        if (receivedRequests.has(userId)) return { status: 'received', requestId: receivedRequests.get(userId) };
+        return { status: 'none' };
     };
 
     return (
@@ -181,14 +177,18 @@ const Search = () => {
             <FlatList
                 data={results}
                 keyExtractor={(item) => item.$id}
-                renderItem={({ item }) => (
-                    <UserListItem
-                        user={item}
-                        status={item.relationshipStatus}
-                        onPress={() => handleAction(item)}
-                        loading={startingChat}
-                    />
-                )}
+                extraData={[friends, sentRequests, receivedRequests]}
+                renderItem={({ item }) => {
+                    const info = getRelationshipInfo(item.userId);
+                    return (
+                        <UserListItem
+                            user={item}
+                            status={info.status}
+                            onPress={() => handleAction({ ...item, relationshipStatus: info.status, requestId: info.requestId })}
+                            loading={startingChat}
+                        />
+                    );
+                }}
                 ListEmptyComponent={
                     <View className="flex-1 items-center justify-center pt-20 px-10">
                         {loading ? (

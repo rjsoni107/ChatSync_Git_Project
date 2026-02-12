@@ -45,8 +45,8 @@ const ChatScreen = () => {
             setOtherUser(other);
 
             // Mark messages as seen when opening the chat
-            markMessagesAsSeen(chatId, user.$id);
-            markMessagesAsDelivered(chatId, user.$id);
+            await markMessagesAsSeen(chatId, user.$id);
+            await markMessagesAsDelivered(chatId, user.$id);
         } catch (error) {
             console.error('Error loading chat data:', error);
         } finally {
@@ -69,15 +69,15 @@ const ChatScreen = () => {
     useEffect(() => {
         if (!user?.$id || !chatId) return;
 
-        const unsubscribeMessages = subscribeMessages((res) => {
+        const unsubscribeMessages = subscribeMessages(async (res) => {
             if (res.events.includes('databases.*.collections.*.documents.*.create')) {
                 const newMessage = res.payload;
                 if (newMessage.chatId === chatId) {
                     addMessage(newMessage);
                     // Mark as seen if it's from the other user
                     if (newMessage.senderId !== user.$id) {
-                        markMessagesAsSeen(chatId, user.$id);
-                        markMessagesAsDelivered(chatId, user.$id);
+                        await markMessagesAsSeen(chatId, user.$id);
+                        await markMessagesAsDelivered(chatId, user.$id);
                     }
                 }
             } else if (res.events.includes('databases.*.collections.*.documents.*.update')) {

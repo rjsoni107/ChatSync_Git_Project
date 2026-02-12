@@ -10,7 +10,8 @@ import { View, ActivityIndicator } from 'react-native';
 import CustomAlert from '../components/ui/CustomAlert';
 import ImagePreviewModal from '../components/ui/ImagePreviewModal';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { registerForPushNotificationsAsync, setupNotificationListeners } from '../utils/notification.util';
+import { registerForPushNotificationsAsync, setupNotificationListeners, BACKGROUND_DELIVERY_TASK } from '../utils/notification.util';
+import * as BackgroundFetch from 'expo-background-fetch';
 
 export default function RootLayout() {
     const setUser = useAuthStore((s) => s.setUser);
@@ -47,6 +48,22 @@ export default function RootLayout() {
                 // Navigate to chat
                 router.push(`/chat/${chatId}`);
             });
+
+            // 🏆 Register Background Fetch
+            const registerBackgroundFetch = async () => {
+                try {
+                    await BackgroundFetch.registerTaskAsync(BACKGROUND_DELIVERY_TASK, {
+                        minimumInterval: 60 * 15, // 15 minutes (standard for iOS/Android)
+                        stopOnTerminate: false, // Keep running after app close
+                        startOnBoot: true, // Start after device restart
+                    });
+                    console.log('✅ Background Fetch registered');
+                } catch (err) {
+                    console.error('❌ Background Fetch registration failed:', err);
+                }
+            };
+            registerBackgroundFetch();
+
             return () => unsubscribe();
         }
     }, [user?.$id]);
