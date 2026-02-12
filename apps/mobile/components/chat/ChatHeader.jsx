@@ -6,15 +6,16 @@ import Skeleton from '../ui/Skeleton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatLastSeen } from '@chatterapp/utils/date';
 import bgColor from '../ui/bgColor';
+import StatusAvatar from '../status/StatusAvatar';
+import { useAuthStore } from '@chatterapp/store/useAuthStore';
 
-const ChatHeader = ({ user, typing, chatId }) => {
+const ChatHeader = ({ user, typing, chatId, statusGroup, onAvatarPress }) => {
     const router = useRouter();
+    const currentUser = useAuthStore((s) => s.user);
 
     let avatarName = ""
-
     if (user?.name) {
         const splitName = user?.name?.split(" ")
-
         if (splitName.length > 1) {
             avatarName = splitName[0][0] + splitName[1][0]
         } else {
@@ -24,6 +25,8 @@ const ChatHeader = ({ user, typing, chatId }) => {
 
     const nameHash = user?.name ? user?.name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
     const colorIndex = nameHash % (bgColor.length || 1);
+
+    const isSeen = statusGroup ? statusGroup.items.every(item => item.viewers?.includes(currentUser?.$id)) : false;
 
     return (
         <SafeAreaView edges={['top']} className="bg-surface shadow-md">
@@ -35,34 +38,35 @@ const ChatHeader = ({ user, typing, chatId }) => {
                     <Ionicons name="arrow-back" size={24} color="#3b82f6" />
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                    className="flex-1 flex-row items-center"
-                    onPress={() => router.push({
-                        pathname: `/user/${user?.$id}`,
-                        params: { chatId: chatId }
-                    })}
-                >
+                <View className="flex-1 flex-row items-center">
                     {user?.name ? (
                         <>
-                            <View className={`w-12 h-12 rounded-full items-center justify-center overflow-hidden ml-1 ${bgColor[colorIndex]}`}>
-                                {user?.profile_pic ? (
-                                    <Image source={{ uri: user.profile_pic }} className="w-full h-full" />
-                                ) : user?.avatar ? (
-                                    <Image source={{ uri: user.avatar }} className="w-full h-full" />
-                                ) : (
-                                    <Text className="text-[#111b21] text-lg font-bold">
-                                        {avatarName}
-                                    </Text>
-                                )}
-                            </View>
-                            <View className="ml-2 w-64">
+                            <TouchableOpacity
+                                onPress={() => statusGroup ? onAvatarPress(statusGroup) : null}
+                                className="ml-1"
+                            >
+                                <StatusAvatar
+                                    imageUrl={user.profile_pic || user.avatar}
+                                    itemsCount={statusGroup?.items?.length || 0}
+                                    isSeen={isSeen}
+                                    size={48}
+                                    fallbackText={avatarName || "?"}
+                                />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                className="ml-2 flex-1"
+                                onPress={() => router.push({
+                                    pathname: `/user/${user?.$id}`,
+                                    params: { chatId: chatId }
+                                })}
+                            >
                                 <Text className="text-white text-base font-bold" numberOfLines={1}>
                                     {user.name}
                                 </Text>
                                 <Text className="text-[#8696a0] text-xs" numberOfLines={1}>
                                     {typing ? 'typing...' : (user?.isOnline ? 'online' : formatLastSeen(user?.lastSeen))}
                                 </Text>
-                            </View>
+                            </TouchableOpacity>
                         </>
                     ) : (
                         <>
@@ -73,7 +77,7 @@ const ChatHeader = ({ user, typing, chatId }) => {
                             </View>
                         </>
                     )}
-                </TouchableOpacity>
+                </View>
 
                 <View className="flex-row">
                     <TouchableOpacity className="p-2">

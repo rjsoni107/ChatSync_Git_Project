@@ -11,7 +11,12 @@ import ChatHeader from '../../components/chat/ChatHeader';
 import MessageBubble from '../../components/chat/MessageBubble';
 import MessageInput from '../../components/chat/MessageInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, Animated } from 'react-native';
+import { getRecentStatuses, markStatusSeen } from '@chatterapp/services/status.service';
+import StatusViewer from '../../components/status/StatusViewer';
+import { useVideoPlayer } from 'expo-video';
+
+const STORY_DURATION = 5000;
 
 
 import { getMessageDateLabel } from '@chatterapp/utils/date';
@@ -26,6 +31,22 @@ const ChatScreen = () => {
     const [otherUser, setOtherUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+    const [statuses, setStatuses] = useState([]);
+
+    // Viewer State
+    const [viewingStatus, setViewingStatus] = useState(null);
+    const [currentItemIndex, setCurrentItemIndex] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
+
+    // Animation & Timing Refs
+    const progress = useRef(new Animated.Value(0)).current;
+    const animationRef = useRef(null);
+    const remainingTimeRef = useRef(STORY_DURATION);
+    const startTimeRef = useRef(null);
+
+    // Video Player
+    const player = useVideoPlayer(null);
+
     const flatListRef = useRef(null);
     const typingTimeoutRef = useRef(null);
     const isTypingRef = useRef(false);
@@ -37,12 +58,14 @@ const ChatScreen = () => {
 
         try {
             setLoading(true);
-            const [msgs, other] = await Promise.all([
+            const [msgs, other, fetchedStatuses] = await Promise.all([
                 getMessagesByChat(chatId),
-                getOtherUserFromChat(chatId, user.$id)
+                getOtherUserFromChat(chatId, user.$id),
+                getRecentStatuses()
             ]);
             setMessages(msgs);
             setOtherUser(other);
+            setStatuses(fetchedStatuses);
 
             // Mark messages as seen when opening the chat
             await markMessagesAsSeen(chatId, user.$id);
@@ -230,6 +253,62 @@ const ChatScreen = () => {
 
     const keyExtractor = useCallback((item) => item?.$id || Math.random().toString(), []);
 
+    // Story Logic (Same as chats.jsx)
+    useEffect(() => {
+        if (!viewingStatus) return;
+
+        const currentItem = viewingStatus.items[currentItemIndex];
+        const totalDuration = currentItem.type === 'video' ? 15000 : STORY_DURATION;
+
+        if (!isPaused) {
+            startTimeRef.current = Date.now();
+            animationRef.current = Animated.timing(progress, {
+                toValue: 1,
+                duration: remainingTimeRef.current,
+                useNativeDriver: false,
+            });
+
+            animationRef.current.start(({ finished }) => {
+                if (finished) {
+                    setCurrentItemIndex(prev => {
+                        if (prev < viewingStatus.items.length - 1) return prev + 1;
+                        setViewingStatus(null);
+                        return prev;
+                    });
+                }
+            });
+        } else {
+            if (animationRef.current) {
+                animationRef.current.stop();
+                const elapsed = Date.now() - startTimeRef.current;
+                remainingTimeRef.current = Math.max(0, remainingTimeRef.current - elapsed);
+            }
+        }
+    }, [isPaused, viewingStatus, currentItemIndex]);
+
+    useEffect(() => {
+        if (!viewingStatus) return;
+        progress.setValue(0);
+        const currentItem = viewingStatus.items[currentItemIndex];
+        remainingTimeRef.current = currentItem.type === 'video' ? 15000 : STORY_DURATION;
+
+        if (currentItem.type === 'video') {
+            player.replace(currentItem.mediaUrl);
+            player.play();
+        } else {
+            player.pause();
+        }
+    }, [currentItemIndex, viewingStatus]);
+
+    useEffect(() => {
+        if (viewingStatus && user?.$id) {
+            const currentItem = viewingStatus.items[currentItemIndex];
+            if (currentItem.userId !== user.$id) {
+                markStatusSeen(currentItem.$id, user.$id);
+            }
+        }
+    }, [viewingStatus, currentItemIndex]);
+
     if (loading && !messages.length) {
         return (
             <View className="flex-1 bg-[#111b21] items-center justify-center">
@@ -238,9 +317,21 @@ const ChatScreen = () => {
         );
     }
 
+    const otherUserStatus = statuses.find(s => s.userId === otherUser?.$id);
+
     return (
         <View className="flex-1 bg-[#0b141a]">
-            <ChatHeader user={otherUser} typing={isOtherUserTyping} chatId={chatId} />
+            <ChatHeader
+                user={otherUser}
+                typing={isOtherUserTyping}
+                chatId={chatId}
+                statusGroup={otherUserStatus}
+                onAvatarPress={(group) => {
+                    setViewingStatus(group);
+                    setCurrentItemIndex(0);
+                    setIsPaused(false);
+                }}
+            />
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
@@ -284,6 +375,44 @@ const ChatScreen = () => {
                     />
                 </View>
             </KeyboardAvoidingView>
+
+            <StatusViewer
+                visible={!!viewingStatus}
+                allStatuses={statuses}
+                initialGroupIndex={statuses.findIndex(s => s.userId === viewingStatus?.userId)}
+                onGroupChange={(group) => {
+                    setViewingStatus(group);
+                    setCurrentItemIndex(0);
+                    setIsPaused(false);
+                    progress.setValue(0);
+                }}
+                currentItemIndex={currentItemIndex}
+                isPaused={isPaused}
+                setIsPaused={setIsPaused}
+                onClose={() => setViewingStatus(null)}
+                onNext={() => {
+                    setCurrentItemIndex(prev => {
+                        if (!viewingStatus) return prev;
+                        if (prev < viewingStatus.items.length - 1) return prev + 1;
+                        setViewingStatus(null);
+                        return prev;
+                    });
+                }}
+                onPrev={() => setCurrentItemIndex(prev => (prev > 0 ? prev - 1 : prev))}
+                onNavigateToViewers={() => { }}
+                user={user}
+                progress={progress}
+                player={player}
+                replyText={""}
+                setReplyText={() => { }}
+                onReply={() => { }}
+                onDelete={() => { }}
+                onHighlight={() => { }}
+                sendingReply={false}
+                animationRef={animationRef}
+                remainingTimeRef={remainingTimeRef}
+                startTimeRef={startTimeRef}
+            />
         </View>
     );
 };

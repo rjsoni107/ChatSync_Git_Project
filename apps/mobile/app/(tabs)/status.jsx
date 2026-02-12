@@ -1,11 +1,11 @@
-import { View, Text, ScrollView, TouchableOpacity, Pressable, Image, Modal, ActivityIndicator, StyleSheet, Dimensions, Animated, PanResponder, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
-import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, StyleSheet, TextInput, Animated } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import { useVideoPlayer } from 'expo-video';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
-import { createStatus, getRecentStatuses, markStatusSeen } from '@chatterapp/services/status.service';
+import { createStatus, getRecentStatuses, markStatusSeen, deleteStatus, addToHighlight } from '@chatterapp/services/status.service';
 import { findPrivateChat, createChat, addChatMember } from '@chatterapp/services/chat.service';
 import { sendMessage } from '@chatterapp/services/message.service';
 import { getUsersByIds } from '@chatterapp/services/user.service';
@@ -13,9 +13,13 @@ import { useAlertStore } from '@chatterapp/store/useAlertStore';
 import { formatDistanceToNow } from 'date-fns';
 import Skeleton from '../../components/ui/Skeleton';
 
-const { width, height } = Dimensions.get('window');
-const STORY_DURATION = 5000; // 5 seconds default for images
+// Modular Components
+import TextStatusModal from '../../components/status/TextStatusModal';
+import StatusViewer from '../../components/status/StatusViewer';
+import ViewersList from '../../components/status/ViewersList';
+import StatusAvatar from '../../components/status/StatusAvatar';
 
+const STORY_DURATION = 5000;
 const BG_COLORS = ['#1a2a33', '#833ab4', '#fd1d1d', '#fcb045', '#405de6', '#5851db', '#34a853', '#ea4335', '#25d366'];
 
 export default function Status() {
@@ -41,8 +45,11 @@ export default function Status() {
     const [replyText, setReplyText] = useState("");
     const [sendingReply, setSendingReply] = useState(false);
 
-    // Animation for progress bar
+    // Animation & Timing Refs
     const progress = useRef(new Animated.Value(0)).current;
+    const animationRef = useRef(null);
+    const remainingTimeRef = useRef(STORY_DURATION);
+    const startTimeRef = useRef(null);
 
     // Video Player
     const player = useVideoPlayer(null);
@@ -85,50 +92,49 @@ export default function Status() {
         fetchViewers();
     }, [showViewers, currentItemIndex, viewingStatus]);
 
-    // Progress Bar Animation Logic
+    // Progress bar and logic for stories
     useEffect(() => {
         if (!viewingStatus) return;
 
-        if (viewingStatus && !isPaused) {
-            const currentItem = viewingStatus.items[currentItemIndex];
-            // Get video duration if available, else default
-            const duration = currentItem.type === 'video' ? 15000 : STORY_DURATION;
+        const currentItem = viewingStatus.items[currentItemIndex];
+        const totalDuration = currentItem.type === 'video' ? 15000 : STORY_DURATION;
 
-            progress.setValue(0);
-            Animated.timing(progress, {
+        if (!isPaused) {
+            startTimeRef.current = Date.now();
+            animationRef.current = Animated.timing(progress, {
                 toValue: 1,
-                duration: duration,
+                duration: remainingTimeRef.current,
                 useNativeDriver: false,
-            }).start(({ finished }) => {
+            });
+
+            animationRef.current.start(({ finished }) => {
                 if (finished) {
                     nextItem();
                 }
             });
         } else {
-            progress.stopAnimation();
+            if (animationRef.current) {
+                animationRef.current.stop();
+                const elapsed = Date.now() - startTimeRef.current;
+                remainingTimeRef.current = Math.max(0, remainingTimeRef.current - elapsed);
+            }
         }
-    }, [viewingStatus, currentItemIndex, isPaused]);
+    }, [isPaused]);
 
-    // Video Lifecycle
     useEffect(() => {
-        const currentItem = viewingStatus?.items[currentItemIndex];
-        if (currentItem?.type === 'video') {
+        if (!viewingStatus) return;
+        progress.setValue(0);
+        const currentItem = viewingStatus.items[currentItemIndex];
+        remainingTimeRef.current = currentItem.type === 'video' ? 15000 : STORY_DURATION;
+
+        // Auto-play/pause video
+        if (currentItem.type === 'video') {
             player.replace(currentItem.mediaUrl);
             player.play();
         } else {
             player.pause();
         }
-    }, [viewingStatus, currentItemIndex]);
-
-    useEffect(() => {
-        if (viewingStatus?.items[currentItemIndex]?.type === 'video') {
-            if (isPaused) {
-                player.pause();
-            } else {
-                player.play();
-            }
-        }
-    }, [isPaused]);
+    }, [currentItemIndex, viewingStatus]);
 
     // Mark as seen
     useEffect(() => {
@@ -146,7 +152,7 @@ export default function Status() {
             allowsEditing: true,
             aspect: [9, 16],
             quality: 0.7,
-            videoMaxDuration: 30, // Limit to 30s
+            videoMaxDuration: 30,
         });
 
         if (!result.canceled) {
@@ -176,7 +182,6 @@ export default function Status() {
             showAlert("Success", "Status uploaded successfully!");
             fetchStatuses();
         } catch (error) {
-            console.error("Upload failed:", error);
             showAlert("Error", "Failed to upload status.");
         } finally {
             setUploading(false);
@@ -206,8 +211,10 @@ export default function Status() {
         }
     };
 
-    const handleReply = async () => {
-        if (!replyText.trim() || !viewingStatus) return;
+    const handleReply = async (quickEmoji = null) => {
+        const content = quickEmoji || replyText;
+        if (!content.trim() || !viewingStatus) return;
+
         setSendingReply(true);
         try {
             const receiverId = viewingStatus.userId;
@@ -221,7 +228,7 @@ export default function Status() {
             }
 
             const currentSegment = viewingStatus.items[currentItemIndex];
-            const replyMessage = `Replying to Status: ${replyText}`;
+            const replyMessage = quickEmoji ? `Reacted to your Status: ${quickEmoji}` : `Replying to Status: ${content}`;
 
             await sendMessage({
                 chatId,
@@ -231,14 +238,66 @@ export default function Status() {
             });
 
             setReplyText("");
-            showAlert("Sent", "Reply sent to direct messages!");
+            showAlert("Sent", "Reply sent!");
             closeViewer();
         } catch (error) {
-            console.error("Reply failed:", error);
             showAlert("Error", "Could not send reply.");
         } finally {
             setSendingReply(false);
         }
+    };
+
+    const handleDeleteStatus = async (item) => {
+        setIsPaused(true);
+        showAlert(
+            "Delete Status?",
+            "Are you sure you want to delete this status segment?",
+            [
+                { text: "Cancel", style: "cancel", onPress: () => setIsPaused(false) },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await deleteStatus(item.$id, item.fileId);
+                            showAlert("Deleted", "Status deleted successfully.");
+                            fetchStatuses();
+                            closeViewer();
+                        } catch (error) {
+                            showAlert("Error", "Failed to delete status.");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleHighlightStatus = (item) => {
+        setIsPaused(true);
+        showAlert(
+            "Add to Highlights",
+            "Enter a name for this highlight group:",
+            [
+                { text: "Cancel", style: "cancel", onPress: () => setIsPaused(false) },
+                {
+                    text: "Save",
+                    onPress: async () => {
+                        // For mobile, we might need a custom input modal for names, 
+                        // but for now, we'll use a default name if prompt isn't easy
+                        // Let's assume user wants to group it.
+                        try {
+                            await addToHighlight(item.$id, "My Highlights");
+                            showAlert("Success", "Added to Highlights! Check your profile.");
+                            setIsPaused(false);
+                        } catch (error) {
+                            showAlert("Error", "Failed to add to highlights.");
+                            setIsPaused(false);
+                        }
+                    }
+                }
+            ],
+            { cancelable: true }
+        );
     };
 
     const myStatus = statuses.find(s => s.userId === user?.$id);
@@ -266,13 +325,9 @@ export default function Status() {
     const nextItem = () => {
         setCurrentItemIndex(prev => {
             if (!viewingStatus) return prev;
-
-            if (prev < viewingStatus.items.length - 1) {
-                return prev + 1;
-            } else {
-                closeViewer();
-                return prev;
-            }
+            if (prev < viewingStatus.items.length - 1) return prev + 1;
+            closeViewer();
+            return prev;
         });
     };
 
@@ -280,27 +335,9 @@ export default function Status() {
         setCurrentItemIndex(prev => (prev > 0 ? prev - 1 : prev));
     };
 
-
-
-    // Swipe to Close PanResponder
-    const panY = useRef(new Animated.Value(0)).current;
-    const panResponder = useRef(
-        PanResponder.create({
-            onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 10,
-            onPanResponderMove: Animated.event([null, { dy: panY }], { useNativeDriver: false }),
-            onPanResponderRelease: (_, gesture) => {
-                if (gesture.dy > 150) {
-                    closeViewer();
-                } else {
-                    Animated.spring(panY, { toValue: 0, useNativeDriver: false }).start();
-                }
-            }
-        })
-    ).current;
-
     return (
         <SafeAreaView className="flex-1 bg-[#111b21]">
-            <View className="px-4 py-3 flex-row justify-between items-center">
+            <View className="px-4 py-3 flex-row justify-between items-center border-b border-[#202c33]">
                 <Text className="text-white text-2xl font-bold">Status</Text>
                 <TouchableOpacity onPress={() => showAlert("Info", "Statuses disappear after 24 hours.")}>
                     <Ionicons name="ellipsis-vertical" size={20} color="#8696a0" />
@@ -309,22 +346,21 @@ export default function Status() {
 
             <ScrollView className="flex-1">
                 {/* My Status Section */}
-                <View className="px-4 py-2">
+                <View className="px-4 py-4">
                     <Text className="text-[#8696a0] text-sm font-bold uppercase tracking-wider mb-4">My Status</Text>
                     <View className="flex-row items-center">
                         <TouchableOpacity
                             onPress={myStatus ? () => openViewer(myStatus) : () => handlePickMedia('images')}
                             className="relative"
                         >
-                            <View className={`w-14 h-14 rounded-full p-[2px] border-2 ${myStatus ? (isGroupSeen(myStatus) ? 'border-gray-500' : 'border-green-500') : 'border-gray-600'} items-center justify-center`}>
-                                {user?.profile_pic ? (
-                                    <Image source={{ uri: user.profile_pic }} className="w-full h-full rounded-full" />
-                                ) : (
-                                    <View className="w-full h-full rounded-full bg-[#374045] items-center justify-center">
-                                        <Ionicons name="person" size={24} color="#8696a0" />
-                                    </View>
-                                )}
-                            </View>
+                            <StatusAvatar
+                                imageUrl={user?.profile_pic}
+                                itemsCount={myStatus?.items?.length || 0}
+                                isSeen={myStatus ? isGroupSeen(myStatus) : false}
+                                size={56}
+                                strokeWidth={myStatus ? 2.5 : 1}
+                                fallbackText={user?.name || "?"}
+                            />
                             {!myStatus && (
                                 <View className="absolute bottom-0 right-0 bg-blue-500 rounded-full w-5 h-5 items-center justify-center border-2 border-[#111b21]">
                                     <Ionicons name="add" size={16} color="white" />
@@ -334,17 +370,14 @@ export default function Status() {
                         <View className="ml-4 flex-1">
                             <Text className="text-white text-lg font-bold">My Status</Text>
                             <Text className="text-[#8696a0] text-sm">
-                                {myStatus
-                                    ? `${myStatus.items.length} segments • Tap to view`
-                                    : "Tap to add status update"
-                                }
+                                {myStatus ? `${myStatus.items.length} segments • Tap to view` : "Tap to add status update"}
                             </Text>
                         </View>
                         <View className="flex-row items-center space-x-2">
                             <TouchableOpacity onPress={() => handlePickMedia('images')} className="p-2 bg-[#202c33] rounded-full">
                                 <Ionicons name="camera" size={22} color="#60a5fa" />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => setShowTextModal(true)} className="p-2 bg-[#202c33] rounded-full">
+                            <TouchableOpacity onPress={() => setShowTextModal(true)} className="p-2 bg-[#202c33] rounded-full ml-2">
                                 <Ionicons name="pencil" size={22} color="#60a5fa" />
                             </TouchableOpacity>
                         </View>
@@ -352,21 +385,25 @@ export default function Status() {
                 </View>
 
                 {/* Others Status Updates */}
-                <View className="mt-6 px-4">
+                <View className="mt-2 px-4">
                     <Text className="text-[#8696a0] text-sm font-bold uppercase tracking-wider mb-4">Recent updates</Text>
                     {loading ? (
                         [1, 2, 3].map(i => (
-                            <View key={i} className="flex-row items-center mb-4">
+                            <View key={i} className="flex-row items-center mb-6">
                                 <Skeleton width={56} height={56} borderRadius={28} backgroundColor="#202c33" />
                                 <View className="ml-4 flex-1"><Skeleton width={120} height={18} borderRadius={9} backgroundColor="#202c33" className="mb-2" /><Skeleton width={150} height={14} borderRadius={7} backgroundColor="#202c33" /></View>
                             </View>
                         ))
                     ) : othersStatuses.length > 0 ? (
                         othersStatuses.map((group) => (
-                            <TouchableOpacity key={group.userId} className="flex-row items-center mb-4" onPress={() => openViewer(group)}>
-                                <View className={`w-14 h-14 rounded-full p-[2px] border-2 ${isGroupSeen(group) ? 'border-gray-600' : 'border-green-500'} items-center justify-center`}>
-                                    {group.userProfilePic ? <Image source={{ uri: group.userProfilePic }} className="w-full h-full rounded-full" /> : <View className="w-full h-full rounded-full bg-[#374045] items-center justify-center"><Text className="text-white font-bold">{group.userName[0]}</Text></View>}
-                                </View>
+                            <TouchableOpacity key={group.userId} className="flex-row items-center mb-6" onPress={() => openViewer(group)}>
+                                <StatusAvatar
+                                    imageUrl={group.userProfilePic}
+                                    itemsCount={group.items.length}
+                                    isSeen={isGroupSeen(group)}
+                                    size={56}
+                                    fallbackText={group.userName}
+                                />
                                 <View className="ml-4 flex-1">
                                     <Text className="text-white text-lg font-bold">{group.userName}</Text>
                                     <Text className="text-[#8696a0] text-sm">{formatDistanceToNow(new Date(group.items[0].createdAt))} ago</Text>
@@ -374,207 +411,61 @@ export default function Status() {
                             </TouchableOpacity>
                         ))
                     ) : (
-                        <View className="items-center justify-center py-10"><Ionicons name="aperture-outline" size={60} color="#202c33" /><Text className="text-gray-500 mt-4 text-center px-10">No status updates yet.</Text></View>
+                        <View className="items-center justify-center py-20"><Ionicons name="aperture-outline" size={60} color="#202c33" /><Text className="text-gray-500 mt-4 text-center px-10">No status updates yet from your contacts.</Text></View>
                     )}
                 </View>
             </ScrollView>
 
-            {/* Create Text Status Modal */}
-            <Modal visible={showTextModal} animationType="slide">
-                <SafeAreaView className="flex-1" style={{ backgroundColor: selectedBg }}>
-                    <View className="p-4 flex-row justify-between items-center">
-                        <TouchableOpacity onPress={() => setShowTextModal(false)}>
-                            <Ionicons name="close" size={30} color="white" />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={handleTextStatusUpload}
-                            className="bg-white/20 px-6 py-2 rounded-full"
-                        >
-                            <Text className="text-white font-bold">Share</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <View className="flex-1 justify-center px-10">
-                        <TextInput
-                            multiline
-                            placeholder="Type a status..."
-                            placeholderTextColor="rgba(255,255,255,0.5)"
-                            className="text-white text-4xl text-center font-bold"
-                            value={textStatus}
-                            onChangeText={setTextStatus}
-                            autoFocus
-                        />
-                    </View>
-                    <View className="p-6">
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-                            {BG_COLORS.map(color => (
-                                <TouchableOpacity
-                                    key={color}
-                                    onPress={() => setSelectedBg(color)}
-                                    className="w-10 h-10 rounded-full mr-3 border-2 border-white/50"
-                                    style={{ backgroundColor: color }}
-                                />
-                            ))}
-                        </ScrollView>
-                    </View>
-                </SafeAreaView>
-            </Modal>
+            <TextStatusModal
+                visible={showTextModal}
+                onClose={() => setShowTextModal(false)}
+                text={textStatus}
+                onTextChange={setTextStatus}
+                selectedBg={selectedBg}
+                onBgChange={setSelectedBg}
+                onUpload={handleTextStatusUpload}
+            />
 
-            {/* Status Viewer Modal */}
-            <Modal visible={!!viewingStatus} transparent animationType="fade" onRequestClose={closeViewer}>
-                <View className="flex-1 bg-black" {...panResponder.panHandlers}>
-                    <Animated.View style={[{ flex: 1, transform: [{ translateY: panY }] }]}>
-                        <SafeAreaView className="flex-1">
-                            {/* Segmented Progress Bars */}
-                            <View className="flex-row px-2 pt-2 space-x-1">
-                                {viewingStatus?.items.map((_, index) => (
-                                    <View key={index} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
-                                        <Animated.View className="h-full bg-white" style={{ width: index === currentItemIndex ? progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) : index < currentItemIndex ? '100%' : '0%' }} />
-                                    </View>
-                                ))}
-                            </View>
+            <StatusViewer
+                visible={!!viewingStatus}
+                allStatuses={statuses}
+                initialGroupIndex={statuses.findIndex(s => s.userId === viewingStatus?.userId)}
+                onGroupChange={(group) => {
+                    setViewingStatus(group);
+                    setCurrentItemIndex(0);
+                    setIsPaused(false);
+                    progress.setValue(0);
+                }}
+                currentItemIndex={currentItemIndex}
+                isPaused={isPaused}
+                setIsPaused={setIsPaused}
+                onClose={closeViewer}
+                onNext={nextItem}
+                onPrev={prevItem}
+                onNavigateToViewers={() => setShowViewers(true)}
+                user={user}
+                progress={progress}
+                player={player}
+                replyText={replyText}
+                setReplyText={setReplyText}
+                onReply={handleReply}
+                onDelete={handleDeleteStatus}
+                onHighlight={handleHighlightStatus}
+                sendingReply={sendingReply}
+                animationRef={animationRef}
+                remainingTimeRef={remainingTimeRef}
+                startTimeRef={startTimeRef}
+            />
 
-                            {/* Top Header */}
-                            <View className="flex-row items-center px-4 py-4 justify-between">
-                                <View className="flex-row items-center">
-                                    <View className="w-10 h-10 rounded-full bg-gray-600 overflow-hidden">
-                                        {viewingStatus?.userProfilePic ? <Image source={{ uri: viewingStatus.userProfilePic }} className="w-full h-full" /> : <View className="w-full h-full items-center justify-center"><Text className="text-white font-bold">{viewingStatus?.userName[0]}</Text></View>}
-                                    </View>
-                                    <View className="ml-3">
-                                        <Text className="text-white font-bold">{viewingStatus?.userName}</Text>
-                                        <Text className="text-white/70 text-xs">{viewingStatus && formatDistanceToNow(new Date(viewingStatus.items[currentItemIndex].createdAt))} ago</Text>
-                                    </View>
-                                </View>
-                                <TouchableOpacity onPress={closeViewer} className="p-2"><Ionicons name="close" size={28} color="white" /></TouchableOpacity>
-                            </View>
-
-                            {/* Content Viewer */}
-                            <View className="flex-1 justify-center relative">
-                                {viewingStatus?.items[currentItemIndex].type === 'text' ? (
-                                    <View className="flex-1 items-center justify-center p-10" style={{ backgroundColor: viewingStatus.items[currentItemIndex].bgColor || '#111' }}>
-                                        <Text className="text-white text-4xl text-center font-bold">{viewingStatus.items[currentItemIndex].caption}</Text>
-                                    </View>
-                                ) : viewingStatus?.items[currentItemIndex].type === 'video' ? (
-                                    <VideoView
-                                        player={player}
-                                        className="w-full h-full"
-                                        contentScale="contain"
-                                        useNativeControls={false}
-                                    />
-                                ) : (
-                                    <Image
-                                        source={{ uri: viewingStatus?.items[currentItemIndex].mediaUrl }}
-                                        className="w-full h-full"
-                                        resizeMode="contain"
-                                    />
-                                )}
-
-                                {/* Touch Controls Layer */}
-                                <View style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    flexDirection: 'row'
-                                }}>
-                                    <Pressable
-                                        className="flex-1"
-                                        onPress={prevItem}
-                                        onLongPress={() => setIsPaused(true)}
-                                        onPressOut={() => setIsPaused(false)}
-                                        delayLongPress={200}
-                                    />
-                                    <Pressable
-                                        className="flex-1"
-                                        onPress={nextItem}
-                                        onLongPress={() => setIsPaused(true)}
-                                        onPressOut={() => setIsPaused(false)}
-                                        delayLongPress={200}
-                                    />
-                                </View>
-                            </View>
-
-                            {/* Footer Interactions */}
-                            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-                                <View className="p-4 items-center">
-                                    {viewingStatus?.userId === user?.$id ? (
-                                        <TouchableOpacity
-                                            onPress={() => {
-                                                setIsPaused(true);
-                                                setShowViewers(true);
-                                            }}
-                                            className="flex-row items-center bg-white/10 px-4 py-2 rounded-full mb-4"
-                                        >
-                                            <Ionicons name="eye-outline" size={18} color="white" /><Text className="text-white ml-2">{viewingStatus.items[currentItemIndex].viewers?.length || 0} views</Text>
-                                        </TouchableOpacity>
-                                    ) : (
-                                        <View className="flex-row items-center w-full space-x-2 bg-white/10 p-2 rounded-full px-4 mb-2">
-                                            <TextInput
-                                                placeholder="Reply..."
-                                                placeholderTextColor="#8696a0"
-                                                className="flex-1 text-white h-10"
-                                                value={replyText}
-                                                onChangeText={setReplyText}
-                                                onFocus={() => setIsPaused(true)}
-                                                onBlur={() => setIsPaused(false)}
-                                            />
-                                            <TouchableOpacity onPress={handleReply}>
-                                                {sendingReply ? <ActivityIndicator size="small" color="white" /> : <Ionicons name="send" size={20} color="#60a5fa" />}
-                                            </TouchableOpacity>
-                                        </View>
-                                    )}
-
-                                    {viewingStatus?.items[currentItemIndex].type !== 'text' && (
-                                        <Text className="text-white text-lg text-center">{viewingStatus?.items[currentItemIndex].caption || ""}</Text>
-                                    )}
-                                </View>
-                            </KeyboardAvoidingView>
-                        </SafeAreaView>
-                    </Animated.View>
-                </View>
-            </Modal>
-
-            {/* Viewers List Modal */}
-            <Modal visible={showViewers} transparent animationType="slide">
-                <View className="flex-1 justify-end bg-black/50">
-                    <View className="bg-[#1c2932] rounded-t-3xl h-[60%] p-6">
-                        <View className="flex-row justify-between items-center mb-6">
-                            <Text className="text-white text-xl font-bold">Viewed by</Text>
-                            <TouchableOpacity onPress={() => {
-                                setShowViewers(false);
-                                setIsPaused(false);
-                            }}>
-                                <Ionicons name="close" size={24} color="white" />
-                            </TouchableOpacity>
-                        </View>
-                        {loadingViewers ? (
-                            <ActivityIndicator size="large" color="#60a5fa" />
-                        ) : viewerProfiles.length > 0 ? (
-                            <ScrollView>
-                                {viewerProfiles.map(profile => (
-                                    <View key={profile.userId} className="flex-row items-center mb-4">
-                                        <View className="w-10 h-10 rounded-full bg-gray-600 overflow-hidden">
-                                            {profile.profile_pic ? <Image source={{ uri: profile.profile_pic }} className="w-full h-full" /> : <View className="w-full h-full items-center justify-center"><Ionicons name="person" size={20} color="#8696a0" /></View>}
-                                        </View>
-                                        <View className="ml-3">
-                                            <Text className="text-white font-bold">{profile.name}</Text>
-                                            <Text className="text-gray-400 text-xs">@{profile.username}</Text>
-                                        </View>
-                                    </View>
-                                ))}
-                            </ScrollView>
-                        ) : (
-                            <View className="items-center justify-center py-10">
-                                <Ionicons name="eye-off-outline" size={40} color="#374045" />
-                                <Text className="text-gray-400 mt-2">No views yet</Text>
-                            </View>
-                        )}
-                    </View>
-                </View>
-            </Modal>
+            <ViewersList
+                visible={showViewers}
+                onClose={() => setShowViewers(false)}
+                viewers={viewerProfiles}
+                loading={loadingViewers}
+            />
 
             {uploading && (
-                <View style={StyleSheet.absoluteFill} className="bg-black/50 items-center justify-center z-50">
+                <View style={StyleSheet.absoluteFill} className="bg-black/80 items-center justify-center z-50">
                     <ActivityIndicator size="large" color="#60a5fa" /><Text className="text-white mt-4 font-bold">Uploading status...</Text>
                 </View>
             )}

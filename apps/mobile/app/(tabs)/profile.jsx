@@ -14,6 +14,14 @@ import { useImagePreviewStore } from '@chatterapp/store/useImagePreviewStore';
 import ActionSheet from '../../components/ui/ActionSheet';
 
 import { useAlertStore } from '@chatterapp/store/useAlertStore';
+import { getUserHighlights, getRecentStatuses } from '@chatterapp/services/status.service';
+import StatusViewer from '../../components/status/StatusViewer';
+import StatusAvatar from '../../components/status/StatusAvatar';
+import { useVideoPlayer } from 'expo-video';
+import { useRef } from 'react';
+import { Animated } from 'react-native';
+
+const STORY_DURATION = 5000;
 
 const Profile = () => {
     const router = useRouter();
@@ -28,13 +36,35 @@ const Profile = () => {
     const [uploading, setUploading] = useState(false);
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
 
+    const [highlights, setHighlights] = useState([]);
+    const [activeStatus, setActiveStatus] = useState(null);
+    const [viewingHighlight, setViewingHighlight] = useState(null);
+    const [currentItemIndex, setCurrentItemIndex] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
+
+    // Animation & Timing Refs for Highlight Viewer
+    const progress = useRef(new Animated.Value(0)).current;
+    const animationRef = useRef(null);
+    const remainingTimeRef = useRef(STORY_DURATION);
+    const startTimeRef = useRef(null);
+    const player = useVideoPlayer(null);
+
     const fetchProfile = async () => {
         if (!user?.$id) return;
         try {
-            const data = await getUserProfile(user.$id);
-            setProfile(data);
+            const [profileData, highlightData, allRecentStatuses] = await Promise.all([
+                getUserProfile(user.$id),
+                getUserHighlights(user.$id),
+                getRecentStatuses()
+            ]);
+            setProfile(profileData);
+            setHighlights(highlightData);
+
+            // Find current user's active status group
+            const userStatus = allRecentStatuses.find(s => s.userId === user.$id);
+            setActiveStatus(userStatus);
         } catch (err) {
-            console.error('Error fetching profile:', err);
+            console.error('Error fetching profile/highlights:', err);
         } finally {
             setLoading(false);
         }
@@ -219,6 +249,82 @@ const Profile = () => {
         );
     };
 
+    // Highlight Viewing Logic
+    useEffect(() => {
+        if (!viewingHighlight) return;
+
+        const currentItem = viewingHighlight.items[currentItemIndex];
+        const totalDuration = currentItem.type === 'video' ? 15000 : STORY_DURATION;
+
+        if (!isPaused) {
+            startTimeRef.current = Date.now();
+            animationRef.current = Animated.timing(progress, {
+                toValue: 1,
+                duration: remainingTimeRef.current,
+                useNativeDriver: false,
+            });
+
+            animationRef.current.start(({ finished }) => {
+                if (finished) {
+                    nextHighlightItem();
+                }
+            });
+        } else {
+            if (animationRef.current) {
+                animationRef.current.stop();
+                const elapsed = Date.now() - startTimeRef.current;
+                remainingTimeRef.current = Math.max(0, remainingTimeRef.current - elapsed);
+            }
+        }
+    }, [isPaused, viewingHighlight, currentItemIndex]);
+
+    useEffect(() => {
+        if (!viewingHighlight) return;
+        progress.setValue(0);
+        const currentItem = viewingHighlight.items[currentItemIndex];
+        remainingTimeRef.current = currentItem.type === 'video' ? 15000 : STORY_DURATION;
+
+        if (currentItem.type === 'video') {
+            player.replace(currentItem.mediaUrl);
+            player.play();
+        } else {
+            player.pause();
+        }
+    }, [currentItemIndex, viewingHighlight]);
+
+    const nextHighlightItem = () => {
+        setCurrentItemIndex(prev => {
+            if (!viewingHighlight) return prev;
+            if (prev < viewingHighlight.items.length - 1) return prev + 1;
+            closeHighlightViewer();
+            return prev;
+        });
+    };
+
+    const prevHighlightItem = () => {
+        setCurrentItemIndex(prev => (prev > 0 ? prev - 1 : prev));
+    };
+
+    const closeHighlightViewer = () => {
+        setViewingHighlight(null);
+        setCurrentItemIndex(0);
+        setIsPaused(false);
+        progress.setValue(0);
+    };
+
+    const openHighlight = (highlight) => {
+        // Transform highlight to match StatusViewer group format
+        const statusGroup = {
+            userId: user.$id,
+            userName: highlight.name,
+            userProfilePic: highlight.coverUrl,
+            items: highlight.items
+        };
+        setViewingHighlight(statusGroup);
+        setCurrentItemIndex(0);
+        setIsPaused(false);
+    };
+
     const handlePhotoPress = () => {
         setShowPhotoOptions(true);
     };
@@ -264,15 +370,18 @@ const Profile = () => {
                 {/* User Info Header */}
                 <View className="items-center py-6">
                     <View className="relative">
-                        <View className="w-32 h-32 rounded-full bg-[#202c33] items-center justify-center overflow-hidden border-4 border-[#111b21] shadow-xl">
-                            {profile?.profile_pic ? (
-                                <Image source={{ uri: profile.profile_pic }} className="w-full h-full" />
-                            ) : (
-                                <Text className="text-white text-4xl font-bold">
-                                    {user?.name?.charAt(0).toUpperCase() || '?'}
-                                </Text>
-                            )}
-                        </View>
+                        <TouchableOpacity
+                            onPress={activeStatus ? () => openHighlight({ name: 'My Status', items: activeStatus.items, coverUrl: user?.profile_pic }) : handlePhotoPress}
+                        >
+                            <StatusAvatar
+                                imageUrl={profile?.profile_pic}
+                                itemsCount={activeStatus?.items?.length || 0}
+                                isSeen={false} // On profile, we can show it as unseen if it exists
+                                size={120}
+                                strokeWidth={4}
+                                fallbackText={user?.name || "?"}
+                            />
+                        </TouchableOpacity>
                         <TouchableOpacity
                             className="absolute bottom-1 right-1 w-10 h-10 bg-primary rounded-full items-center justify-center border-4 border-[#111b21]"
                             onPress={handlePhotoPress}
@@ -301,6 +410,47 @@ const Profile = () => {
                         </Text>
                     )}
                 </View>
+
+                {/* Highlights Section */}
+                {!loading && (
+                    <View className="mb-6">
+                        <Text className="text-secondary px-4 mb-3 font-bold uppercase text-[10px] tracking-widest">
+                            Highlights
+                        </Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4">
+                            {highlights.length > 0 ? (
+                                highlights.map((hl, idx) => (
+                                    <TouchableOpacity
+                                        key={idx}
+                                        className="items-center mr-4"
+                                        onPress={() => openHighlight(hl)}
+                                    >
+                                        <StatusAvatar
+                                            imageUrl={hl.coverUrl}
+                                            itemsCount={hl.items.length}
+                                            isSeen={true} // Highlights are usually seen style (gray)
+                                            size={64}
+                                            strokeWidth={2}
+                                            fallbackText={hl.name}
+                                        />
+                                        <Text className="text-white text-[10px] font-medium w-16 text-center mt-1" numberOfLines={1}>
+                                            {hl.name}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))
+                            ) : (
+                                <View className="flex-row items-center">
+                                    <View className="items-center mr-4 opacity-50">
+                                        <View className="w-16 h-16 rounded-full border-2 border-dashed border-[#202c33] items-center justify-center mb-1">
+                                            <Ionicons name="add" size={24} color="#8696a0" />
+                                        </View>
+                                        <Text className="text-[#8696a0] text-[10px]">No Highlights</Text>
+                                    </View>
+                                </View>
+                            )}
+                        </ScrollView>
+                    </View>
+                )}
 
                 {/* Account Section */}
                 <View className="">
@@ -386,6 +536,31 @@ const Profile = () => {
                 onClose={() => setShowPhotoOptions(false)}
                 title="Profile Photo"
                 options={photoOptions}
+            />
+            <StatusViewer
+                visible={!!viewingHighlight}
+                allStatuses={[viewingHighlight]}
+                initialGroupIndex={0}
+                onGroupChange={() => { }} // Only one highlight group viewed at a time
+                currentItemIndex={currentItemIndex}
+                isPaused={isPaused}
+                setIsPaused={setIsPaused}
+                onClose={closeHighlightViewer}
+                onNext={nextHighlightItem}
+                onPrev={prevHighlightItem}
+                onNavigateToViewers={() => { }} // Highlights viewers not implemented yet
+                user={user}
+                progress={progress}
+                player={player}
+                replyText={""}
+                setReplyText={() => { }}
+                onReply={() => { }}
+                onDelete={() => { }} // Should we allow delete from highlights? For now no
+                onHighlight={() => { }} // Already a highlight
+                sendingReply={false}
+                animationRef={animationRef}
+                remainingTimeRef={remainingTimeRef}
+                startTimeRef={startTimeRef}
             />
         </SafeAreaView>
     );

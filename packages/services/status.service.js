@@ -133,3 +133,58 @@ export const deleteStatus = async (statusId, fileId) => {
         throw error;
     }
 };
+/**
+ * Add a status to a highlight
+ */
+export const addToHighlight = async (statusId, highlightName) => {
+    try {
+        return await databases.updateDocument(
+            DB_ID,
+            STATUS_ID,
+            statusId,
+            {
+                isHighlight: true,
+                highlightName: highlightName
+            }
+        );
+    } catch (error) {
+        console.error("Error adding to highlight:", error);
+        throw error;
+    }
+};
+
+/**
+ * Get all highlights for a user
+ */
+export const getUserHighlights = async (userId) => {
+    try {
+        const res = await databases.listDocuments(
+            DB_ID,
+            STATUS_ID,
+            [
+                Query.equal("userId", userId),
+                Query.equal("isHighlight", true),
+                Query.orderDesc("createdAt")
+            ]
+        );
+
+        // Group by highlightName
+        const grouped = {};
+        res.documents.forEach(doc => {
+            const name = doc.highlightName || "Highlights";
+            if (!grouped[name]) {
+                grouped[name] = {
+                    name: name,
+                    coverUrl: doc.mediaUrl || "", // Use last added item as cover
+                    items: []
+                };
+            }
+            grouped[name].items.push(doc);
+        });
+
+        return Object.values(grouped);
+    } catch (error) {
+        console.error("Error fetching highlights:", error);
+        return [];
+    }
+};

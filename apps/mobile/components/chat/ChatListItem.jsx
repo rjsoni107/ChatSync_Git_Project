@@ -4,8 +4,9 @@ import { useRouter } from 'expo-router';
 import { formatDistanceToNow } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
+import StatusAvatar from '../status/StatusAvatar';
 
-const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
+const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus, statusGroup, onAvatarPress }) => {
     const router = useRouter();
     const user = useAuthStore((s) => s.user);
 
@@ -18,6 +19,8 @@ const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
         }
     };
 
+    const isSeen = statusGroup ? statusGroup.items.every(item => item.viewers?.includes(user?.$id)) : false;
+
     return (
         <TouchableOpacity
             onPress={() => router.push(`/chat/${chat.$id}`)}
@@ -25,19 +28,19 @@ const ChatListItem = ({ chat, lastMessage, unreadCount, onlineStatus }) => {
         >
             {/* Avatar */}
             <View className="relative">
-                <View className="w-14 h-14 rounded-full bg-[#202c33] items-center justify-center overflow-hidden">
-                    {chat.profile_pic ? (
-                        <Image source={{ uri: chat.profile_pic }} className="w-full h-full" />
-                    ) : chat.avatar ? (
-                        <Image source={{ uri: chat.avatar }} className="w-full h-full" />
-                    ) : (
-                        <Text className="text-white text-xl font-bold">
-                            {chat.name?.charAt(0).toUpperCase() || '?'}
-                        </Text>
-                    )}
-                </View>
+                <TouchableOpacity
+                    onPress={() => statusGroup ? onAvatarPress(statusGroup) : router.push(`/chat/${chat.$id}`)}
+                >
+                    <StatusAvatar
+                        imageUrl={chat.avatar || chat.profile_pic}
+                        itemsCount={statusGroup?.items?.length || 0}
+                        isSeen={isSeen}
+                        size={56}
+                        fallbackText={chat.name || "?"}
+                    />
+                </TouchableOpacity>
                 {onlineStatus === 'online' && (
-                    <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-600 border-2 border-background" />
+                    <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-green-600 border-2 border-[#111b21] z-10" />
                 )}
             </View>
 

@@ -5,6 +5,7 @@ import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import { useChatStore } from '@chatterapp/store/useChatStore';
 import { useNotificationStore } from '@chatterapp/store/useNotificationStore';
 import { getUserChats } from '@chatterapp/services/chat.service';
+import { markStatusSeen } from '@chatterapp/services/status.service';
 import { subscribeChatsRealtime, subscribeUserPresence } from '@chatterapp/services/realtime.service';
 import { subscribeMessages } from '@chatterapp/services/message.service';
 import ChatListItem from '../../components/chat/ChatListItem';
@@ -13,6 +14,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import ChatListSkeleton from '../../components/chat/ChatListSkeleton';
 import { useDebouncedCallback } from 'use-debounce';
+import { getRecentStatuses } from '@chatterapp/services/status.service';
+import StatusViewer from '../../components/status/StatusViewer';
+import { useVideoPlayer } from 'expo-video';
+import { useRef } from 'react';
+import { Animated } from 'react-native';
+
+const STORY_DURATION = 5000;
 
 const Chats = () => {
     const router = useRouter();
@@ -24,6 +32,21 @@ const Chats = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [presenceMap, setPresenceMap] = useState({});
+    const [statuses, setStatuses] = useState([]);
+
+    // Viewer State
+    const [viewingStatus, setViewingStatus] = useState(null);
+    const [currentItemIndex, setCurrentItemIndex] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
+
+    // Animation & Timing Refs
+    const progress = useRef(new Animated.Value(0)).current;
+    const animationRef = useRef(null);
+    const remainingTimeRef = useRef(STORY_DURATION);
+    const startTimeRef = useRef(null);
+
+    // Video Player
+    const player = useVideoPlayer(null);
 
     const fetchChats = useCallback(async (isRefresh = false, isSilent = false) => {
         if (!user?.$id) return;
@@ -32,8 +55,12 @@ const Chats = () => {
         else if (!isSilent) setLoading(true);
 
         try {
-            const fetchedChats = await getUserChats(user.$id);
+            const [fetchedChats, fetchedStatuses] = await Promise.all([
+                getUserChats(user.$id),
+                getRecentStatuses()
+            ]);
             setChats(fetchedChats);
+            setStatuses(fetchedStatuses);
 
             // Update unread messages count for tab badge
             const totalUnread = fetchedChats.reduce((acc, chat) => acc + (chat.unreadCount || 0), 0);
@@ -65,6 +92,62 @@ const Chats = () => {
             setRefreshing(false);
         }
     }, [user?.$id, setChats]);
+
+    // Story Logic
+    useEffect(() => {
+        if (!viewingStatus) return;
+
+        const currentItem = viewingStatus.items[currentItemIndex];
+        const totalDuration = currentItem.type === 'video' ? 15000 : STORY_DURATION;
+
+        if (!isPaused) {
+            startTimeRef.current = Date.now();
+            animationRef.current = Animated.timing(progress, {
+                toValue: 1,
+                duration: remainingTimeRef.current,
+                useNativeDriver: false,
+            });
+
+            animationRef.current.start(({ finished }) => {
+                if (finished) {
+                    setCurrentItemIndex(prev => {
+                        if (prev < viewingStatus.items.length - 1) return prev + 1;
+                        setViewingStatus(null);
+                        return prev;
+                    });
+                }
+            });
+        } else {
+            if (animationRef.current) {
+                animationRef.current.stop();
+                const elapsed = Date.now() - startTimeRef.current;
+                remainingTimeRef.current = Math.max(0, remainingTimeRef.current - elapsed);
+            }
+        }
+    }, [isPaused, viewingStatus, currentItemIndex]);
+
+    useEffect(() => {
+        if (!viewingStatus) return;
+        progress.setValue(0);
+        const currentItem = viewingStatus.items[currentItemIndex];
+        remainingTimeRef.current = currentItem.type === 'video' ? 15000 : STORY_DURATION;
+
+        if (currentItem.type === 'video') {
+            player.replace(currentItem.mediaUrl);
+            player.play();
+        } else {
+            player.pause();
+        }
+    }, [currentItemIndex, viewingStatus]);
+
+    useEffect(() => {
+        if (viewingStatus && user?.$id) {
+            const currentItem = viewingStatus.items[currentItemIndex];
+            if (currentItem.userId !== user.$id) {
+                markStatusSeen(currentItem.$id, user.$id);
+            }
+        }
+    }, [viewingStatus, currentItemIndex]);
 
     const debouncedFetch = useDebouncedCallback(() => {
         fetchChats(false, true);
@@ -128,6 +211,12 @@ const Chats = () => {
                 ...item,
                 name: item.name || item.otherUser?.name,
                 avatar: item.otherUser?.profile_pic || item.otherUser?.avatar
+            }}
+            statusGroup={statuses.find(s => s.userId === item.otherUser?.$id)}
+            onAvatarPress={(group) => {
+                setViewingStatus(group);
+                setCurrentItemIndex(0);
+                setIsPaused(false);
             }}
             lastMessage={item.lastMessage ? {
                 content: item.lastMessage,
@@ -195,12 +284,45 @@ const Chats = () => {
             )}
 
             {/* Floating Action Button */}
-            {/* <TouchableOpacity
-                className="absolute bottom-6 right-6 w-14 h-14 bg-secondary rounded-2xl items-center justify-center shadow-lg"
-                onPress={() => router.push('/(tabs)/search')}
-            >
-                <Ionicons name="chatbubble-ellipses" size={24} color="#fff" />
-            </TouchableOpacity> */}
+            {/* ... */}
+
+            <StatusViewer
+                visible={!!viewingStatus}
+                allStatuses={statuses}
+                initialGroupIndex={statuses.findIndex(s => s.userId === viewingStatus?.userId)}
+                onGroupChange={(group) => {
+                    setViewingStatus(group);
+                    setCurrentItemIndex(0);
+                    setIsPaused(false);
+                    progress.setValue(0);
+                }}
+                currentItemIndex={currentItemIndex}
+                isPaused={isPaused}
+                setIsPaused={setIsPaused}
+                onClose={() => setViewingStatus(null)}
+                onNext={() => {
+                    setCurrentItemIndex(prev => {
+                        if (!viewingStatus) return prev;
+                        if (prev < viewingStatus.items.length - 1) return prev + 1;
+                        setViewingStatus(null);
+                        return prev;
+                    });
+                }}
+                onPrev={() => setCurrentItemIndex(prev => (prev > 0 ? prev - 1 : prev))}
+                onNavigateToViewers={() => { }}
+                user={user}
+                progress={progress}
+                player={player}
+                replyText={""}
+                setReplyText={() => { }}
+                onReply={() => { }}
+                onDelete={() => { }}
+                onHighlight={() => { }}
+                sendingReply={false}
+                animationRef={animationRef}
+                remainingTimeRef={remainingTimeRef}
+                startTimeRef={startTimeRef}
+            />
         </SafeAreaView>
     );
 };
