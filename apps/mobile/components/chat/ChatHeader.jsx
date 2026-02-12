@@ -9,13 +9,18 @@ import bgColor from '../ui/bgColor';
 import StatusAvatar from '../status/StatusAvatar';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 
-const ChatHeader = ({ user, typing, chatId, statusGroup, onAvatarPress }) => {
+const ChatHeader = ({ user, typing, chatId, chat, members, statusGroup, onAvatarPress }) => {
     const router = useRouter();
     const currentUser = useAuthStore((s) => s.user);
 
+    const isGroup = chat?.type === 'group';
+
     let avatarName = ""
-    if (user?.name) {
-        const splitName = user?.name?.split(" ")
+    const displayName = isGroup ? chat.name : user?.name;
+    const profilePic = isGroup ? chat.avatar : (user?.profile_pic || user?.avatar);
+
+    if (displayName) {
+        const splitName = displayName.split(" ")
         if (splitName.length > 1) {
             avatarName = splitName[0][0] + splitName[1][0]
         } else {
@@ -23,10 +28,24 @@ const ChatHeader = ({ user, typing, chatId, statusGroup, onAvatarPress }) => {
         }
     }
 
-    const nameHash = user?.name ? user?.name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
+    const nameHash = displayName ? displayName.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
     const colorIndex = nameHash % (bgColor.length || 1);
 
     const isSeen = statusGroup ? statusGroup.items.every(item => item.viewers?.includes(currentUser?.$id)) : false;
+
+    const getStatusText = () => {
+        const typingNames = Object.values(typing || {});
+        if (typingNames.length > 0) {
+            if (typingNames.length === 1) return `${typingNames[0]} is typing...`;
+            return `${typingNames[0]}, ${typingNames[1]}${typingNames.length > 2 ? '...' : ''} are typing...`;
+        }
+
+        if (isGroup) {
+            return `${members?.length || 0} members`;
+        }
+
+        return user?.isOnline ? 'online' : formatLastSeen(user?.lastSeen);
+    };
 
     return (
         <SafeAreaView edges={['top']} className="bg-surface shadow-md">
@@ -39,15 +58,15 @@ const ChatHeader = ({ user, typing, chatId, statusGroup, onAvatarPress }) => {
                 </TouchableOpacity>
 
                 <View className="flex-1 flex-row items-center">
-                    {user?.name ? (
+                    {displayName ? (
                         <>
                             <TouchableOpacity
-                                onPress={() => statusGroup ? onAvatarPress(statusGroup) : null}
+                                onPress={() => !isGroup && statusGroup ? onAvatarPress(statusGroup) : null}
                                 className="ml-1"
                             >
                                 <StatusAvatar
-                                    imageUrl={user.profile_pic || user.avatar}
-                                    itemsCount={statusGroup?.items?.length || 0}
+                                    imageUrl={profilePic}
+                                    itemsCount={!isGroup && statusGroup ? statusGroup?.items?.length || 0 : 0}
                                     isSeen={isSeen}
                                     size={48}
                                     fallbackText={avatarName || "?"}
@@ -55,16 +74,22 @@ const ChatHeader = ({ user, typing, chatId, statusGroup, onAvatarPress }) => {
                             </TouchableOpacity>
                             <TouchableOpacity
                                 className="ml-2 flex-1"
-                                onPress={() => router.push({
-                                    pathname: `/user/${user?.$id}`,
-                                    params: { chatId: chatId }
-                                })}
+                                onPress={() => {
+                                    if (isGroup) {
+                                        router.push(`/chat/group-info/${chatId}`);
+                                    } else {
+                                        router.push({
+                                            pathname: `/user/${user?.$id}`,
+                                            params: { chatId: chatId }
+                                        });
+                                    }
+                                }}
                             >
                                 <Text className="text-white text-base font-bold" numberOfLines={1}>
-                                    {user.name}
+                                    {displayName}
                                 </Text>
                                 <Text className="text-[#8696a0] text-xs" numberOfLines={1}>
-                                    {typing ? 'typing...' : (user?.isOnline ? 'online' : formatLastSeen(user?.lastSeen))}
+                                    {getStatusText()}
                                 </Text>
                             </TouchableOpacity>
                         </>
@@ -80,6 +105,15 @@ const ChatHeader = ({ user, typing, chatId, statusGroup, onAvatarPress }) => {
                 </View>
 
                 <View className="flex-row">
+                    <TouchableOpacity
+                        onPress={() => router.push({
+                            pathname: '/chat/media-gallery',
+                            params: { chatId, chatName: displayName }
+                        })}
+                        className="p-2"
+                    >
+                        <Ionicons name="images-outline" size={23} color="#60a5fa" />
+                    </TouchableOpacity>
                     <TouchableOpacity className="p-2">
                         <Ionicons name="videocam-outline" size={25} color="#60a5fa" />
                     </TouchableOpacity>

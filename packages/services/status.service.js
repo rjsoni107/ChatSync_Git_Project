@@ -83,10 +83,11 @@ export const markStatusSeen = async (statusId, userId) => {
 /**
  * Get all active statuses (from last 24 hours)
  */
-export const getRecentStatuses = async () => {
+export const getRecentStatuses = async (currentUserId, mutedUserIds = []) => {
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     try {
+        // 1. Fetch all recent statuses
         const res = await databases.listDocuments(
             DB_ID,
             STATUS_ID,
@@ -97,14 +98,63 @@ export const getRecentStatuses = async () => {
             ]
         );
 
-        // Group by userId so one user shows as one "bubble" in UI
+        if (res.total === 0) return [];
+
+        const statusDocs = res.documents;
+        const potentialOwnerIds = [...new Set(statusDocs.map(d => d.userId))];
+
+        // 2. Fetch privacy settings for these owners
+        const ownersRes = await databases.listDocuments(
+            DB_ID,
+            appwriteConfig.userCollectionId,
+            [
+                Query.equal("userId", potentialOwnerIds),
+                Query.limit(potentialOwnerIds.length)
+            ]
+        );
+        const ownersMap = {};
+        ownersRes.documents.forEach(o => ownersMap[o.userId] = o);
+
+        // 3. Fetch current user's contacts (people they have chats with)
+        const memberships = await databases.listDocuments(
+            DB_ID,
+            appwriteConfig.chatMembersCollectionId,
+            [Query.equal("userId", currentUserId), Query.limit(100)]
+        );
+        const myChatIds = memberships.documents.map(m => m.chatId);
+
+        let contactIds = [];
+        if (myChatIds.length > 0) {
+            const allMemberships = await databases.listDocuments(
+                DB_ID,
+                appwriteConfig.chatMembersCollectionId,
+                [Query.equal("chatId", myChatIds), Query.limit(100)]
+            );
+            contactIds = [...new Set(allMemberships.documents.map(m => m.userId))];
+        }
+
+        // 4. Process and Filter
         const grouped = {};
-        res.documents.forEach(doc => {
+        statusDocs.forEach(doc => {
+            const owner = ownersMap[doc.userId];
+            const privacy = owner?.statusPrivacy || "everyone";
+
+            // Privacy check:
+            // - IT'S ME
+            // - OR it's EVERYONE
+            // - OR it's CONTACTS and I'm a contact
+            const canSee = doc.userId === currentUserId ||
+                privacy === "everyone" ||
+                (privacy === "contacts" && contactIds.includes(doc.userId));
+
+            if (!canSee) return;
+
             if (!grouped[doc.userId]) {
                 grouped[doc.userId] = {
                     userId: doc.userId,
                     userName: doc.userName,
                     userProfilePic: doc.userProfilePic,
+                    isMuted: mutedUserIds.includes(doc.userId),
                     items: []
                 };
             }
@@ -113,8 +163,52 @@ export const getRecentStatuses = async () => {
 
         return Object.values(grouped);
     } catch (error) {
-        console.error("Error fetching statuses:", error);
+        console.error("Error fetching statuses with privacy:", error);
         return [];
+    }
+};
+
+export const muteUserStatus = async (currentUserId, targetUserId) => {
+    try {
+        const userDoc = await databases.getDocument(DB_ID, appwriteConfig.userCollectionId, currentUserId);
+        let muted = [];
+        try {
+            muted = userDoc.mutedStatusUsers ? JSON.parse(userDoc.mutedStatusUsers) : [];
+        } catch (e) {
+            muted = [];
+        }
+
+        if (!muted.includes(targetUserId)) {
+            muted.push(targetUserId);
+        }
+
+        return await databases.updateDocument(DB_ID, appwriteConfig.userCollectionId, currentUserId, {
+            mutedStatusUsers: JSON.stringify(muted)
+        });
+    } catch (error) {
+        console.error("Error muting user status:", error);
+        throw error;
+    }
+};
+
+export const unmuteUserStatus = async (currentUserId, targetUserId) => {
+    try {
+        const userDoc = await databases.getDocument(DB_ID, appwriteConfig.userCollectionId, currentUserId);
+        let muted = [];
+        try {
+            muted = userDoc.mutedStatusUsers ? JSON.parse(userDoc.mutedStatusUsers) : [];
+        } catch (e) {
+            muted = [];
+        }
+
+        muted = muted.filter(id => id !== targetUserId);
+
+        return await databases.updateDocument(DB_ID, appwriteConfig.userCollectionId, currentUserId, {
+            mutedStatusUsers: JSON.stringify(muted)
+        });
+    } catch (error) {
+        console.error("Error unmuting user status:", error);
+        throw error;
     }
 };
 

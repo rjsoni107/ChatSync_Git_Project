@@ -5,6 +5,7 @@ import { VideoView } from 'expo-video';
 import { formatDistanceToNow } from 'date-fns';
 import StatusProgressBar from './StatusProgressBar';
 import QuickReactions from './QuickReactions';
+import { useAlertStore } from '@chatterapp/store/useAlertStore';
 
 const { width, height } = Dimensions.get('window');
 
@@ -31,10 +32,30 @@ const StatusViewer = ({
     sendingReply,
     animationRef,
     remainingTimeRef,
-    startTimeRef
+    startTimeRef,
+    onMute,
+    onUnmute
 }) => {
+    const showAlert = useAlertStore(s => s.showAlert);
     const flatListRef = useRef(null);
     const [activeIndex, setActiveIndex] = useState(initialGroupIndex);
+    const viewAnim = useRef(new Animated.Value(0)).current;
+
+    // View animation effect
+    useEffect(() => {
+        if (visible) {
+            viewAnim.setValue(0);
+            Animated.sequence([
+                Animated.delay(300),
+                Animated.spring(viewAnim, {
+                    toValue: 1,
+                    useNativeDriver: true,
+                    tension: 50,
+                    friction: 7
+                })
+            ]).start();
+        }
+    }, [visible, currentItemIndex]);
 
     // Sync active index when initialGroupIndex changes (e.g. when opening from list)
     useEffect(() => {
@@ -103,9 +124,42 @@ const StatusViewer = ({
                             </Text>
                         </View>
                     </View>
-                    <TouchableOpacity onPress={onClose} className="p-2">
-                        <Ionicons name="close" size={28} color="white" />
-                    </TouchableOpacity>
+                    <View className="flex-row items-center">
+                        <TouchableOpacity
+                            onPress={() => {
+                                setIsPaused(true);
+                                const isMuted = group.isMuted;
+                                showAlert(
+                                    isMuted ? "Unmute status?" : "Mute status?",
+                                    isMuted
+                                        ? `Unmute ${group.userName}'s status updates?`
+                                        : `Mute ${group.userName}'s status updates? They won't appear in recent updates.`,
+                                    [
+                                        { text: "Cancel", style: "cancel", onPress: () => setIsPaused(false) },
+                                        {
+                                            text: isMuted ? "Unmute" : "Mute",
+                                            style: isMuted ? "default" : "destructive",
+                                            onPress: () => {
+                                                if (isMuted) {
+                                                    onUnmute?.(group);
+                                                    setIsPaused(false);
+                                                } else {
+                                                    onMute?.(group);
+                                                    onClose();
+                                                }
+                                            }
+                                        }
+                                    ]
+                                );
+                            }}
+                            className="p-2 mr-2"
+                        >
+                            <Ionicons name="ellipsis-vertical" size={24} color="white" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={onClose} className="p-2">
+                            <Ionicons name="close" size={28} color="white" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* Status Options (Owner Only) */}
@@ -191,13 +245,23 @@ const StatusViewer = ({
                 >
                     <View className="p-4 items-center bg-black/40">
                         {group.userId === user?.$id ? (
-                            <TouchableOpacity
-                                onPress={isActive ? onNavigateToViewers : null}
-                                className="flex-row items-center bg-white/10 px-4 py-2 rounded-full mb-4"
+                            <Animated.View
+                                style={{
+                                    transform: [
+                                        { translateY: viewAnim.interpolate({ inputRange: [0, 1], outputRange: [50, 0] }) },
+                                        { scale: viewAnim.interpolate({ inputRange: [0, 0.8, 1], outputRange: [1, 1.1, 1] }) }
+                                    ],
+                                    opacity: viewAnim
+                                }}
                             >
-                                <Ionicons name="eye-outline" size={18} color="white" />
-                                <Text className="text-white ml-2">{currentItem?.viewers?.length || 0} views</Text>
-                            </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={isActive ? onNavigateToViewers : null}
+                                    className="flex-row items-center bg-white/10 px-4 py-2 rounded-full mb-4"
+                                >
+                                    <Ionicons name="eye-outline" size={18} color="white" />
+                                    <Text className="text-white ml-2">{currentItem?.viewers?.length || 0} views</Text>
+                                </TouchableOpacity>
+                            </Animated.View>
                         ) : (
                             <View className="w-full">
                                 {!replyText && isActive && (
@@ -227,7 +291,11 @@ const StatusViewer = ({
                         )}
 
                         {currentItem?.type !== 'text' && currentItem?.caption && (
-                            <Text className="text-white text-lg text-center mt-2">{currentItem.caption}</Text>
+                            <View className="bg-black/60 px-6 py-3 rounded-2xl mx-4 mt-2">
+                                <Text className="text-white text-lg text-center font-medium">
+                                    {currentItem.caption}
+                                </Text>
+                            </View>
                         )}
                     </View>
                 </KeyboardAvoidingView>

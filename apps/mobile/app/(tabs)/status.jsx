@@ -1,17 +1,18 @@
-import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, StyleSheet, TextInput, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, StyleSheet, TextInput, Animated, RefreshControl } from 'react-native';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useVideoPlayer } from 'expo-video';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
-import { createStatus, getRecentStatuses, markStatusSeen, deleteStatus, addToHighlight } from '@chatterapp/services/status.service';
+import { createStatus, getRecentStatuses, markStatusSeen, deleteStatus, addToHighlight, muteUserStatus, unmuteUserStatus } from '@chatterapp/services/status.service';
 import { findPrivateChat, createChat, addChatMember } from '@chatterapp/services/chat.service';
 import { sendMessage } from '@chatterapp/services/message.service';
-import { getUsersByIds } from '@chatterapp/services/user.service';
+import { getUsersByIds, updateUserProfile } from '@chatterapp/services/user.service';
 import { useAlertStore } from '@chatterapp/store/useAlertStore';
 import { formatDistanceToNow } from 'date-fns';
 import Skeleton from '../../components/ui/Skeleton';
+import { Modal, KeyboardAvoidingView, Platform } from 'react-native';
 
 // Modular Components
 import TextStatusModal from '../../components/status/TextStatusModal';
@@ -29,11 +30,18 @@ export default function Status() {
     const [statuses, setStatuses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [showMuted, setShowMuted] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
     // Create Text Status State
     const [showTextModal, setShowTextModal] = useState(false);
     const [textStatus, setTextStatus] = useState("");
     const [selectedBg, setSelectedBg] = useState(BG_COLORS[0]);
+
+    // Media Upload Preview State
+    const [mediaPreview, setMediaPreview] = useState(null);
+    const [mediaCaption, setMediaCaption] = useState("");
 
     // Viewer State
     const [viewingStatus, setViewingStatus] = useState(null);
@@ -54,14 +62,23 @@ export default function Status() {
     // Video Player
     const player = useVideoPlayer(null);
 
-    const fetchStatuses = async () => {
+    const fetchStatuses = async (isRefreshing = false) => {
+        if (!user?.$id) return;
+        if (isRefreshing) setRefreshing(true);
         try {
-            const data = await getRecentStatuses();
+            let mutedIds = [];
+            try {
+                mutedIds = user.mutedStatusUsers ? JSON.parse(user.mutedStatusUsers) : [];
+            } catch (e) {
+                mutedIds = [];
+            }
+            const data = await getRecentStatuses(user.$id, mutedIds);
             setStatuses(data);
         } catch (error) {
             console.error("Error fetching statuses:", error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -156,7 +173,8 @@ export default function Status() {
         });
 
         if (!result.canceled) {
-            uploadMediaStatus(result.assets[0]);
+            setMediaPreview(result.assets[0]);
+            setMediaCaption(""); // Reset caption for new pick
         }
     };
 
@@ -176,9 +194,12 @@ export default function Status() {
                 userName: user.name,
                 userProfilePic: user.profile_pic || "",
                 file: file,
+                caption: mediaCaption,
                 type: isVideo ? 'video' : 'image'
             });
 
+            setMediaPreview(null);
+            setMediaCaption("");
             showAlert("Success", "Status uploaded successfully!");
             fetchStatuses();
         } catch (error) {
@@ -300,8 +321,76 @@ export default function Status() {
         );
     };
 
+    const handleMuteUser = async (targetUser) => {
+        showAlert(
+            "Mute status?",
+            `New status updates from ${targetUser.userName} won't show up in your recent updates.`,
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Mute",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await muteUserStatus(user.$id, targetUser.userId);
+                            showAlert("Muted", `${targetUser.userName}'s statuses have been muted.`);
+                            // Local update for better UX
+                            let mutedIds = [];
+                            try {
+                                mutedIds = user.mutedStatusUsers ? JSON.parse(user.mutedStatusUsers) : [];
+                            } catch (e) { }
+                            if (!mutedIds.includes(targetUser.userId)) {
+                                mutedIds.push(targetUser.userId);
+                            }
+                            useAuthStore.getState().setUser({
+                                ...user,
+                                mutedStatusUsers: JSON.stringify(mutedIds)
+                            });
+                            fetchStatuses();
+                        } catch (error) {
+                            showAlert("Error", "Failed to mute user.");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleUnmuteUser = async (targetUser) => {
+        try {
+            await unmuteUserStatus(user.$id, targetUser.userId);
+            // Local update
+            let mutedIds = [];
+            try {
+                mutedIds = user.mutedStatusUsers ? JSON.parse(user.mutedStatusUsers) : [];
+            } catch (e) { }
+            mutedIds = mutedIds.filter(id => id !== targetUser.userId);
+            useAuthStore.getState().setUser({
+                ...user,
+                mutedStatusUsers: JSON.stringify(mutedIds)
+            });
+            fetchStatuses();
+            showAlert("Unmuted", `${targetUser.userName}'s statuses will now show up normally.`);
+        } catch (error) {
+            showAlert("Error", "Failed to unmute user.");
+        }
+    };
+
+    const handleUpdatePrivacy = async (value) => {
+        try {
+            await updateStatusPrivacy(user.$id, value);
+            useAuthStore.getState().setUser({ ...user, statusPrivacy: value });
+            setShowPrivacyModal(false);
+            showAlert("Privacy Updated", `Your status updates are now visible to: ${value === 'everyone' ? 'Everyone' : 'My Contacts'}`);
+            fetchStatuses();
+        } catch (error) {
+            showAlert("Error", "Failed to update privacy settings.");
+        }
+    };
+
     const myStatus = statuses.find(s => s.userId === user?.$id);
-    const othersStatuses = statuses.filter(s => s.userId !== user?.$id);
+    const othersStatuses = statuses.filter(s => s.userId !== user?.$id && !s.isMuted);
+    const mutedStatuses = statuses.filter(s => s.userId !== user?.$id && s.isMuted);
 
     const isGroupSeen = (group) => {
         if (!user?.$id || !group.items) return false;
@@ -339,12 +428,27 @@ export default function Status() {
         <SafeAreaView className="flex-1 bg-[#111b21]">
             <View className="px-4 py-3 flex-row justify-between items-center border-b border-[#202c33]">
                 <Text className="text-white text-2xl font-bold">Status</Text>
-                <TouchableOpacity onPress={() => showAlert("Info", "Statuses disappear after 24 hours.")}>
-                    <Ionicons name="ellipsis-vertical" size={20} color="#8696a0" />
-                </TouchableOpacity>
+                <View className="flex-row items-center">
+                    <TouchableOpacity onPress={() => setShowPrivacyModal(true)} className="mr-4">
+                        <Ionicons name="lock-closed-outline" size={22} color="#8696a0" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => showAlert("Info", "Statuses disappear after 24 hours.")}>
+                        <Ionicons name="ellipsis-vertical" size={20} color="#8696a0" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
-            <ScrollView className="flex-1">
+            <ScrollView
+                className="flex-1"
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={() => fetchStatuses(true)}
+                        tintColor="#60a5fa"
+                        colors={["#60a5fa"]}
+                    />
+                }
+            >
                 {/* My Status Section */}
                 <View className="px-4 py-4">
                     <Text className="text-[#8696a0] text-sm font-bold uppercase tracking-wider mb-4">My Status</Text>
@@ -396,7 +500,13 @@ export default function Status() {
                         ))
                     ) : othersStatuses.length > 0 ? (
                         othersStatuses.map((group) => (
-                            <TouchableOpacity key={group.userId} className="flex-row items-center mb-6" onPress={() => openViewer(group)}>
+                            <TouchableOpacity
+                                key={group.userId}
+                                className="flex-row items-center mb-6"
+                                onPress={() => openViewer(group)}
+                                onLongPress={() => handleMuteUser(group)}
+                                delayLongPress={500}
+                            >
                                 <StatusAvatar
                                     imageUrl={group.userProfilePic}
                                     itemsCount={group.items.length}
@@ -411,9 +521,56 @@ export default function Status() {
                             </TouchableOpacity>
                         ))
                     ) : (
-                        <View className="items-center justify-center py-20"><Ionicons name="aperture-outline" size={60} color="#202c33" /><Text className="text-gray-500 mt-4 text-center px-10">No status updates yet from your contacts.</Text></View>
+                        <View className="items-center justify-center py-20">
+                            <Ionicons name="aperture-outline" size={60} color="#202c33" />
+                            <Text className="text-gray-500 mt-4 text-center px-10">No status updates yet from your contacts.</Text>
+                        </View>
                     )}
                 </View>
+
+                {/* Muted Updates Section */}
+                {mutedStatuses.length > 0 && (
+                    <View className="mt-4 px-4 pb-10">
+                        <TouchableOpacity
+                            onPress={() => setShowMuted(!showMuted)}
+                            className="flex-row items-center justify-between py-2"
+                        >
+                            <Text className="text-[#8696a0] text-sm font-bold uppercase tracking-wider">Muted updates</Text>
+                            <Ionicons
+                                name={showMuted ? "chevron-up" : "chevron-down"}
+                                size={20}
+                                color="#8696a0"
+                            />
+                        </TouchableOpacity>
+
+                        {showMuted && (
+                            <View className="mt-4">
+                                {mutedStatuses.map((group) => (
+                                    <TouchableOpacity
+                                        key={group.userId}
+                                        className="flex-row items-center mb-6 opacity-60"
+                                        onPress={() => openViewer(group)}
+                                        onLongPress={() => handleUnmuteUser(group)}
+                                        delayLongPress={500}
+                                    >
+                                        <StatusAvatar
+                                            imageUrl={group.userProfilePic}
+                                            itemsCount={group.items.length}
+                                            isSeen={isGroupSeen(group)}
+                                            size={56}
+                                            fallbackText={group.userName}
+                                            grayscale={true}
+                                        />
+                                        <View className="ml-4 flex-1">
+                                            <Text className="text-white text-lg font-bold">{group.userName}</Text>
+                                            <Text className="text-[#8696a0] text-sm">Muted • Long press to unmute</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+                    </View>
+                )}
             </ScrollView>
 
             <TextStatusModal
@@ -451,6 +608,8 @@ export default function Status() {
                 onReply={handleReply}
                 onDelete={handleDeleteStatus}
                 onHighlight={handleHighlightStatus}
+                onMute={handleMuteUser}
+                onUnmute={handleUnmuteUser}
                 sendingReply={sendingReply}
                 animationRef={animationRef}
                 remainingTimeRef={remainingTimeRef}
@@ -463,6 +622,112 @@ export default function Status() {
                 viewers={viewerProfiles}
                 loading={loadingViewers}
             />
+
+            {/* Status Privacy Modal */}
+            <Modal
+                visible={showPrivacyModal}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowPrivacyModal(false)}
+            >
+                <TouchableOpacity
+                    className="flex-1 bg-black/50 justify-end"
+                    activeOpacity={1}
+                    onPress={() => setShowPrivacyModal(false)}
+                >
+                    <View className="bg-[#111b21] rounded-t-3xl p-6 border-t border-[#202c33]">
+                        <View className="items-center mb-6">
+                            <View className="w-10 h-1.5 bg-[#202c33] rounded-full mb-4" />
+                            <Text className="text-white text-xl font-bold">Status privacy</Text>
+                            <Text className="text-[#8696a0] text-center mt-2 px-4">
+                                Choose who can see your status updates. Changes will apply to new status updates.
+                            </Text>
+                        </View>
+
+                        <TouchableOpacity
+                            onPress={() => handleUpdatePrivacy('everyone')}
+                            className="flex-row items-center justify-between py-4 border-b border-[#202c33]"
+                        >
+                            <View className="flex-1">
+                                <Text className="text-white text-lg">Everyone</Text>
+                                <Text className="text-[#8696a0] text-sm">Anyone using ChatterApp</Text>
+                            </View>
+                            <Ionicons
+                                name={(user?.statusPrivacy === 'everyone' || !user?.statusPrivacy) ? "radio-button-on" : "radio-button-off"}
+                                size={24}
+                                color={(user?.statusPrivacy === 'everyone' || !user?.statusPrivacy) ? "#00a884" : "#8696a0"}
+                            />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => handleUpdatePrivacy('contacts')}
+                            className="flex-row items-center justify-between py-4"
+                        >
+                            <View className="flex-1">
+                                <Text className="text-white text-lg">My contacts</Text>
+                                <Text className="text-[#8696a0] text-sm">Only people you have a chat with</Text>
+                            </View>
+                            <Ionicons
+                                name={user?.statusPrivacy === 'contacts' ? "radio-button-on" : "radio-button-off"}
+                                size={24}
+                                color={user?.statusPrivacy === 'contacts' ? "#00a884" : "#8696a0"}
+                            />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => setShowPrivacyModal(false)}
+                            className="mt-6 bg-[#00a884] py-3 rounded-full items-center"
+                        >
+                            <Text className="text-black font-bold text-lg">Done</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            {/* Media Preview Modal */}
+            <Modal visible={!!mediaPreview} animationType="slide">
+                <SafeAreaView className="flex-1 bg-black">
+                    <View className="p-4 flex-row justify-between items-center z-10">
+                        <TouchableOpacity onPress={() => setMediaPreview(null)}>
+                            <Ionicons name="close" size={30} color="white" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => uploadMediaStatus(mediaPreview)}
+                            className="bg-blue-500 px-6 py-2 rounded-full"
+                        >
+                            <Text className="text-white font-bold">Share</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View className="flex-1 justify-center items-center">
+                        {mediaPreview?.type === 'video' ? (
+                            <Text className="text-white">Video selected</Text>
+                        ) : (
+                            <Image
+                                source={{ uri: mediaPreview?.uri }}
+                                className="w-full h-full"
+                                resizeMode="contain"
+                            />
+                        )}
+                    </View>
+
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                        className="p-4"
+                    >
+                        <View className="bg-white/10 rounded-2xl px-4 py-2 flex-row items-center border border-white/20">
+                            <TextInput
+                                placeholder="Add a caption..."
+                                placeholderTextColor="#8696a0"
+                                className="flex-1 text-white min-h-[40px] text-lg"
+                                value={mediaCaption}
+                                onChangeText={setMediaCaption}
+                                multiline
+                            />
+                        </View>
+                    </KeyboardAvoidingView>
+                </SafeAreaView>
+            </Modal>
 
             {uploading && (
                 <View style={StyleSheet.absoluteFill} className="bg-black/80 items-center justify-center z-50">

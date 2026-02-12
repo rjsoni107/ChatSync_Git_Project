@@ -5,6 +5,7 @@ import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import { useNotificationStore } from '@chatterapp/store/useNotificationStore';
 import { getReceivedRequests } from '@chatterapp/services/request.service';
 import { getUserChats } from '@chatterapp/services/chat.service';
+import { getProfileViews, subscribeProfileViews } from '@chatterapp/services/notification.service';
 import { subscribeRequests } from '@chatterapp/services/realtime.service';
 import { subscribeMessages } from '@chatterapp/services/message.service';
 
@@ -17,14 +18,19 @@ export default function TabsLayout() {
         const setCounts = async () => {
             try {
                 // Initial fetch
-                const [requests, chats] = await Promise.all([
+                const [requests, chats, profileViews] = await Promise.all([
                     getReceivedRequests(user.$id),
-                    getUserChats(user.$id)
+                    getUserChats(user.$id),
+                    getProfileViews(user.$id)
                 ]);
 
                 useNotificationStore.getState().setPendingRequestsCount(requests.length);
+
                 const totalUnread = chats.reduce((acc, chat) => acc + (chat.unreadCount || 0), 0);
                 useNotificationStore.getState().setUnreadMessagesCount(totalUnread);
+
+                const unreadViews = profileViews.filter(v => !v.isRead).length;
+                useNotificationStore.getState().setProfileViewsCount(unreadViews);
             } catch (error) {
                 console.error("Error setting initial badge counts:", error);
             }
@@ -42,9 +48,15 @@ export default function TabsLayout() {
             setCounts();
         });
 
+        // Realtime for profile views
+        const unsubscribeProfileViews = subscribeProfileViews((event) => {
+            setCounts();
+        });
+
         return () => {
             unsubscribeRequests();
             unsubscribeMessages();
+            unsubscribeProfileViews();
         };
     }, [user?.$id]);
 

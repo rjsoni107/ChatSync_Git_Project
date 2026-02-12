@@ -135,23 +135,86 @@ export const findPrivateChat = async (userA, userB) => {
 };
 
 // ➕ create new chat
-export const createChat = async () => {
+export const createChat = async (type = "private", metadata = {}) => {
     return await databases.createDocument(DB_ID, CHATS_ID, ID.unique(), {
-        type: "private",
+        type,
         isArchived: false,
         createdAt: new Date().toISOString(),
+        ...metadata
     });
 };
 
+// ➕ get chat by id
+export const getChat = async (chatId) => {
+    return await databases.getDocument(DB_ID, CHATS_ID, chatId);
+};
+
+// 👥 create group chat
+export const createGroupChat = async (name, members, description = "", avatar = "") => {
+    // 1. Create chat document
+    const chat = await createChat("group", {
+        name,
+        description,
+        avatar,
+        lastMessage: "Group created"
+    });
+
+    // 2. Add members
+    const memberPromises = members.map(m =>
+        addChatMember(chat.$id, m.userId, m.role || "member")
+    );
+
+    await Promise.all(memberPromises);
+    return chat;
+};
+
 // ➕ add member
-export const addChatMember = async (chatId, userId) => {
+export const addChatMember = async (chatId, userId, role = "member") => {
     return await databases.createDocument(DB_ID, MEMBERS_ID, ID.unique(), {
         chatId,
         userId,
-        role: "member",
+        role,
         joinedAt: new Date().toISOString(),
         isBanned: false,
     });
+};
+
+// 👥 get all members for a chat
+export const getChatMembers = async (chatId) => {
+    const res = await databases.listDocuments(DB_ID, MEMBERS_ID, [
+        Query.equal("chatId", chatId),
+        Query.limit(100)
+    ]);
+
+    // Fetch user details for each member
+    const userIds = res.documents.map(m => m.userId);
+    const usersRes = await databases.listDocuments(DB_ID, USERS_ID, [
+        Query.equal("$id", userIds),
+        Query.limit(100)
+    ]);
+
+    const usersMap = {};
+    usersRes.documents.forEach(u => usersMap[u.$id] = u);
+
+    return res.documents.map(m => ({
+        ...m,
+        user: usersMap[m.userId]
+    }));
+};
+
+// 🛠️ update group details
+export const updateGroupMetadata = async (chatId, metadata) => {
+    return await databases.updateDocument(DB_ID, CHATS_ID, chatId, metadata);
+};
+
+// 👑 update member role
+export const updateMemberRole = async (membershipId, role) => {
+    return await databases.updateDocument(DB_ID, MEMBERS_ID, membershipId, { role });
+};
+
+// 🗑️ remove member from group
+export const removeMember = async (membershipId) => {
+    return await databases.deleteDocument(DB_ID, MEMBERS_ID, membershipId);
 };
 
 export const getOtherUserFromChat = async (chatId, currentUserId) => {

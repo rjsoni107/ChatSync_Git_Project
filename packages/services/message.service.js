@@ -5,7 +5,7 @@ const DB_ID = appwriteConfig.databaseId;
 const MESSAGES_ID = appwriteConfig.messageCollectionId;
 const CHATS_ID = appwriteConfig.chatCollectionId;
 
-export const sendMessage = async ({ chatId, senderId, content, type = "text", fileId = null }) => {
+export const sendMessage = async ({ chatId, senderId, content, type = "text", fileId = null, duration = null }) => {
     if (!chatId) {
         throw new Error("chatId is required to send a message");
     }
@@ -20,16 +20,17 @@ export const sendMessage = async ({ chatId, senderId, content, type = "text", fi
             chatId,
             senderId,
             type,
-            content,
+            content: type === "voice" ? (duration ? duration.toString() : "0") : content,
             fileId,
             createdAt: now,
             isSeen: false,
             isDelivered: false,
+            metadata: type === "poll" ? JSON.stringify({ options: [], votes: {} }) : null,
         }
     );
 
     // 2️⃣ update chat last message
-    const lastMsgDisplay = type === "image" ? "📷 Image" : content;
+    const lastMsgDisplay = type === "image" ? "📷 Image" : (type === "voice" ? "🎤 Voice message" : (type === "poll" ? "📊 Poll" : content));
 
     try {
         await databases.updateDocument(DB_ID, CHATS_ID, chatId, {
@@ -86,6 +87,19 @@ export const getMessagesByChat = async (chatId) => {
 
     // Reverse them so they are in chronological order for the UI
     return res.documents.reverse();
+};
+
+export const getChatMedia = async (chatId, limit = 100) => {
+    if (!chatId) return [];
+
+    const res = await databases.listDocuments(DB_ID, MESSAGES_ID, [
+        Query.equal("chatId", chatId),
+        Query.equal("type", ["image", "voice", "video"]),
+        Query.orderDesc("createdAt"),
+        Query.limit(limit),
+    ]);
+
+    return res.documents;
 };
 
 export const markMessagesAsSeen = async (chatId, userId) => {
@@ -178,6 +192,70 @@ export const addReactionToMessage = async (messageId, emoji, userId) => {
     }
 };
 
+export const updateMessage = async (messageId, newContent) => {
+    if (!messageId || !newContent) return;
+    try {
+        const now = new Date().toISOString();
+        const updatedMsg = await databases.updateDocument(DB_ID, MESSAGES_ID, messageId, {
+            content: newContent,
+            isEdited: true,
+            updatedAt: now
+        });
+
+        // Update chat last message ONLY if this was the latest message
+        const chat = await databases.getDocument(DB_ID, CHATS_ID, updatedMsg.chatId);
+        if (chat.lastMessageAt === updatedMsg.createdAt) { // Simple check, could be more robust
+            await databases.updateDocument(DB_ID, CHATS_ID, updatedMsg.chatId, {
+                lastMessage: updatedMsg.type === "image" ? "📷 Image (edited)" : newContent,
+            });
+        }
+
+        return updatedMsg;
+    } catch (error) {
+        console.error("Error updating message:", error);
+        throw error;
+    }
+};
+
+export const togglePinMessage = async (messageId, isPinned) => {
+    if (!messageId) return;
+    try {
+        return await databases.updateDocument(DB_ID, MESSAGES_ID, messageId, {
+            isPinned: isPinned,
+            updatedAt: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error("Error toggling pin:", error);
+        throw error;
+    }
+};
+
+export const deleteMessageForEveryone = async (messageId) => {
+    if (!messageId) return;
+    try {
+        const updatedMsg = await databases.updateDocument(DB_ID, MESSAGES_ID, messageId, {
+            content: "This message was deleted",
+            type: "text", // Reset to text
+            fileId: null, // Clear any attached file
+            isDeleted: true,
+            updatedAt: new Date().toISOString()
+        });
+
+        // Update chat last message if needed
+        const chat = await databases.getDocument(DB_ID, CHATS_ID, updatedMsg.chatId);
+        if (chat.lastMessageAt === updatedMsg.createdAt) {
+            await databases.updateDocument(DB_ID, CHATS_ID, updatedMsg.chatId, {
+                lastMessage: "🚫 Message deleted",
+            });
+        }
+
+        return updatedMsg;
+    } catch (error) {
+        console.error("Error soft-deleting message:", error);
+        throw error;
+    }
+};
+
 export const deleteMessage = async (messageId) => {
     if (!messageId) return;
     try {
@@ -237,4 +315,35 @@ export const clearChatMessages = async (chatId) => {
         console.error("Error clearing chat messages:", error);
         throw error;
     }
+};
+// 📊 create poll
+export const createPoll = async ({ chatId, senderId, question, options }) => {
+    const pollData = JSON.stringify({ question, options });
+    return await sendMessage({
+        chatId,
+        senderId,
+        content: pollData,
+        type: "poll"
+    });
+};
+
+// 🗳️ vote on poll (stores in metadata for real-time)
+export const voteOnPoll = async (messageId, userId, optionIndex) => {
+    const msg = await databases.getDocument(DB_ID, MESSAGES_ID, messageId);
+    let metadata = { votes: {} };
+    try {
+        metadata = msg.metadata ? JSON.parse(msg.metadata) : { votes: {} };
+    } catch (e) { }
+
+    // Toggle vote: if already voted for this, remove. If voted for other, change.
+    const currentVote = metadata.votes[userId];
+    if (currentVote === optionIndex) {
+        delete metadata.votes[userId];
+    } else {
+        metadata.votes[userId] = optionIndex;
+    }
+
+    return await databases.updateDocument(DB_ID, MESSAGES_ID, messageId, {
+        metadata: JSON.stringify(metadata)
+    });
 };

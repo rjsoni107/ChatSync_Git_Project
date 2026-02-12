@@ -22,6 +22,7 @@
     "expo": "~54.0.32",
     "expo-asset": "~12.0.1",
     "expo-audio": "~1.1.1",
+    "expo-background-fetch": "~14.0.1",
     "expo-constants": "~18.0.13",
     "expo-dev-client": "~6.0.20",
     "expo-device": "~8.0.10",
@@ -30,10 +31,12 @@
     "expo-image-manipulator": "~14.0.8",
     "expo-image-picker": "~17.0.10",
     "expo-linking": "~8.0.11",
+    "expo-local-authentication": "^17.0.8",
     "expo-notifications": "~0.32.16",
     "expo-router": "~6.0.22",
     "expo-secure-store": "~15.0.8",
     "expo-status-bar": "~3.0.9",
+    "expo-task-manager": "~14.0.1",
     "expo-video": "~3.0.15",
     "nativewind": "^2.0.11",
     "promise": "8.3.0",
@@ -48,9 +51,7 @@
     "react-native-web": "^0.21.0",
     "rn-emoji-keyboard": "^1.7.0",
     "semver": "^7.6.0",
-    "use-debounce": "^10.1.0",
-    "expo-background-fetch": "~14.0.1",
-    "expo-task-manager": "~14.0.1"
+    "use-debounce": "^10.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

@@ -3,9 +3,11 @@ import React, { useEffect, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import ReactionBar from './ReactionBar';
 
-const MessageMenu = ({ isVisible, onClose, onAction, onSelectEmoji, onShowMore, isMe, timestamp }) => {
+const MessageMenu = ({ isVisible, onClose, onAction, onSelectEmoji, onShowMore, isMe, timestamp, message }) => {
     const slideAnim = useRef(new Animated.Value(300)).current;
     const opacityAnim = useRef(new Animated.Value(0)).current;
+
+    const isPinned = message?.isPinned;
 
     useEffect(() => {
         if (isVisible) {
@@ -31,9 +33,10 @@ const MessageMenu = ({ isVisible, onClose, onAction, onSelectEmoji, onShowMore, 
 
     const menuItems = [
         { id: 'reply', label: 'Reply', icon: 'return-up-back-outline' },
+        { id: 'edit', label: 'Edit', icon: 'pencil-outline', show: isMe },
         { id: 'sticker', label: 'Add sticker', icon: 'happy-outline' },
         { id: 'forward', label: 'Forward', icon: 'paper-plane-outline' },
-        { id: 'pin', label: 'Pin', icon: 'pin-outline' },
+        { id: isPinned ? 'unpin' : 'pin', label: isPinned ? 'Unpin' : 'Pin', icon: isPinned ? 'pin' : 'pin-outline' },
         { id: 'delete_for_me', label: 'Delete for you', icon: 'trash-outline' },
         { id: 'unsend', label: 'Unsend', icon: 'reload-outline', color: '#ff4444', show: isMe },
     ];

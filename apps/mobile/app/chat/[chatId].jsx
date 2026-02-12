@@ -1,10 +1,11 @@
 import { View, Text, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, Keyboard } from 'react-native';
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import * as SecureStore from 'expo-secure-store';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '@chatterapp/store/useAuthStore';
 import { useChatStore } from '@chatterapp/store/useChatStore';
-import { getMessagesByChat, sendMessage, markMessagesAsSeen, markMessagesAsDelivered, subscribeMessages } from '@chatterapp/services/message.service';
-import { getOtherUserFromChat } from '@chatterapp/services/chat.service';
+import { getMessagesByChat, sendMessage, markMessagesAsSeen, markMessagesAsDelivered, subscribeMessages, updateMessage } from '@chatterapp/services/message.service';
+import { getOtherUserFromChat, getChat, getChatMembers } from '@chatterapp/services/chat.service';
 import { setTyping, removeTyping } from '@chatterapp/services/typing.service';
 import { subscribeTyping, subscribeSingleUserPresence, subscribeChatTyping } from '@chatterapp/services/realtime.service';
 import ChatHeader from '../../components/chat/ChatHeader';
@@ -17,6 +18,14 @@ import StatusViewer from '../../components/status/StatusViewer';
 import { useVideoPlayer } from 'expo-video';
 
 const STORY_DURATION = 5000;
+const WALLPAPER_COLORS = {
+    'default': '#0b141a',
+    'blue': '#043d72',
+    'green': '#064e3b',
+    'purple': '#4c1d95',
+    'wine': '#450a0a',
+    'grey': '#1f2937',
+};
 
 
 import { getMessageDateLabel } from '@chatterapp/utils/date';
@@ -30,13 +39,15 @@ const ChatScreen = () => {
 
     const [otherUser, setOtherUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+    const [typingUsers, setTypingUsers] = useState({}); // { [userId]: name }
     const [statuses, setStatuses] = useState([]);
+    const [editingMessage, setEditingMessage] = useState(null);
+    const [wallpaper, setWallpaper] = useState('default');
 
     // Viewer State
-    const [viewingStatus, setViewingStatus] = useState(null);
-    const [currentItemIndex, setCurrentItemIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
+    const [chat, setChat] = useState(null);
+    const [groupMembers, setGroupMembers] = useState([]);
 
     // Animation & Timing Refs
     const progress = useRef(new Animated.Value(0)).current;
@@ -58,14 +69,25 @@ const ChatScreen = () => {
 
         try {
             setLoading(true);
-            const [msgs, other, fetchedStatuses] = await Promise.all([
+            const [msgs, other, fetchedStatuses, chatDoc] = await Promise.all([
                 getMessagesByChat(chatId),
                 getOtherUserFromChat(chatId, user.$id),
-                getRecentStatuses()
+                getRecentStatuses(),
+                getChat(chatId)
             ]);
             setMessages(msgs);
             setOtherUser(other);
             setStatuses(fetchedStatuses);
+            setChat(chatDoc);
+
+            if (chatDoc.type === 'group') {
+                const members = await getChatMembers(chatId);
+                setGroupMembers(members);
+            }
+
+            // Fetch wallpaper
+            const savedWallpaper = await SecureStore.getItemAsync('chat_wallpaper_uri');
+            if (savedWallpaper) setWallpaper(savedWallpaper);
 
             // Mark messages as seen when opening the chat
             await markMessagesAsSeen(chatId, user.$id);
@@ -119,19 +141,47 @@ const ChatScreen = () => {
 
     // 3. Subscribe to Other User's typing status
     useEffect(() => {
-        if (!chatId || !otherUser?.$id) return;
+        if (!chatId || !user?.$id) return;
 
-        const unsubscribeTyping = subscribeChatTyping(chatId, otherUser.$id, (payload) => {
-            setIsOtherUserTyping(payload.isTyping);
+        const unsubscribeTyping = subscribeTyping(async (res) => {
+            const payload = res.payload;
+            if (payload.chatId !== chatId || payload.userId === user.$id) return;
+
+            if (res.events.some(e => e.includes('.create') || e.includes('.update'))) {
+                setTypingUsers(prev => {
+                    const next = { ...prev };
+                    if (payload.isTyping) {
+                        next[payload.userId] = payload.name;
+                    } else {
+                        delete next[payload.userId];
+                    }
+                    return next;
+                });
+            } else if (res.events.some(e => e.includes('.delete'))) {
+                // For deletes, the payload might only contain the document ID
+                // but our docId is chatId_userId, let's try to extract or just refresh
+                // or better, typing status is usually update based.
+                // If we can't get userId from payload on delete, we might need a different approach
+                // but Appwrite usually includes the doc in payload.
+                setTypingUsers(prev => {
+                    const next = { ...prev };
+                    delete next[payload.userId];
+                    return next;
+                });
+            }
         });
 
         return () => {
             unsubscribeTyping();
             if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         };
-    }, [chatId, otherUser?.$id]);
+    }, [chatId, user?.$id]);
 
     // 4. Subscribe to Other User's presence updates
+    const pinnedMessages = useMemo(() => {
+        return messages.filter(m => m.isPinned && !m.isDeleted);
+    }, [messages]);
+
     useEffect(() => {
         if (!otherUser?.$id) return;
 
@@ -176,7 +226,17 @@ const ChatScreen = () => {
     }, []);
 
 
-    const handleSendMessage = async (content, type = 'text', fileId = null) => {
+    const handleSendMessage = async (content, type = 'text', fileId = null, messageIdToEdit = null, duration = null) => {
+        if (messageIdToEdit) {
+            try {
+                await updateMessage(messageIdToEdit, content);
+                setEditingMessage(null);
+                return;
+            } catch (err) {
+                console.error("Failed to edit message:", err);
+                return;
+            }
+        }
         if ((!content?.trim() && !fileId) || !user?.$id) return;
 
         try {
@@ -185,7 +245,8 @@ const ChatScreen = () => {
                 senderId: user.$id,
                 content: content?.trim() || '',
                 type,
-                fileId
+                fileId,
+                duration
             });
             // remove typing indicator once message sent
             handleStopTyping();
@@ -224,6 +285,14 @@ const ChatScreen = () => {
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
 
+    const membersMap = useMemo(() => {
+        const map = {};
+        groupMembers.forEach(m => {
+            if (m.user) map[m.userId] = m.user.name;
+        });
+        return map;
+    }, [groupMembers]);
+
     const renderMessage = useCallback(({ item, index }) => {
         if (!item) return null;
 
@@ -246,6 +315,9 @@ const ChatScreen = () => {
                 <MessageBubble
                     message={item}
                     isMe={item.senderId === user?.$id}
+                    isGroup={chat?.type === 'group'}
+                    senderName={membersMap[item.senderId]}
+                    onEdit={(msg) => setEditingMessage(msg)}
                 />
             </View>
         );
@@ -320,10 +392,12 @@ const ChatScreen = () => {
     const otherUserStatus = statuses.find(s => s.userId === otherUser?.$id);
 
     return (
-        <View className="flex-1 bg-[#0b141a]">
+        <View className="flex-1" style={{ backgroundColor: WALLPAPER_COLORS[wallpaper] || WALLPAPER_COLORS['default'] }}>
             <ChatHeader
                 user={otherUser}
-                typing={isOtherUserTyping}
+                chat={chat}
+                members={groupMembers}
+                typing={typingUsers}
                 chatId={chatId}
                 statusGroup={otherUserStatus}
                 onAvatarPress={(group) => {
@@ -332,6 +406,33 @@ const ChatScreen = () => {
                     setIsPaused(false);
                 }}
             />
+
+            {/* Pinned Messages Banner */}
+            {
+                pinnedMessages.length > 0 && (
+                    <TouchableOpacity
+                        onPress={() => {
+                            const latestPin = pinnedMessages[pinnedMessages.length - 1];
+                            const index = messages.findIndex(m => m.$id === latestPin.$id);
+                            if (index > -1) {
+                                flatListRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
+                            }
+                        }}
+                        className="bg-[#202c33] px-4 py-2 flex-row items-center border-b border-[#374248]"
+                    >
+                        <Ionicons name="pin" size={16} color="#3b82f6" style={{ transform: [{ rotate: '45deg' }] }} />
+                        <View className="ml-3 flex-1">
+                            <Text className="text-[#3b82f6] text-[10px] font-bold uppercase">Pinned Message</Text>
+                            <Text className="text-white text-xs" numberOfLines={1}>
+                                {pinnedMessages[pinnedMessages.length - 1].content}
+                            </Text>
+                        </View>
+                        {pinnedMessages.length > 1 && (
+                            <Text className="text-[#8696a0] text-[10px]">+{pinnedMessages.length - 1} more</Text>
+                        )}
+                    </TouchableOpacity>
+                )
+            }
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
@@ -368,11 +469,15 @@ const ChatScreen = () => {
                         }}
                         scrollEventThrottle={5}
                     />
-
-                    <MessageInput
-                        onSendMessage={handleSendMessage}
-                        onTyping={handleTyping}
-                    />
+                    <View className="mb-2">
+                        <MessageInput
+                            onSendMessage={handleSendMessage}
+                            onTyping={handleTyping}
+                            editingMessage={editingMessage}
+                            onCancelEdit={() => setEditingMessage(null)}
+                            chatId={chatId}
+                        />
+                    </View>
                 </View>
             </KeyboardAvoidingView>
 
@@ -413,7 +518,7 @@ const ChatScreen = () => {
                 remainingTimeRef={remainingTimeRef}
                 startTimeRef={startTimeRef}
             />
-        </View>
+        </View >
     );
 };
 

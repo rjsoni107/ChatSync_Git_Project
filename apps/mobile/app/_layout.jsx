@@ -12,6 +12,9 @@ import ImagePreviewModal from '../components/ui/ImagePreviewModal';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { registerForPushNotificationsAsync, setupNotificationListeners, BACKGROUND_DELIVERY_TASK } from '../utils/notification.util';
 import * as BackgroundFetch from 'expo-background-fetch';
+import { AppState } from 'react-native';
+import { getAppLockEnabled, authenticateWithBiometrics } from '@chatterapp/services/security.service';
+import LockOverlay from '../components/ui/LockOverlay';
 
 export default function RootLayout() {
     const setUser = useAuthStore((s) => s.setUser);
@@ -20,12 +23,24 @@ export default function RootLayout() {
     const segments = useSegments();
     const [isReady, setIsReady] = useState(false);
 
+    // App Lock State
+    const [isLocked, setIsLocked] = useState(false);
+    const [isAppLockEnabled, setIsAppLockSettingEnabled] = useState(false);
+    const [authenticating, setAuthenticating] = useState(false);
+
     // Track user presence (online/offline)
     useUserPresence();
 
     useEffect(() => {
         const checkSession = async () => {
             try {
+                // Initialize Lock State
+                const lockEnabled = await getAppLockEnabled();
+                setIsAppLockSettingEnabled(lockEnabled);
+                if (lockEnabled) {
+                    setIsLocked(true);
+                }
+
                 const currentUser = await getCurrentUser();
                 if (currentUser) {
                     setUser(currentUser);
@@ -39,6 +54,37 @@ export default function RootLayout() {
 
         checkSession();
     }, []);
+
+    // Handle App Lock Activation/Deactivation on App State changes
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', async (nextAppState) => {
+            if (nextAppState === 'background') {
+                // When app goes to background, and lock is enabled, we lock it again
+                const lockEnabled = await getAppLockEnabled();
+                if (lockEnabled) {
+                    setIsLocked(true);
+                }
+            }
+        });
+
+        return () => subscription.remove();
+    }, []);
+
+    const handleUnlock = async () => {
+        setAuthenticating(true);
+        const success = await authenticateWithBiometrics("Unlock your messages");
+        if (success) {
+            setIsLocked(false);
+        }
+        setAuthenticating(false);
+    };
+
+    // Auto-prompt biometrics when locked and app becomes active
+    useEffect(() => {
+        if (isLocked && isReady) {
+            handleUnlock();
+        }
+    }, [isLocked, isReady]);
 
     // Registration for Push Notifications
     useEffect(() => {
@@ -133,6 +179,12 @@ export default function RootLayout() {
                 </Stack>
                 <CustomAlert />
                 <ImagePreviewModal />
+                {isLocked && (
+                    <LockOverlay
+                        onUnlock={handleUnlock}
+                        authenticating={authenticating}
+                    />
+                )}
             </GestureHandlerRootView>
         </SafeAreaProvider>
     );

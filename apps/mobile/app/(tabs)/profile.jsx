@@ -471,10 +471,10 @@ const Profile = () => {
                             showChevron={false}
                         />
                         <SettingsItem
-                            icon="shield-checkmark-outline"
-                            title="Security"
-                            subtitle="Two-step verification, change password"
-                            onPress={() => router.push('/profile/change-password')}
+                            icon="lock-closed-outline"
+                            title="Privacy & Security"
+                            subtitle="App lock, privacy, change password"
+                            onPress={() => router.push('/profile/security')}
                         />
                     </View>
                 </View>
@@ -494,6 +494,7 @@ const Profile = () => {
                             icon="color-palette-outline"
                             title="Appearance"
                             subtitle="Theme, wallpaper"
+                            onPress={() => router.push('/settings/wallpaper')}
                         />
                         <SettingsItem
                             icon="help-circle-outline"

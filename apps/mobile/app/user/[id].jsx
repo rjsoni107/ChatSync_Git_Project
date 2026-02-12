@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getUserProfile, blockUser, unblockUser, isUserBlocked } from '@chatterapp/services/user.service';
 import { clearChatMessages } from '@chatterapp/services/message.service';
+import { recordProfileView } from '@chatterapp/services/notification.service';
 import { deletePrivateChat, findPrivateChat } from '@chatterapp/services/chat.service';
 import { deleteAllRequests, checkExistingRelationship, sendChatRequest, cancelChatRequest, updateRequestStatus } from '@chatterapp/services/request.service';
 import { subscribeRequests, subscribeSingleUserPresence } from '@chatterapp/services/realtime.service';
@@ -44,6 +45,11 @@ const UserProfile = () => {
                 if (!chatId) {
                     const existingChatId = await findPrivateChat(currentUser.$id, id);
                     if (existingChatId) setChatId(existingChatId);
+                }
+
+                // 🔔 Record Profile View if it's someone else viewing
+                if (currentUser.$id !== id) {
+                    recordProfileView(currentUser.$id, id);
                 }
             } catch (err) {
                 console.error('Error fetching user profile data:', err);
@@ -411,12 +417,19 @@ const UserProfile = () => {
                             </View>
                         ) : (
                             chatId && (
-                                <InfoSection title="Media, links and docs">
-                                    <View className="flex-row items-center justify-between">
-                                        <Text className="text-[#8696a0] text-sm italic">No media shared yet</Text>
-                                        <Ionicons name="chevron-forward" size={20} color="#374045" />
-                                    </View>
-                                </InfoSection>
+                                <TouchableOpacity
+                                    onPress={() => router.push({
+                                        pathname: '/chat/media-gallery',
+                                        params: { chatId, chatName: profile?.name }
+                                    })}
+                                >
+                                    <InfoSection title="Media, links and docs">
+                                        <View className="flex-row items-center justify-between">
+                                            <Text className="text-[#8696a0] text-sm italic">View shared photos, videos, and music</Text>
+                                            <Ionicons name="chevron-forward" size={20} color="#374045" />
+                                        </View>
+                                    </InfoSection>
+                                </TouchableOpacity>
                             )
                         )}
 
@@ -472,7 +485,7 @@ const UserProfile = () => {
                     <View className="h-20" />
                 </ScrollView>
             </SafeAreaView>
-        </View>
+        </View >
     );
 };
 

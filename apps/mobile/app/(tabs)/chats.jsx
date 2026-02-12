@@ -27,6 +27,7 @@ const Chats = () => {
     const user = useAuthStore((s) => s.user);
     const chats = useChatStore((s) => s.chats);
     const setChats = useChatStore((s) => s.setChats);
+    const profileViewsCount = useNotificationStore(s => s.profileViewsCount);
 
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -240,6 +241,23 @@ const Chats = () => {
                     resizeMode="contain"
                 />
                 <View className="flex-row items-center">
+                    <TouchableOpacity className="p-2" onPress={() => router.push('/chat/group/create')}>
+                        <View className="bg-secondary px-2 py-2 rounded-full flex-row items-center border border-black/5">
+                            <Ionicons name="people-outline" size={20} color="white" />
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity className="p-2" onPress={() => router.push('/notifications')}>
+                        <View className="bg-secondary px-2 py-2 rounded-full flex-row items-center border border-black/5 relative">
+                            <Ionicons name="notifications-outline" size={20} color="white" />
+                            {profileViewsCount > 0 && (
+                                <View className="absolute -top-1 -right-1 bg-red-500 rounded-full w-4 h-4 items-center justify-center">
+                                    <Text className="text-white text-[10px] font-bold">
+                                        {profileViewsCount}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
+                    </TouchableOpacity>
                     <TouchableOpacity className="p-2" onPress={() => router.push('/(tabs)/search')}>
                         <View className="bg-secondary px-2 py-2 rounded-full flex-row items-center border border-black/5">
                             <Ionicons name="person-add-outline" size={20} color="white" />

@@ -242,3 +242,9 @@ export const isUserBlocked = async (userId, blockedUserId) => {
         return false;
     }
 };
+
+export const updateStatusPrivacy = async (userId, privacyValue) => {
+    return await databases.updateDocument(DB_ID, USERS_ID, userId, {
+        statusPrivacy: privacyValue
+    });
+};
