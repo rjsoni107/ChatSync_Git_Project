@@ -12,7 +12,7 @@ import SearchBar from '../../components/chat/SearchBar';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import ChatListSkeleton from '../../components/chat/ChatListSkeleton';
-import { useDebounce } from 'use-debounce';
+import { useDebouncedCallback } from 'use-debounce';
 
 const Chats = () => {
     const router = useRouter();
@@ -66,7 +66,9 @@ const Chats = () => {
         }
     }, [user?.$id, setChats]);
 
-    const [debouncedFetch] = useDebounce(() => fetchChats(false, true), 500);
+    const debouncedFetch = useDebouncedCallback(() => {
+        fetchChats(false, true);
+    }, 500);
 
     // 1. Initial Load
     useEffect(() => {
